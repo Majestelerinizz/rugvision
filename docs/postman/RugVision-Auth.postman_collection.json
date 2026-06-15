@@ -1,0 +1,271 @@
+{
+  "info": {
+    "name": "RugVision API",
+    "_postman_id": "f3f2e5ce-7bbd-4ed5-a6a0-cf62dbe4d0b2",
+    "description": "RugVision /api/v1 auth ve health endpoint test koleksiyonu.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Auth Register",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('email', json.data.user.email);",
+              "pm.collectionVariables.set('accessToken', json.tokens.accessToken);",
+              "pm.collectionVariables.set('refreshToken', json.tokens.refreshToken);",
+              "pm.collectionVariables.set('merchantId', json.data.merchant.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"merchant_{{$timestamp}}@rugvision.test\",\n  \"password\": \"Test12345!\",\n  \"fullName\": \"Ilk Merchant\",\n  \"companyName\": \"RugVision Demo Magaza\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "Auth Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('accessToken', json.tokens.accessToken);",
+              "pm.collectionVariables.set('refreshToken', json.tokens.refreshToken);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"Test12345!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "Auth Refresh",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 200', function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('accessToken', json.tokens.accessToken);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/refresh",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "refresh"]
+        }
+      }
+    },
+    {
+      "name": "Auth Logout",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/auth/logout",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "logout"]
+        }
+      }
+    },
+    {
+      "name": "Forgot Password (MVP Placeholder)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/forgot-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "forgot-password"]
+        }
+      }
+    },
+    {
+      "name": "Reset Password (MVP Placeholder)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"dummytoken123\",\n  \"newPassword\": \"Test12345!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/reset-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "reset-password"]
+        }
+      }
+    },
+    {
+      "name": "Rugs Create",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status is 201', function () {",
+              "  pm.response.to.have.status(201);",
+              "});",
+              "const json = pm.response.json();",
+              "pm.collectionVariables.set('rugId', json.data.id);"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"merchantId\": \"{{merchantId}}\",\n  \"sku\": \"SKU-{{$timestamp}}\",\n  \"slug\": \"modern-rug-{{$timestamp}}\",\n  \"name\": \"Modern Halı\",\n  \"widthCm\": 160,\n  \"lengthCm\": 230,\n  \"price\": 4999,\n  \"colors\": [\"bej\", \"gri\"],\n  \"category\": \"Salon\",\n  \"brand\": \"RugVision\",\n  \"description\": \"MVP test halisi\",\n  \"status\": \"ACTIVE\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/rugs",
+          "host": ["{{baseUrl}}"],
+          "path": ["rugs"]
+        }
+      }
+    },
+    {
+      "name": "Rugs List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/rugs?merchantId={{merchantId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["rugs"],
+          "query": [
+            { "key": "merchantId", "value": "{{merchantId}}" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Rugs Get By Id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/rugs/{{rugId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["rugs", "{{rugId}}"]
+        }
+      }
+    },
+    {
+      "name": "Rugs Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Modern Hali Updated\",\n  \"price\": 5299,\n  \"colors\": [\"bej\", \"gri\", \"krem\"]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/rugs/{{rugId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["rugs", "{{rugId}}"]
+        }
+      }
+    },
+    {
+      "name": "Rugs Delete",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/rugs/{{rugId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["rugs", "{{rugId}}"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000/api/v1" },
+    { "key": "email", "value": "" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "merchantId", "value": "" },
+    { "key": "rugId", "value": "" }
+  ]
+}
