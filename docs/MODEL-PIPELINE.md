@@ -27,6 +27,16 @@ data/rug-photos/RV-ARYA-003.jpg
 
 Manifest: `data/rugs-batch.csv` (pilot 10 SKU hazır).
 
+### 1b) (Opsiyonel) Katalog inset temizle
+
+Sağ-alt dairesel yakın çekim inset varsa kaldırır; kapakları `public/rug-covers/` ile senkronlar:
+
+```powershell
+npm run photos:clean
+```
+
+Orijinaller `data/rug-photos-raw/` altına yedeklenir. Gereksinim: Python + Pillow (script otomatik kurar).
+
 ### 2) Toplu model üret
 
 ```powershell
@@ -79,13 +89,16 @@ RugVision `rug-covers` ile aynı PNG'leri halı sitesine yükle:
 - [x] Neon DB bağlandı (`npm run models:attach`)
 - [x] GitHub + Vercel deploy (`7513861`)
 - [x] iPhone Quick Look canlı doğrulama (ürün bazlı model)
-- [ ] R2 production (`STORAGE_DRIVER=r2`)
+- [x] Fotoğraf inset temizleme (`npm run photos:clean`)
+- [x] R2 upload script + `docs/R2-SETUP.md`
+- [ ] R2 production (`STORAGE_DRIVER=r2` + Vercel env)
 
 ---
 
 ## Bulut depolama (R2 / S3)
 
-Vercel'de kalıcı dosya için `STORAGE_DRIVER=r2` (veya `s3`).
+Vercel'de kalıcı dosya için `STORAGE_DRIVER=r2` (veya `s3`).  
+**Tam kurulum:** `docs/R2-SETUP.md`
 
 | Env | Açıklama |
 |-----|----------|
@@ -96,13 +109,20 @@ Vercel'de kalıcı dosya için `STORAGE_DRIVER=r2` (veya `s3`).
 | `R2_ENDPOINT` | `https://<account>.r2.cloudflarestorage.com` |
 | `R2_PUBLIC_URL` | CDN/public URL (örn. `https://cdn.example.com`) |
 
+Mevcut modelleri R2'ye yükle:
+
+```powershell
+npm run models:upload-r2
+npm run models:upload-r2 -- --force   # uzerine yaz
+```
+
 Upload: `POST /api/v1/uploads/model` → driver üzerinden R2'ye yazar.  
 USDZ: `GET /api/v1/ar/usdz/:filename` → storage'dan okur.
 
-Production'da `model3dUrl` tam CDN URL olabilir:
+Production'da `model3dUrl` tam CDN URL:
 
 ```powershell
-npm run models:attach -- --base-url https://rugvision-o54d.vercel.app
+npm run models:attach -- --base-url https://cdn.ornek.com
 ```
 
 ---

@@ -103,7 +103,7 @@ Dönen `merchant.id` → embed'de `data-merchant-id` olarak kullanılır.
 |----------|-------|
 | `DATABASE_URL` | Neon connection string (sadece `postgresql://...`, psql yok) |
 | `JWT_SECRET` | 96 karakterlik güçlü değer (≥32 zorunlu) |
-| `STORAGE_DRIVER` | `local` (Adım 2'de `s3`/`r2` olacak) |
+| `STORAGE_DRIVER` | `local` (Adım 2'de `r2` — bkz. `docs/R2-SETUP.md`) |
 
 5. **Deploy**. Build bitince `https://rugvision-xxx.vercel.app` adresin hazır.
 

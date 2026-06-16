@@ -21,7 +21,8 @@ function parseArgs() {
     coversDir: path.join(ROOT, "public", "rug-covers"),
     merchantId: process.env.MERCHANT_ID || "cmqgswc5a000004lanqoxc666",
     dryRun: false,
-    baseUrl: process.env.MODEL_PUBLIC_BASE || "",
+    baseUrl: resolvePublicBase(),
+    coversBaseUrl: (process.env.COVER_PUBLIC_BASE || "").replace(/\/$/, ""),
   };
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
@@ -29,6 +30,8 @@ function parseArgs() {
     else if (a === "--merchant-id" && args[i + 1]) opts.merchantId = args[++i];
     else if (a === "--models-dir" && args[i + 1]) opts.modelsDir = path.resolve(args[++i]);
     else if (a === "--base-url" && args[i + 1]) opts.baseUrl = args[++i].replace(/\/$/, "");
+    else if (a === "--covers-base-url" && args[i + 1])
+      opts.coversBaseUrl = args[++i].replace(/\/$/, "");
     else if (a === "--dry-run") opts.dryRun = true;
   }
   return opts;
@@ -57,12 +60,30 @@ function parseCsv(filePath: string) {
 
 function modelUrlForSku(sku: string, baseUrl: string) {
   const rel = `/models/${sku}.glb`;
-  return baseUrl ? `${baseUrl}${rel}` : rel;
+  if (!baseUrl) return rel;
+  // Tam CDN kok URL (R2_PUBLIC_URL) veya site base
+  if (baseUrl.includes("/models")) {
+    return `${baseUrl.replace(/\/$/, "")}/${sku}.glb`;
+  }
+  return `${baseUrl}${rel}`;
 }
 
 function coverUrlForSku(sku: string, baseUrl: string) {
   const rel = `/rug-covers/${sku}.png`;
-  return baseUrl ? `${baseUrl}${rel}` : rel;
+  if (!baseUrl) return rel;
+  if (baseUrl.includes("/rug-covers")) {
+    return `${baseUrl.replace(/\/$/, "")}/${sku}.png`;
+  }
+  return `${baseUrl}${rel}`;
+}
+
+function resolvePublicBase(): string {
+  return (
+    process.env.MODEL_PUBLIC_BASE ||
+    process.env.R2_PUBLIC_URL ||
+    process.env.S3_PUBLIC_URL ||
+    ""
+  ).replace(/\/$/, "");
 }
 
 function syncCoverImage(sku: string, photoPath: string, coversDir: string) {
@@ -96,7 +117,7 @@ async function main() {
     const photoPath = imageRel ? path.join(ROOT, imageRel.replace(/\//g, path.sep)) : "";
     syncCoverImage(sku, photoPath, opts.coversDir);
     const coverImage = fs.existsSync(path.join(opts.coversDir, `${sku}.png`))
-      ? coverUrlForSku(sku, opts.baseUrl)
+      ? coverUrlForSku(sku, opts.coversBaseUrl)
       : null;
 
     const rug = await prisma.rug.findUnique({

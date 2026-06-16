@@ -63,17 +63,19 @@ Runbook: **`docs/DEPLOY.md`**
 
 Kurulum: **`docs/PILOT-ECOMMERCE.md`**
 
-### Faz 3 Adım 2 — Model pipeline + depolama (%85)
+### Faz 3 Adım 2 — Model pipeline + depolama (%95)
 
 - [x] Otomatik model üretimi: `scripts/generate_rug_model.py` (foto + ölçü → GLB/USDZ)
 - [x] Batch runner: `npm run models:batch` + `data/rugs-batch.csv`
 - [x] DB bağlama: `npm run models:attach` (`model3dUrl` + `coverImage`)
 - [x] 10 pilot SKU batch üretim + Vercel deploy (`public/models/RV-*.glb`)
-- [x] S3/R2 storage driver kodu (`lib/storage.ts`) — hazır, production'da henüz bağlı değil
-- [ ] Cloudflare R2 production env + `STORAGE_DRIVER=r2`
+- [x] S3/R2 storage driver kodu (`lib/storage.ts`)
+- [x] Fotoğraf inset temizleme: `npm run photos:clean` (Pillow)
+- [x] R2 upload script: `npm run models:upload-r2` + `docs/R2-SETUP.md`
+- [ ] Cloudflare R2 production env + `STORAGE_DRIVER=r2` (Vercel — kullanıcı credentials)
 - [ ] 100+ halı ölçeği için QA raporu
 
-Runbook: **`docs/MODEL-PIPELINE.md`**
+Runbook: **`docs/MODEL-PIPELINE.md`** · R2: **`docs/R2-SETUP.md`**
 
 ---
 
@@ -192,8 +194,8 @@ Pilot'te **her SKU için ayrı GLB/USDZ** üretildi ve canlıda kullanılıyor.
 
 | Öncelik | İş | Durum |
 |---------|-----|-------|
-| 1 | Cloudflare R2 production (`STORAGE_DRIVER=r2`) | **Sırada** |
-| 2 | Fotoğraf temizleme (inset kaldırma) — AR kalite | İyileştirme |
+| 1 | Cloudflare R2 production (`STORAGE_DRIVER=r2`) | **Script + runbook hazır** — Vercel env (kullanıcı) |
+| 2 | Fotoğraf temizleme (inset kaldırma) | **Tamamlandı** (`npm run photos:clean`, 2/10 inset) |
 | 3 | Resmi 10 ürün AR kabul raporu (PDF/Excel) | Büyüme |
 | 4 | Pilot slider/footer linkleri | Opsiyonel |
 | 5 | Özel domain (`app.rugvision.com`) | Opsiyonel |
@@ -208,19 +210,19 @@ Pilot'te **her SKU için ayrı GLB/USDZ** üretildi ve canlıda kullanılıyor.
 | Faz 1–2 | %100 |
 | **Faz 3 Adım 1** | **%100** |
 | **Faz 3 Adım 3 pilot** | **%100** |
-| **Faz 3 Adım 2** | **%85** (batch tamam, R2 sırada) |
+| **Faz 3 Adım 2** | **%95** (batch + foto temizleme + R2 script; env kullanıcıda) |
 
 **Tüm proje (tam vizyon):** ~%88-90  
-**TEMEL satış paketi:** ~%98 — kalan ~1-2 iş günü (R2 production)  
+**TEMEL satış paketi:** ~%99 — kalan ~0.5 iş günü (R2 Vercel env + upload)  
 **Tam ürünleşme ek süre:** +10-14 iş günü
 
 ---
 
 ## 11. Sonuç
 
-Production, pilot e-ticaret entegrasyonu ve **10 SKU ürün bazlı AR** tamamlandı. Canlı iPhone AR kanıtlandı.
+Production, pilot e-ticaret entegrasyonu ve **10 SKU ürün bazlı AR** tamamlandı. Fotoğraf inset temizleme ve R2 upload altyapısı eklendi.
 
-Sıradaki tek TEMEL iş: **Cloudflare R2 production bağlantısı** (100+ halı ölçeği için).
+Sıradaki TEMEL adım: **Cloudflare bucket + Vercel `STORAGE_DRIVER=r2`** → `npm run models:upload-r2` + `models:attach --base-url` (bkz. `docs/R2-SETUP.md`).
 
 ---
 
@@ -234,4 +236,5 @@ Sıradaki tek TEMEL iş: **Cloudflare R2 production bağlantısı** (100+ halı 
 | `docs/PILOT-ECOMMERCE.md` | PHP pilot entegrasyon + ürün görselleri |
 | `docs/sql/update_product_images.sql` | Halı sitesi MySQL görsel güncelleme |
 | `docs/MODEL-PIPELINE.md` | Batch GLB/USDZ üretim runbook |
+| `docs/R2-SETUP.md` | Cloudflare R2 production kurulum |
 | `docs/rugvision-master-reference-v1.md` | Master referans |

@@ -169,16 +169,18 @@ yukaridan aşağıya gidilir. Toplam: TEMEL (Adım 1-3) ~6-10 gün, BUYUME (Adı
 
 ### ADIM 2 - Model dosya altyapısı (bulut depolama + otomatik üretim)  [~3-4 gün]
 > Amaç: Modelleri sunucu diski yerine bulutta tut; yüzlerce halı için üretimi otomatikleştir.
-> **DURUM: %85 TAMAMLANDI** — 10 SKU batch üretim + canlı AR doğrulandı; yalnızca R2 production bağlantısı kaldı.
-> Runbook: **`docs/MODEL-PIPELINE.md`**
+> **DURUM: %95 TAMAMLANDI** — 10 SKU batch + foto inset temizleme + R2 script/runbook hazır; Cloudflare credentials + Vercel env kullanıcı tarafında.
+> Runbook: **`docs/MODEL-PIPELINE.md`** · R2: **`docs/R2-SETUP.md`**
 - [x] 2.0 Depolama soyutlaması genişletildi: `readModel` + S3/R2 driver (`lib/storage.ts`)
 - [x] 2.0 USDZ endpoint storage üzerinden okur (local + R2)
 - [x] 2.3 **Otomatik model üretimi (v1):** `scripts/generate_rug_model.py` — foto + en/boy → GLB/USDZ
 - [x] 2.3 **Batch runner:** `npm run models:batch` + `data/rugs-batch.csv` (10 pilot SKU)
 - [x] 2.3 **DB bağlama:** `npm run models:attach` → `model3dUrl` + `coverImage` güncelleme
 - [x] 2.4 Pilot 10 SKU için gerçek fotoğraflarla batch üretim + **canlı iPhone AR doğrulama** (commit `29a31d3`)
-- [ ] 2.1 Bulut depolama bağla (Cloudflare R2) — production env + upload test
-- [ ] 2.2 `STORAGE_DRIVER=r2` production'da etkin (şu an Vercel `local` + `public/models/` git deploy)
+- [x] 2.4b **Fotoğraf inset temizleme:** `npm run photos:clean` (`scripts/clean_rug_photo.py`) — 2/10 pilot fotoğrafta inset kaldırıldı, kapaklar `rug-covers` ile senkron
+- [x] 2.1 R2 upload script + runbook: `npm run models:upload-r2` + `docs/R2-SETUP.md` + `.env.example`
+- [ ] 2.1b Cloudflare R2 bucket + API token oluştur (kullanıcı) → Vercel env
+- [ ] 2.2 `STORAGE_DRIVER=r2` production'da etkin + `npm run models:upload-r2` + attach `--base-url`
 - [ ] 2.5 Model pipeline standardı: toplu QA raporu (100+ halı ölçeği için)
 
 ### ADIM 3 - E-ticaret entegrasyonu (müşteri sitesine ekleme)  [~1-2 gün]
@@ -192,7 +194,7 @@ yukaridan aşağıya gidilir. Toplam: TEMEL (Adım 1-3) ~6-10 gün, BUYUME (Adı
 
 > **Not:** Slider/footer köprü linkleri ve panel domain doğrulama Adım 3 kapsamı dışında bırakıldı (Büyüme fazı / opsiyonel cila).
 
-Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch + pilot modeller %85 (R2 production sırada).**
+Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch + pilot modeller %95 (R2 env + upload kullanıcıda).**
 
 ### ADIM 4 - Platform eklentileri  [BUYUME]
 > Amaç: Kurulumu "tek tik" yapan resmi eklentiler.
