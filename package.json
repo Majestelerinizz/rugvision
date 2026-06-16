@@ -12,7 +12,7 @@
     "models:batch": "node scripts/batch-generate-rugs.mjs",
     "models:one": "node scripts/batch-generate-rugs.mjs --sku",
     "models:attach": "tsx scripts/attach-rug-models.ts",
-    "models:upload-r2": "node scripts/upload-models-r2.mjs",
+    "models:upload-r2": "node --env-file=.env scripts/upload-models-r2.mjs",
     "photos:clean": "node scripts/clean-rug-photos.mjs",
     "tunnel": "node scripts/tunnel.mjs",
     "dev:all": "concurrently -n dev,tunnel -c blue,magenta \"npm:dev\" \"npm:tunnel\""

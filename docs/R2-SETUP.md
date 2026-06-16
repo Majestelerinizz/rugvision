@@ -122,4 +122,6 @@ Vercel'de yeni upload (`POST /api/v1/uploads/model`) `STORAGE_DRIVER=r2` ile do�
 
 ## Pilot notu (10 SKU)
 
-Git'teki `public/models/` dosyaları yedek/fallback olarak kalabilir. Production'da DB URL'leri R2'ye işaret ettiğinde widget CDN'i kullanır; Vercel git boyutunu küçültmek için ileride `public/models/` git'ten çıkarılabilir (opsiyonel).
+Git'teki `public/models/` dosyaları yedek/fallback olarak kalabilir. Production'da DB URL'leri R2'ye işaret eder.
+
+**Canlı (17.06.2026):** Bucket `rugvision-models`, CDN `https://pub-692fed61add14fdca565fa5967c47df1.r2.dev`, Vercel `STORAGE_DRIVER=r2`, iPhone 12 AR doğrulandı.

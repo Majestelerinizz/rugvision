@@ -297,8 +297,8 @@ Postman koleksiyonu: `docs/postman/`.
 - **Faz 2 - Ürünlesme çekirdeği:** Tamamlandı (embed widget, analytics, panel, upload, domain doğrulama, auth guard).
 - **Faz 3 - Production & büyüme:**
   - Adım 1 (Production): **%100** — Vercel + Neon CANLI
+  - Adım 2 (Model pipeline + R2): **%100** — Cloudflare R2 CDN canlı
   - Adım 3 (Pilot e-ticaret): **%100** — savasdogantekstil.com CANLI AR + 10 SKU görsel
-  - Adım 2 (Model pipeline): **%85** — 10 SKU batch tamam; R2 production sırada
   - Adım 4-7 (Shopify, AI, CI): planlandı
 
 Detaylı kapsam ve takip:
@@ -309,7 +309,7 @@ Detaylı kapsam ve takip:
 - `docs/MODEL-PIPELINE.md` (batch GLB/USDZ üretim)
 - `VR_ODANDA_GOR.md` (faz takibi + Faz 3 adım adım plan)
 
-**Tamamlanma:** ~%88-90 (tam vizyon) | **TEMEL satış paketi:** ~%98 (yalnızca R2 production kaldı)
+**Tamamlanma:** ~%90 (tam vizyon) | **TEMEL satış paketi:** **%100** (pilot satışa hazır)
 
 ---
 

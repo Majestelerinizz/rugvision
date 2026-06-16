@@ -63,23 +63,25 @@ Runbook: **`docs/DEPLOY.md`**
 
 Kurulum: **`docs/PILOT-ECOMMERCE.md`**
 
-### Faz 3 Adım 2 — Model pipeline + depolama (%95)
+### Faz 3 Adım 2 — Model pipeline + depolama (%100)
 
 - [x] Otomatik model üretimi: `scripts/generate_rug_model.py` (foto + ölçü → GLB/USDZ)
 - [x] Batch runner: `npm run models:batch` + `data/rugs-batch.csv`
 - [x] DB bağlama: `npm run models:attach` (`model3dUrl` + `coverImage`)
-- [x] 10 pilot SKU batch üretim + Vercel deploy (`public/models/RV-*.glb`)
+- [x] 10 pilot SKU batch üretim
 - [x] S3/R2 storage driver kodu (`lib/storage.ts`)
 - [x] Fotoğraf inset temizleme: `npm run photos:clean` (Pillow)
 - [x] R2 upload script: `npm run models:upload-r2` + `docs/R2-SETUP.md`
-- [ ] Cloudflare R2 production env + `STORAGE_DRIVER=r2` (Vercel — kullanıcı credentials)
+- [x] **Cloudflare R2 production:** bucket `rugvision-models`, Vercel `STORAGE_DRIVER=r2`, 26 dosya CDN'de
+- [x] Neon `model3dUrl` → `https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/{SKU}.glb`
+- [x] iPhone 12 AR doğrulama (R2 CDN + pilot site) — 17.06.2026
 - [ ] 100+ halı ölçeği için QA raporu
 
 Runbook: **`docs/MODEL-PIPELINE.md`** · R2: **`docs/R2-SETUP.md`**
 
 ---
 
-## 3. Son Kontrol (17.06.2026)
+## 3. Son Kontrol (17.06.2026 — R2 production)
 
 | Kontrol | Sonuç |
 |---------|-------|
@@ -88,10 +90,11 @@ Runbook: **`docs/MODEL-PIPELINE.md`** · R2: **`docs/R2-SETUP.md`**
 | `npx tsc --noEmit` | Hata yok |
 | `npm run build` | Başarılı |
 | Production health | `ok`, `db: up` |
-| Widget API (RV-ARYA-003) | 200, `model3dUrl: /models/RV-ARYA-003.glb` |
+| Widget API (RV-LUNA-001) | 200, `model3dUrl` → R2 CDN |
+| R2 public GLB | `pub-692fed61add14fdca565fa5967c47df1.r2.dev` → 200 |
 | Pilot products.php | 10 farklı `RV-*.png` görseli |
 | Pilot ürün detay + widget | Buton + AR çalışıyor |
-| iPhone Quick Look (pilot) | Ürün bazlı halı zeminde görüldü |
+| iPhone 12 Quick Look (pilot) | R2 CDN + zemine oturma ✅ |
 
 ---
 
@@ -101,11 +104,11 @@ Runbook: **`docs/MODEL-PIPELINE.md`** · R2: **`docs/R2-SETUP.md`**
 |------|-------|
 | Production health | **200 OK, db: "up"** |
 | RugVision panel | Çalışıyor (`demo@` + `savas@`) |
-| Pilot widget API (RV-ARYA-003) | **200, `/models/RV-ARYA-003.glb`** |
+| Pilot widget API (RV-LUNA-001) | **200, R2 CDN GLB URL** |
 | Pilot ürün listesi | **10 farklı ürün görseli** |
-| iPhone Quick Look (pilot) | **Ürün bazlı halı, zemine oturdu** |
-| GLB production (örnek) | `rugvision-o54d.vercel.app/models/RV-LUNA-001.glb` → 200 |
-| USDZ production (örnek) | `public/models/RV-LUNA-001.usdz` (git deploy) |
+| iPhone 12 Quick Look (pilot) | **R2 CDN, zemine oturdu** |
+| GLB R2 CDN (örnek) | `pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-LUNA-001.glb` → 200 |
+| USDZ R2 CDN (örnek) | `.../models/RV-LUNA-001.usdz` (sibling swap) |
 | Otomatik testler | 14/14 |
 
 ---
@@ -132,7 +135,7 @@ Runbook: **`docs/MODEL-PIPELINE.md`** · R2: **`docs/R2-SETUP.md`**
 | Test ürün | https://savasdogantekstil.com/rugvision/product-detail.php?id=3 |
 | Merchant ID | `cmqgswc5a000004lanqoxc666` |
 | Örnek SKU | `RV-ARYA-003` |
-| Örnek model | `/models/RV-ARYA-003.glb` |
+| Örnek model | `https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-ARYA-003.glb` |
 
 ### Embed kodu (pilot)
 
@@ -194,7 +197,7 @@ Pilot'te **her SKU için ayrı GLB/USDZ** üretildi ve canlıda kullanılıyor.
 
 | Öncelik | İş | Durum |
 |---------|-----|-------|
-| 1 | Cloudflare R2 production (`STORAGE_DRIVER=r2`) | **Script + runbook hazır** — Vercel env (kullanıcı) |
+| 1 | Cloudflare R2 production (`STORAGE_DRIVER=r2`) | **Tamamlandı** — 17.06.2026 |
 | 2 | Fotoğraf temizleme (inset kaldırma) | **Tamamlandı** (`npm run photos:clean`, 2/10 inset) |
 | 3 | Resmi 10 ürün AR kabul raporu (PDF/Excel) | Büyüme |
 | 4 | Pilot slider/footer linkleri | Opsiyonel |
@@ -210,19 +213,19 @@ Pilot'te **her SKU için ayrı GLB/USDZ** üretildi ve canlıda kullanılıyor.
 | Faz 1–2 | %100 |
 | **Faz 3 Adım 1** | **%100** |
 | **Faz 3 Adım 3 pilot** | **%100** |
-| **Faz 3 Adım 2** | **%95** (batch + foto temizleme + R2 script; env kullanıcıda) |
+| **Faz 3 Adım 2** | **%100** (R2 production + iPhone 12 doğrulama) |
 
-**Tüm proje (tam vizyon):** ~%88-90  
-**TEMEL satış paketi:** ~%99 — kalan ~0.5 iş günü (R2 Vercel env + upload)  
+**Tüm proje (tam vizyon):** ~%90  
+**TEMEL satış paketi:** **%100** — pilot satışa hazır  
 **Tam ürünleşme ek süre:** +10-14 iş günü
 
 ---
 
 ## 11. Sonuç
 
-Production, pilot e-ticaret entegrasyonu ve **10 SKU ürün bazlı AR** tamamlandı. Fotoğraf inset temizleme ve R2 upload altyapısı eklendi.
+**Faz 3 TEMEL paketi tamamlandı:** Production (Neon+Vercel), pilot e-ticaret, 10 SKU AR, **Cloudflare R2 CDN**. iPhone 12 Quick Look doğrulandı (17.06.2026).
 
-Sıradaki TEMEL adım: **Cloudflare bucket + Vercel `STORAGE_DRIVER=r2`** → `npm run models:upload-r2` + `models:attach --base-url` (bkz. `docs/R2-SETUP.md`).
+Sıradaki işler **Büyüme fazı:** QA raporu, Shopify/WooCommerce, AI zemin, özel domain.
 
 ---
 

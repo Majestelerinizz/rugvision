@@ -5,7 +5,7 @@
 
 ---
 
-## ✅ Canlı Production (17.06.2026)
+## ✅ Canlı Production (17.06.2026 — R2 CDN)
 
 | Bilgi | Değer |
 |-------|--------|
@@ -14,10 +14,11 @@
 | **Health** | https://rugvision-o54d.vercel.app/api/v1/health |
 | **Veritabanı** | Neon PostgreSQL 16 (proje: `rugvision`) |
 | **Hosting** | Vercel (GitHub: `Majestelerinizz/rugvision`, branch `main`) |
-| **Son commit** | `7513861` — 10 SKU model + pilot dokümantasyon |
+| **Model CDN** | Cloudflare R2 — `https://pub-692fed61add14fdca565fa5967c47df1.r2.dev` |
+| **Storage** | `STORAGE_DRIVER=r2` (Vercel Production) |
 | **Health durumu** | `{"status":"ok","db":"up"}` |
-| **AR doğrulama** | Pilot 10 SKU ürün bazlı iPhone Quick Look ✅ |
-| **Modeller** | `public/models/RV-*.glb` + `.usdz` (git deploy) |
+| **AR doğrulama** | iPhone 12 Quick Look + R2 CDN ✅ |
+| **Modeller** | R2 `models/RV-*.glb` + `.usdz` (git `public/models/` yedek) |
 
 **Demo merchant:** `demo@ornek.com` / `Test12345!` (Demo Mağaza)
 
@@ -103,7 +104,12 @@ Dönen `merchant.id` → embed'de `data-merchant-id` olarak kullanılır.
 |----------|-------|
 | `DATABASE_URL` | Neon connection string (sadece `postgresql://...`, psql yok) |
 | `JWT_SECRET` | 96 karakterlik güçlü değer (≥32 zorunlu) |
-| `STORAGE_DRIVER` | `local` (Adım 2'de `r2` — bkz. `docs/R2-SETUP.md`) |
+| `STORAGE_DRIVER` | `r2` (bkz. `docs/R2-SETUP.md`) |
+| `R2_BUCKET` | `rugvision-models` |
+| `R2_ACCESS_KEY_ID` | Cloudflare R2 API token |
+| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 API secret |
+| `R2_ENDPOINT` | `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` |
+| `R2_PUBLIC_URL` | `https://pub-692fed61add14fdca565fa5967c47df1.r2.dev` |
 
 5. **Deploy**. Build bitince `https://rugvision-xxx.vercel.app` adresin hazır.
 
@@ -153,9 +159,9 @@ curl https://rugvision-o54d.vercel.app/api/v1/health
 Vercel'in dosya sistemi **salt-okunurdur**; `POST /api/v1/uploads/model` production'da
 `STORAGE_DRIVER=local` ile **kalıcı diske yazamaz**.
 
-**Pilot (10 SKU):** Modeller repoda (`public/models/RV-*.glb`) commit'li; Vercel git deploy ile servis edilir.
+**Pilot (10 SKU):** Modeller **Cloudflare R2 CDN**'de; Neon `model3dUrl` tam CDN URL. Git'teki `public/models/` yedek/fallback.
 
-**100+ halı ölçeği için (önerilen):** **Adım 2** — Cloudflare R2, `STORAGE_DRIVER=r2`.
+**100+ halı ölçeği:** Aynı R2 pipeline — `npm run models:batch` → `models:upload-r2` → `models:attach --base-url`.
 
 ---
 
@@ -170,7 +176,7 @@ Vercel'in dosya sistemi **salt-okunurdur**; `POST /api/v1/uploads/model` product
 - [x] **Pilot:** 10 SKU ürün bazlı GLB + canlı AR (savasdogantekstil.com)
 - [x] **Pilot:** Halı sitesi ürün görselleri (`docs/sql/update_product_images.sql`)
 - [x] HTTPS production aktif (Vercel otomatik SSL) — Adım 1 tamam
-- [ ] Cloudflare R2 production (`STORAGE_DRIVER=r2`) — 100+ halı ölçeği
+- [x] Cloudflare R2 production (`STORAGE_DRIVER=r2`) — 17.06.2026
 - [ ] Rate limiter'ı dağıtık store'a (Upstash/Redis) taşı (çok-instance için)
 
 ---
@@ -182,4 +188,4 @@ Vercel'in dosya sistemi **salt-okunurdur**; `POST /api/v1/uploads/model` product
 | `db: "down"` | `DATABASE_URL` formatını kontrol et (psql/tırnak/channel_binding yok) |
 | Build fail | GitHub'da güncel commit var mı? (`7513861`+) |
 | Panel 401 | Token süresi dolmuş; yeniden giriş yap |
-| Upload çalışmıyor | Normal — Vercel'de `local` storage yazamaz; R2/S3 gerekir |
+| Upload çalışmıyor | `STORAGE_DRIVER=r2` ve R2_* env'leri Vercel'de set mi? Redeploy yapıldı mı? |

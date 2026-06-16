@@ -78,7 +78,7 @@ RugVision `rug-covers` ile aynı PNG'leri halı sitesine yükle:
 
 ### 5) Widget / AR test
 
-- Production: `https://rugvision-o54d.vercel.app/models/RV-ARYA-003.glb`
+- Production: `https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-ARYA-003.glb`
 - Pilot site: `https://savasdogantekstil.com/rugvision/product-detail.php?id=3`
 
 ---
@@ -87,11 +87,10 @@ RugVision `rug-covers` ile aynı PNG'leri halı sitesine yükle:
 
 - [x] 10 SKU batch üretildi (`npm run models:batch -- --force`)
 - [x] Neon DB bağlandı (`npm run models:attach`)
-- [x] GitHub + Vercel deploy (`7513861`)
-- [x] iPhone Quick Look canlı doğrulama (ürün bazlı model)
+- [x] GitHub + Vercel deploy
+- [x] iPhone 12 Quick Look canlı doğrulama (R2 CDN)
 - [x] Fotoğraf inset temizleme (`npm run photos:clean`)
-- [x] R2 upload script + `docs/R2-SETUP.md`
-- [ ] R2 production (`STORAGE_DRIVER=r2` + Vercel env)
+- [x] R2 upload + Vercel `STORAGE_DRIVER=r2` production
 
 ---
 
