@@ -339,7 +339,7 @@ Bu bölüm, Faz 3 tamamlandığında halıcı firmalara sunulacak operasyon mode
 ### Production (16.06.2026)
 - [x] **Vercel + Neon production CANLI:** `https://rugvision-o54d.vercel.app`
 - [x] Health: `db: "up"` — Neon bağlantısi çalışıyor.
-- [x] GitHub güncel (commit `edc8f3e`): production + pilot + durum raporu.
+- [x] GitHub güncel (commit `7513861`): 10 SKU model + pilot dokümantasyon.
 - [x] İlk merchant + halı production'da oluşturuldu (Demo Mağaza / HALI-001).
 - [x] iPhone 12 production HTTPS üzerinde Quick Look AR doğrulandi.
 - [x] Panel girişi production'da çalışıyor.

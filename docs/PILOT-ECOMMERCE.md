@@ -88,7 +88,7 @@ Kaynak (RugVision repo): `public/rug-covers/RV-*.png`
 
 **4b) phpMyAdmin — veritabanını güncelle**
 
-`database/update_product_images.sql` import et veya SQL sekmesinde çalıştır:
+`docs/sql/update_product_images.sql` import et veya SQL sekmesinde çalıştır:
 
 ```sql
 UPDATE products

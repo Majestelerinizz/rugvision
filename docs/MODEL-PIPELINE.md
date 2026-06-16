@@ -64,7 +64,7 @@ Her SKU için `model3dUrl` → `/models/{SKU}.glb` ve `coverImage` → `/rug-cov
 RugVision `rug-covers` ile aynı PNG'leri halı sitesine yükle:
 
 - FTP: `assets/images/products/RV-*.png`
-- SQL: `update_product_images.sql` (bkz. `docs/PILOT-ECOMMERCE.md` Adım 4)
+- SQL: `docs/sql/update_product_images.sql` (bkz. `docs/PILOT-ECOMMERCE.md` Adım 4)
 
 ### 5) Widget / AR test
 
@@ -77,7 +77,7 @@ RugVision `rug-covers` ile aynı PNG'leri halı sitesine yükle:
 
 - [x] 10 SKU batch üretildi (`npm run models:batch -- --force`)
 - [x] Neon DB bağlandı (`npm run models:attach`)
-- [x] GitHub + Vercel deploy (`29a31d3`)
+- [x] GitHub + Vercel deploy (`7513861`)
 - [x] iPhone Quick Look canlı doğrulama (ürün bazlı model)
 - [ ] R2 production (`STORAGE_DRIVER=r2`)
 

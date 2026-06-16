@@ -14,9 +14,10 @@
 | **Health** | https://rugvision-o54d.vercel.app/api/v1/health |
 | **Veritabanı** | Neon PostgreSQL 16 (proje: `rugvision`) |
 | **Hosting** | Vercel (GitHub: `Majestelerinizz/rugvision`, branch `main`) |
-| **Son commit** | `edc8f3e` — durum raporu + Faz 3 Adım 1 %100 |
+| **Son commit** | `7513861` — 10 SKU model + pilot dokümantasyon |
 | **Health durumu** | `{"status":"ok","db":"up"}` |
-| **AR doğrulama** | RugVision + **pilot müşteri sitesi** iPhone Quick Look ✅ |
+| **AR doğrulama** | Pilot 10 SKU ürün bazlı iPhone Quick Look ✅ |
+| **Modeller** | `public/models/RV-*.glb` + `.usdz` (git deploy) |
 
 **Demo merchant:** `demo@ornek.com` / `Test12345!` (Demo Mağaza)
 
@@ -149,13 +150,12 @@ curl https://rugvision-o54d.vercel.app/api/v1/health
 
 ## ⚠️ Önemli kısıt: Model dosyaları (Adım 2'ye köprü)
 
-Vercel'in dosya sistemi **salt-okunurdur**; `STORAGE_DRIVER=local` ile
-`POST /api/v1/uploads/model` production'da **kalıcı çalışmaz** (diske yazamaz).
+Vercel'in dosya sistemi **salt-okunurdur**; `POST /api/v1/uploads/model` production'da
+`STORAGE_DRIVER=local` ile **kalıcı diske yazamaz**.
 
-İki seçenek:
-1. **Geçici:** Modelleri repoda (`public/models/`) commit'le; upload kullanma.
-2. **Kalıcı (önerilen):** **Adım 2** — `lib/storage.ts`'e R2/S3 driver ekle,
-   `STORAGE_DRIVER=s3` yap.
+**Pilot (10 SKU):** Modeller repoda (`public/models/RV-*.glb`) commit'li; Vercel git deploy ile servis edilir.
+
+**100+ halı ölçeği için (önerilen):** **Adım 2** — Cloudflare R2, `STORAGE_DRIVER=r2`.
 
 ---
 
@@ -167,10 +167,10 @@ Vercel'in dosya sistemi **salt-okunurdur**; `STORAGE_DRIVER=local` ile
 - [x] `/api/v1/health` → `db: "up"`
 - [x] iPhone 12 production AR doğrulandı
 - [x] İlk merchant + demo halı oluşturuldu
-- [x] **Pilot:** savasdogantekstil.com/rugvision canlı AR (ürün detay)
+- [x] **Pilot:** 10 SKU ürün bazlı GLB + canlı AR (savasdogantekstil.com)
+- [x] **Pilot:** Halı sitesi ürün görselleri (`docs/sql/update_product_images.sql`)
 - [x] HTTPS production aktif (Vercel otomatik SSL) — Adım 1 tamam
-- [ ] Özel alan adı (`app.rugvision.com`) — opsiyonel, Büyüme fazı
-- [ ] Model dosyaları için bulut depolama (R2/S3) — Adım 2
+- [ ] Cloudflare R2 production (`STORAGE_DRIVER=r2`) — 100+ halı ölçeği
 - [ ] Rate limiter'ı dağıtık store'a (Upstash/Redis) taşı (çok-instance için)
 
 ---
@@ -180,6 +180,6 @@ Vercel'in dosya sistemi **salt-okunurdur**; `STORAGE_DRIVER=local` ile
 | Belirti | Çözüm |
 |---------|--------|
 | `db: "down"` | `DATABASE_URL` formatını kontrol et (psql/tırnak/channel_binding yok) |
-| Build fail | GitHub'da güncel commit var mı? (`edc8f3e`+) |
+| Build fail | GitHub'da güncel commit var mı? (`7513861`+) |
 | Panel 401 | Token süresi dolmuş; yeniden giriş yap |
 | Upload çalışmıyor | Normal — Vercel'de `local` storage yazamaz; R2/S3 gerekir |

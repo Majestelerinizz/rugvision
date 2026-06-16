@@ -20,7 +20,7 @@ RugVision, halıcı ve ev dekorasyon markalarının ürün sayfalarına **tek sa
 - **İlk gerçek müşteri pilotu CANLI:** **https://savasdogantekstil.com/rugvision/**
 - **10 SKU ürün bazlı AR:** her halı kendi GLB/USDZ modeli + kendi site fotoğrafı
 - iPhone'da ürün detay sayfasından Quick Look AR **başarıyla doğrulandı** (ürün bazlı model)
-- GitHub repo güncel: **https://github.com/Majestelerinizz/rugvision** (commit `29a31d3`)
+- GitHub repo güncel: **https://github.com/Majestelerinizz/rugvision** (commit `7513861`)
 
 **Temel değer önerisi (halıyı odada AR ile gösterme) gerçek müşteri sitesinde, ürün bazlı modellerle kanıtlandı.**
 
@@ -46,7 +46,7 @@ RugVision, halıcı ve ev dekorasyon markalarının ürün sayfalarına **tek sa
 - [x] Health: `{"status":"ok","db":"up"}`
 - [x] Panel + merchant girişleri çalışıyor
 - [x] iPhone production AR doğrulandı
-- [x] GitHub güncel (`29a31d3`)
+- [x] GitHub güncel (`7513861`)
 - [ ] Özel domain (`app.rugvision.com`) → Büyüme fazına ertelendi
 
 Runbook: **`docs/DEPLOY.md`**
@@ -232,5 +232,6 @@ Sıradaki tek TEMEL iş: **Cloudflare R2 production bağlantısı** (100+ halı 
 | `VR_ODANDA_GOR.md` | Faz takibi, adım adım plan |
 | `docs/DEPLOY.md` | Production deploy runbook |
 | `docs/PILOT-ECOMMERCE.md` | PHP pilot entegrasyon + ürün görselleri |
+| `docs/sql/update_product_images.sql` | Halı sitesi MySQL görsel güncelleme |
 | `docs/MODEL-PIPELINE.md` | Batch GLB/USDZ üretim runbook |
 | `docs/rugvision-master-reference-v1.md` | Master referans |
