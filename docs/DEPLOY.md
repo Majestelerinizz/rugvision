@@ -5,7 +5,7 @@
 
 ---
 
-## ✅ Canlı Production (16.06.2026)
+## ✅ Canlı Production (17.06.2026)
 
 | Bilgi | Değer |
 |-------|--------|
@@ -14,12 +14,15 @@
 | **Health** | https://rugvision-o54d.vercel.app/api/v1/health |
 | **Veritabanı** | Neon PostgreSQL 16 (proje: `rugvision`) |
 | **Hosting** | Vercel (GitHub: `Majestelerinizz/rugvision`, branch `main`) |
-| **Son commit** | `fae8c2c` — güvenlik sertleştirme + production hazırlığı |
+| **Son commit** | `ef4295a` — panel UI + pilot entegrasyon dokümanları |
 | **Health durumu** | `{"status":"ok","db":"up"}` |
-| **AR doğrulama** | iPhone 12, production HTTPS üzerinde Quick Look ✅ |
+| **AR doğrulama** | RugVision + **pilot müşteri sitesi** iPhone Quick Look ✅ |
 
-**Demo merchant:** `demo@ornek.com` / `Test12345!` (Demo Magaza)  
-**Demo halı:** SKU `HALI-001`, ad: Modern Hali
+**Demo merchant:** `demo@ornek.com` / `Test12345!` (Demo Magaza)
+
+**Pilot merchant:** `savas@rugvision.com` / `Savas2026!` (Savas Dogan Tekstil)  
+**Pilot site:** https://savasdogantekstil.com/rugvision/  
+**Pilot kurulum:** `docs/PILOT-ECOMMERCE.md`
 
 ---
 
@@ -164,6 +167,7 @@ Vercel'in dosya sistemi **salt-okunurdur**; `STORAGE_DRIVER=local` ile
 - [x] `/api/v1/health` → `db: "up"`
 - [x] iPhone 12 production AR doğrulandı
 - [x] İlk merchant + demo halı oluşturuldu
+- [x] **Pilot:** savasdogantekstil.com/rugvision canlı AR (ürün detay)
 - [ ] Kalıcı domain + HTTPS (opsiyonel)
 - [ ] Model dosyaları için bulut depolama (R2/S3) — Adım 2
 - [ ] Rate limiter'ı dağıtık store'a (Upstash/Redis) taşı (çok-instance için)

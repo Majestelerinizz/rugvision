@@ -22,6 +22,31 @@ Desteklenecek cihaz hedefi:
 
 ## Son Guncellemeler (Bu Asamaya Kadar)
 
+### Pilot entegrasyon (16–17.06.2026) — savasdogantekstil.com/rugvision CANLI AR ✅
+- [x] Ilk gercek e-ticaret pilot sitesi: **https://savasdogantekstil.com/rugvision/** (PHP, 10 urun, SKU'lu).
+- [x] Pilot merchant olusturuldu: **Savas Dogan Tekstil** (`savas@rugvision.com`).
+- [x] Merchant ID: `cmqgswc5a000004lanqoxc666`.
+- [x] `products.sql` ile birebir **10 SKU** RugVision paneline eklendi (`RV-LUNA-001` … `RV-NARIN-010`).
+- [x] Demo model: `/models/Modern_rug.glb` + USDZ (tum urunlerde pilot icin).
+- [x] `config/rugvision.php` hosting'e yuklendi (widget base + merchant ID).
+- [x] `product-detail.php` widget entegrasyonu tamamlandi (eski koprü butonu kaldirildi).
+- [x] **iPhone'da canli AR dogrulandi** — urun detay sayfasindan Quick Look acildi, hali goruldu.
+- [~] `includes/functions.php` — ana sayfa urun kartlarindaki "Odanda Gor" linki (1 satir, Adim 3 bekliyor).
+- [x] Model format notu: AR icin **GLB + USDZ zorunlu**; JPG/PNG/WebP sadece urun fotografi (`coverImage`).
+
+**Pilot embed ornegi (`product-detail.php`):**
+```html
+<script src="https://rugvision-o54d.vercel.app/widget.js"
+  data-merchant-id="cmqgswc5a000004lanqoxc666"
+  data-sku="<?= e($product['sku']) ?>"
+  data-target="[data-rugvision]"
+  defer></script>
+```
+
+**Pilot test URL:** `https://savasdogantekstil.com/rugvision/product-detail.php?id=3` (Arya, SKU: `RV-ARYA-003`)
+
+Detayli kurulum: **`docs/PILOT-ECOMMERCE.md`**
+
 ### Production (16.06.2026) — Vercel + Neon CANLI
 - [x] **Neon PostgreSQL** acildi (proje: `rugvision`, Postgres 16, AWS US East 1).
 - [x] `npm run db:deploy` ile sema Neon'a uygulandi (migration basarili).
@@ -146,12 +171,15 @@ yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7)
 
 ### ADIM 3 - E-ticaret entegrasyonu (musteri sitesine ekleme)  [~1-2 gun]
 > Amac: Tek satir kod ile musteri urun sayfasinda buton + AR.
-- [ ] 3.1 Embed kurulum dokumani yaz (tek satir `<script>` + `data-target` kullanimi)
-- [ ] 3.2 Musteri temasinda buton yerlesimini dogrula (orn. tarzhaliconcept.com PHP)
-- [~] 3.3 SKU eslemesi: widget + production API HAZIR; ilk hali (`HALI-001`) canli; kalan is musteri urunleriyle toplu esleme
-- [~] 3.4 Gercek halilarla uctan uca canli test: demo hali + iPhone 12 AR OK; ilk halici pilotu bekliyor
+> **DURUM: PILOT CANLI** — `savasdogantekstil.com/rugvision` urun detayda AR calisiyor.
+- [x] 3.1 Embed kurulum dokumani: `docs/PILOT-ECOMMERCE.md` (PHP alt klasor `/rugvision`)
+- [x] 3.2 Ilk pilot musteri sitesi: **savasdogantekstil.com/rugvision** — `product-detail.php` widget
+- [x] 3.3 SKU eslemesi: 10 urun (`RV-LUNA-001` … `RV-NARIN-010`) merchant `cmqgswc5a000004lanqoxc666`
+- [x] 3.4 Canli AR testi: iPhone Quick Look, urun detay sayfasindan **BASARILI**
+- [x] 3.5 Ana sayfa urun kartlari: `functions.php` — "Odanda Gor" artik urun detaya yonlendiriyor
+- [ ] 3.6 Domain dogrulama: `savasdogantekstil.com` panelde kayit (opsiyonel guvenlik)
 
-Faz 3 Durumu: **Adim 1 tamamlandi (domain haric); Adim 2 sirada (R2/S3).**
+Faz 3 Durumu: **Adim 1 + Adim 3 pilot TAMAM (detay + kartlar); Adim 2 (R2/S3) sirada.**
 
 ### ADIM 4 - Platform eklentileri  [BUYUME]
 > Amac: Kurulumu "tek tik" yapan resmi eklentiler.
@@ -172,7 +200,19 @@ Faz 3 Durumu: **Adim 1 tamamlandi (domain haric); Adim 2 sirada (R2/S3).**
 - [ ] 7.2 Otomatik test paketi (E2E runner) + CI
 - [ ] 7.3 (Opsiyonel) Abonelik/plan limitleri
 
-Faz 3 Durumu: **Adim 1 CANLI (domain haric); Adim 2 sirada (R2/S3).**
+Faz 3 Durumu: **Adim 1 + Adim 3 pilot CANLI; Adim 2 (R2/S3) sirada.**
+
+---
+
+## Model formatlari (AR icin onemli)
+
+| Format | Rol | AR'de kullanilir mi? |
+|--------|-----|----------------------|
+| **GLB** | Android Scene Viewer, masaustu 3D | ✅ Evet |
+| **USDZ** | iPhone Quick Look | ✅ Evet |
+| JPG / PNG / WebP | Urun fotografi, kapak gorseli | ❌ AR modeli degil |
+
+Halici fotoğraf verir; sistem (manuel veya otomatik pipeline) GLB/USDZ uretir. Pilotte tum urunlerde tek demo model (`Modern_rug.glb`) kullanildi.
 
 ---
 
@@ -187,8 +227,9 @@ Faz 1 ve Faz 2 cekirdek isleri tamamlandi. **Adim 1 (production) CANLI.** Sirada
 | Kalici domain + HTTPS | opsiyonel | 0.5 |
 | Bulut depolama (R2/S3) | **SIRADA** | 1-2 |
 | Otomatik foto+olcu -> GLB/USDZ uretimi (ilk surum) | bekliyor | 2-3 |
-| Musteri temasina embed + buton yerlesimi + SKU eslemesi | bekliyor | 1-2 |
-| Gercek halilarla test (birkac urun) | demo OK, pilot bekliyor | 1 |
+| Musteri temasina embed + buton yerlesimi + SKU eslemesi | **PILOT TAMAM** (detay sayfasi) | — |
+| Gercek halilarla test (birkac urun) | **iPhone AR OK** (savasdogantekstil) | — |
+| Ana sayfa kart linkleri (`functions.php`) | bekliyor | 0.1 |
 | **Kalan toplam** | | **~5-8 is gunu** |
 
 ### B) Tam urunlesme (her e-ticarete dagitilabilir) - BUYUME
@@ -221,9 +262,9 @@ Calisma modeli:
 ```
 
 - Musterinin PHP koduna dokunulmaz; veritabanlari birlestirilmez.
-- Tek satir kod urun sayfasi sablonuna yapistirilir:
-  `<script src="https://rugvision-o54d.vercel.app/widget.js" data-merchant-id="MERCHANT_ID" data-sku="SKU" data-target=".add-to-cart" defer></script>`
-- `data-target` ile sitedeki "Sepete Ekle" butonu hedeflenir; widget butonu yanina koyar.
+- Tek satir kod urun sayfasi sablonuna yapistirilir (ornek pilot):
+  `<script src="https://rugvision-o54d.vercel.app/widget.js" data-merchant-id="cmqgswc5a000004lanqoxc666" data-sku="RV-ARYA-003" data-target="[data-rugvision]" defer></script>`
+- `data-target` ile sitedeki hedef alan secilir (pilot: `[data-rugvision]` veya `.js-add-cart`).
 - Bu yuzden PHP/Laravel site ile "birlestirme" derdi YOKTUR; sadece bir HTML satiri.
 
 ---
@@ -277,6 +318,13 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
 
 ## Son Durum (Gun Sonu Ozeti)
 
+### Pilot + Production (17.06.2026)
+- [x] **Ilk gercek halici pilot CANLI:** https://savasdogantekstil.com/rugvision/
+- [x] Merchant: Savas Dogan Tekstil (`cmqgswc5a000004lanqoxc666`), 10 SKU eslemesi.
+- [x] Urun detayda widget + **iPhone Quick Look AR basarili** (canli musteri sitesi).
+- [x] Merchant paneli yenilendi (okunakli UI, SKU tabanli embed ureteci) — commit `ef4295a`.
+- [x] E-ticaret `functions.php` kart linki tamamlandi (Adim 3).
+
 ### Production (16.06.2026)
 - [x] **Vercel + Neon production CANLI:** `https://rugvision-o54d.vercel.app`
 - [x] Health: `db: "up"` — Neon baglantisi calisiyor.
@@ -309,14 +357,20 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
 
 - **Faz 1:** %100 tamamlandi
 - **Faz 2:** %100 tamamlandi (guvenlik sertlestirme dahil)
-- **Faz 3 Adim 1:** %90 tamamlandi (production CANLI; kalici domain opsiyonel kaldi)
-- **Faz 3 Adim 2-7:** devam ediyor
+- **Faz 3 Adim 1:** %90 tamamlandi (production CANLI)
+- **Faz 3 Adim 3:** %95 tamamlandi (pilot entegrasyon tamam; opsiyonel slider/footer linkleri kaldi)
+- **Faz 3 Adim 2:** devam ediyor (R2/S3)
 
-**Tum projenin tamamlanma orani:** ~%75-78
+**Tum projenin tamamlanma orani:** ~%82-85 (tam urun vizyonu)
 
-**Canli production adresi:** `https://rugvision-o54d.vercel.app`
+**TEMEL paket (canli satis demosu):** ~%93 — sadece R2/S3 + opsiyonel cilalar kaldi
 
-Not: Ilk halici ile canli satis demosu **production uzerinde HAZIR**. Sira: bulut depolama + ilk musteri embed.
+**Canli production adresi:** `https://rugvision-o54d.vercel.app`  
+**Canli pilot musteri sitesi:** `https://savasdogantekstil.com/rugvision/`
+
+**Kalan is gunu (tahmini):**
+- TEMEL bitirmek icin: **~2-3 is gunu** (R2/S3 + opsiyonel domain/cila)
+- Tam urunlesme (Shopify, AI, CI vb.): **+10-14 is gunu**
 
 ---
 
@@ -367,5 +421,5 @@ Halicilara aylik abonelik karsiliginda urun/model/widget yonetimi, AR deneyimi v
 analitik panel sunan bir SaaS hizmeti. (Abonelik modulu su an kapsam disi, gelistirme
 onceligi "hali gosterimi" uzerinedir.)
 
-**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), Faz 3 Adim 1 (%90 — production CANLI).
-Sira: bulut depolama (R2/S3), ilk halici embed, e-ticaret entegrasyonlari, AI zemin tespiti.
+**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), Faz 3 Adim 1 (%90), Adim 3 pilot (%95), Adim 2 (%0).
+**Toplam:** ~%82-85 | **TEMEL demo paketi:** ~%93 | **Kalan TEMEL:** ~2-3 is gunu.
