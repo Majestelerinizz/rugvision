@@ -106,6 +106,20 @@ Modeller RugVision'da: `https://rugvision-o54d.vercel.app/models/Modern_rug.glb`
 
 ---
 
+## Cihaz uyumlulugu (AR)
+
+| Marka / platform | Tam AR | Fallback |
+|------------------|--------|----------|
+| iPhone / iPad | Evet (Quick Look) | — |
+| Samsung, Pixel | Evet (Scene Viewer) | 3D |
+| Oppo / Vivo global | Cogunlukla evet | 3D |
+| POCO / Xiaomi | Kismen | 3D |
+| Huawei (GMS yok) | Hayir | 3D |
+
+Tam tablo: `docs/PROJE_DURUM_RAPORU.md` §7.
+
+---
+
 ## Sıradaki işler
 
 - [x] `functions.php` kart linki (Adım 3) ✅

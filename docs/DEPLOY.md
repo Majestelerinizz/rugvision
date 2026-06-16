@@ -14,7 +14,7 @@
 | **Health** | https://rugvision-o54d.vercel.app/api/v1/health |
 | **Veritabanı** | Neon PostgreSQL 16 (proje: `rugvision`) |
 | **Hosting** | Vercel (GitHub: `Majestelerinizz/rugvision`, branch `main`) |
-| **Son commit** | `ef4295a` — panel UI + pilot entegrasyon dokümanları |
+| **Son commit** | `edc8f3e` — durum raporu + Faz 3 Adım 1 %100 |
 | **Health durumu** | `{"status":"ok","db":"up"}` |
 | **AR doğrulama** | RugVision + **pilot müşteri sitesi** iPhone Quick Look ✅ |
 
@@ -180,6 +180,6 @@ Vercel'in dosya sistemi **salt-okunurdur**; `STORAGE_DRIVER=local` ile
 | Belirti | Çözüm |
 |---------|--------|
 | `db: "down"` | `DATABASE_URL` formatını kontrol et (psql/tırnak/channel_binding yok) |
-| Build fail | GitHub'da güncel commit var mı? (`fae8c2c`+) |
+| Build fail | GitHub'da güncel commit var mı? (`edc8f3e`+) |
 | Panel 401 | Token süresi dolmuş; yeniden giriş yap |
 | Upload çalışmıyor | Normal — Vercel'de `local` storage yazamaz; R2/S3 gerekir |

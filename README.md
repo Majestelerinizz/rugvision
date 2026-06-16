@@ -25,6 +25,7 @@ kendi odasinin zemininde **gercek boyutta** gormesini saglamaktir ("Odamda Gor")
 - [Proje Yapisi](#proje-yapisi)
 - [API Ozeti](#api-ozeti)
 - [Yol Haritasi](#yol-haritasi)
+- [Canli Production](#canli-production)
 
 ---
 
@@ -196,6 +197,18 @@ Lokal deneme icin hazir bir ornek sayfa: `public/widget-demo.html`.
   - `scripts/export_quicklook_usdz.py` - iOS uyumlu USDZ uretimi
 - Ornek modeller: `public/models/` (orn. `Modern_rug.glb`, `Modern_rug.usdz`).
 
+### Cihaz uyumlulugu (ozet)
+
+| Platform | Tam AR | Not |
+|----------|--------|-----|
+| iPhone / iPad | Evet | Quick Look |
+| Samsung, Pixel, Oppo/Vivo (global) | Evet | ARCore + Scene Viewer |
+| POCO / Xiaomi | Kismen | Modele bagli |
+| Huawei (GMS yok) | 3D only | Tam AR desteklenmez |
+| Masaustu | 3D modal | Tam AR degil |
+
+Detay: `docs/PROJE_DURUM_RAPORU.md` §7.
+
 ---
 
 ## Telefonda Test (HTTPS Tunnel)
@@ -279,12 +292,34 @@ Postman koleksiyonu: `docs/postman/`.
 
 - **Faz 1 - AR cekirdegi:** Tamamlandi (iPhone + Android AR, model pipeline).
 - **Faz 2 - Urunlesme cekirdegi:** Tamamlandi (embed widget, analytics, panel, upload, domain dogrulama, auth guard).
-- **Faz 3 - Production & buyume:** Planlandi (production deploy + yonetilen DB + bulut depolama + otomatik model uretimi + Shopify/WooCommerce + AI zemin tespiti).
+- **Faz 3 - Production & buyume:**
+  - Adim 1 (Production): **%100** — Vercel + Neon CANLI
+  - Adim 3 (Pilot e-ticaret): **%95** — savasdogantekstil.com CANLI AR
+  - Adim 2 (R2/S3): bekliyor
+  - Adim 4-7 (Shopify, AI, CI): planlandi
 
 Detayli kapsam ve takip:
 - `docs/rugvision-master-reference-v1.md` (master reference)
 - `docs/PROJE_DURUM_RAPORU.md` (resmi durum raporu)
+- `docs/DEPLOY.md` (production runbook)
+- `docs/PILOT-ECOMMERCE.md` (PHP pilot entegrasyon)
 - `VR_ODANDA_GOR.md` (faz takibi + Faz 3 adim adim plan)
+
+**Tamamlanma:** ~%83-86 (tam vizyon) | **TEMEL satis paketi:** ~%93
+
+---
+
+## Canli Production
+
+| Alan | Deger |
+|------|-------|
+| SaaS | https://rugvision-o54d.vercel.app |
+| Panel | https://rugvision-o54d.vercel.app/panel |
+| Pilot magaza | https://savasdogantekstil.com/rugvision/ |
+| GitHub | https://github.com/Majestelerinizz/rugvision |
+
+Demo: `demo@ornek.com` / `Test12345!`  
+Pilot: `savas@rugvision.com` / `Savas2026!`
 
 ---
 

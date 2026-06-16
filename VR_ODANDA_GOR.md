@@ -150,7 +150,7 @@ yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7)
 - [x] 1.1 Yonetilen veritabani acildi: **Neon** (proje `rugvision`, Postgres 16)
 - [x] 1.2 Vercel env: `DATABASE_URL` + `JWT_SECRET` (>=32) + `STORAGE_DRIVER=local`
 - [x] 1.3 `npm run db:deploy` ile tablolar Neon'a kuruldu
-- [x] 1.4 Vercel'e deploy edildi (GitHub `256a49e`, build: `prisma generate && next build`)
+- [x] 1.4 Vercel'e deploy edildi (GitHub `edc8f3e`, build: `prisma generate && next build`)
 - [x] 1.5 HTTPS production adresi aktif (Vercel otomatik SSL) — **TAMAM**
 - [x] 1.6 Tunnel artik production icin gereksiz (sadece lokal gelistirme icin kalir)
 
@@ -330,7 +330,7 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
 ### Production (16.06.2026)
 - [x] **Vercel + Neon production CANLI:** `https://rugvision-o54d.vercel.app`
 - [x] Health: `db: "up"` — Neon baglantisi calisiyor.
-- [x] GitHub guncel (commit `fae8c2c`): guvenlik sertlestirme + Faz 3 hazirligi.
+- [x] GitHub guncel (commit `edc8f3e`): production + pilot + durum raporu.
 - [x] Ilk merchant + hali production'da olusturuldu (Demo Magaza / HALI-001).
 - [x] iPhone 12 production HTTPS uzerinde Quick Look AR dogrulandi.
 - [x] Panel girisi production'da calisiyor.
@@ -351,7 +351,8 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
 - [x] Faz 3 gun plani 2 kademeye ayrildi: tek musteri canliya alma ~6-10 gun, tam urunlesme +12-18 gun.
 - [x] Otomatik model uretimi (foto+olcu -> GLB/USDZ) Faz 3 onceligi olarak eklendi (yuzlerce hali icin olceklenme).
 - [x] Docker'siz DB secenekleri belirlendi: Neon / Supabase / Vercel Postgres (sema ayni, sadece `DATABASE_URL`).
-- [ ] Faz 3 kalan: kalici domain, bulut depolama (R2/S3), ilk halici embed, oto GLB->USDZ, Shopify/WooCommerce, AI floor detection.
+- [ ] Faz 3 kalan: bulut depolama (R2/S3), urun bazli modeller, oto GLB->USDZ, Shopify/WooCommerce, AI floor detection.
+- [x] Ilk halici embed CANLI: savasdogantekstil.com/rugvision (pilot).
 
 ---
 
@@ -408,8 +409,9 @@ ortadan kaldirir; satin alma guvenini ve donusum oranini yukseltir.
 - Son tuketici (urun sayfasini ziyaret eden alisveris yapan kisi).
 
 **Desteklenen cihazlar:**
-- iPhone / iPad (Safari + AR Quick Look)
-- Android ekosistemi (Scene Viewer / WebXR; Samsung, Xiaomi, Huawei vb.)
+- iPhone / iPad (Safari + AR Quick Look) — tam AR, en stabil
+- Android ARCore uyumlu cihazlar (Samsung, Pixel, cogu Oppo/Vivo global) — Scene Viewer
+- Diger Android / Huawei (GMS yok): 3D goruntuleme fallback (tam zemin AR olmayabilir)
 
 **Teknik ozet:**
 - Next.js 16 (App Router) + Prisma 7 + PostgreSQL.
