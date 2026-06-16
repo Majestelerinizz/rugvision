@@ -3,13 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { apiOk, apiError, toErrorResponse, HttpError } from "@/lib/api";
 import { requireAuth, resolveMerchantId } from "@/lib/auth-guard";
-
-function normalizeHost(input: string): string {
-  let host = input.trim().toLowerCase();
-  host = host.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-  host = host.replace(/^www\./, "");
-  return host;
-}
+import { normalizeHost } from "@/lib/domain";
 
 export async function GET(request: NextRequest) {
   try {

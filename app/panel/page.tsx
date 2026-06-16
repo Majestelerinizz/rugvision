@@ -26,6 +26,7 @@ const STORAGE_KEY = "rugvision.panel";
 
 export default function PanelPage() {
   const [token, setToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [merchantId, setMerchantId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,31 +39,84 @@ export default function PanelPage() {
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
 
   useEffect(() => {
+    // localStorage yalnizca istemcide var; SSR uyumu icin hidrasyon effect'te yapilir.
+    /* eslint-disable react-hooks/set-state-in-effect */
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        setToken(parsed.token);
-        setMerchantId(parsed.merchantId);
+        setToken(parsed.token ?? null);
+        setRefreshToken(parsed.refreshToken ?? null);
+        setMerchantId(parsed.merchantId ?? null);
       }
     } catch {
       /* ignore */
     }
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
-  const authHeaders = useMemo(
-    () => (token ? { Authorization: `Bearer ${token}` } : undefined),
-    [token]
+  const persistSession = useCallback(
+    (t: string | null, rt: string | null, mId: string | null) => {
+      if (t && mId) {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ token: t, refreshToken: rt, merchantId: mId })
+        );
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    },
+    []
+  );
+
+  const logout = useCallback(() => {
+    setToken(null);
+    setRefreshToken(null);
+    setMerchantId(null);
+    setOverview(null);
+    setRugs([]);
+    persistSession(null, null, null);
+  }, [persistSession]);
+
+  // Tum korumali istekleri tek noktadan yapar; access token (15 dk) dolduysa
+  // refresh token ile sessizce yeniler ve istegi bir kez tekrarlar.
+  const authedFetch = useCallback(
+    async (input: string, init: RequestInit = {}): Promise<Response> => {
+      const withAuth = (t: string | null): RequestInit => ({
+        ...init,
+        headers: {
+          ...(init.headers as Record<string, string> | undefined),
+          ...(t ? { Authorization: `Bearer ${t}` } : {}),
+        },
+      });
+
+      let res = await fetch(input, withAuth(token));
+      if (res.status === 401 && refreshToken) {
+        const r = await fetch("/api/v1/auth/refresh", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken }),
+        });
+        if (r.ok) {
+          const newToken: string = (await r.json()).data.tokens.accessToken;
+          setToken(newToken);
+          persistSession(newToken, refreshToken, merchantId);
+          res = await fetch(input, withAuth(newToken));
+        } else {
+          logout();
+        }
+      }
+      return res;
+    },
+    [token, refreshToken, merchantId, persistSession, logout]
   );
 
   const loadData = useCallback(async () => {
     if (!token || !merchantId) return;
     try {
       const [ovRes, rugRes] = await Promise.all([
-        fetch(`/api/v1/analytics/overview?merchantId=${merchantId}`, {
-          headers: authHeaders,
-        }),
-        fetch(`/api/v1/rugs?merchantId=${merchantId}`),
+        authedFetch(`/api/v1/analytics/overview?merchantId=${merchantId}`),
+        authedFetch(`/api/v1/rugs?merchantId=${merchantId}`),
       ]);
       if (ovRes.ok) setOverview((await ovRes.json()).data);
       if (rugRes.ok) {
@@ -74,9 +128,11 @@ export default function PanelPage() {
       setError("Veri yuklenemedi.");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, merchantId, authHeaders]);
+  }, [token, merchantId, authedFetch]);
 
   useEffect(() => {
+    // Veri cekme effect'i; setState'ler await sonrasi asenkron yapilir.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
 
@@ -92,30 +148,20 @@ export default function PanelPage() {
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json?.error?.message || json?.error || "Giris basarisiz.");
+        setError(json?.error?.message || "Giris basarisiz.");
         return;
       }
-      const tokens: Tokens = json.tokens;
+      const tokens: Tokens = json.data.tokens;
       const mId: string = json.data.user.merchantId;
       setToken(tokens.accessToken);
+      setRefreshToken(tokens.refreshToken);
       setMerchantId(mId);
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({ token: tokens.accessToken, merchantId: mId })
-      );
+      persistSession(tokens.accessToken, tokens.refreshToken, mId);
     } catch {
       setError("Sunucuya ulasilamadi.");
     } finally {
       setLoading(false);
     }
-  }
-
-  function logout() {
-    setToken(null);
-    setMerchantId(null);
-    setOverview(null);
-    setRugs([]);
-    localStorage.removeItem(STORAGE_KEY);
   }
 
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
@@ -128,9 +174,8 @@ export default function PanelPage() {
     }
     const fd = new FormData();
     fd.append("file", input.files[0]);
-    const res = await fetch("/api/v1/uploads/model", {
+    const res = await authedFetch("/api/v1/uploads/model", {
       method: "POST",
-      headers: authHeaders,
       body: fd,
     });
     const json = await res.json();
@@ -216,7 +261,7 @@ export default function PanelPage() {
                 <tr key={r.id} className="border-t border-zinc-100">
                   <td className="px-4 py-2">{r.name}</td>
                   <td className="px-4 py-2">{r.sku}</td>
-                  <td className="px-4 py-2">{r.model3dUrl ? "✓" : "—"}</td>
+                  <td className="px-4 py-2">{r.model3dUrl ? "\u2713" : "\u2014"}</td>
                   <td className="px-4 py-2">{r.status}</td>
                   <td className="px-4 py-2 text-right">
                     <a

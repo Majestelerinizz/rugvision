@@ -83,8 +83,11 @@ Uygulama: **http://localhost:3000**
 
 ```env
 DATABASE_URL="postgresql://KULLANICI:SIFRE@HOST:5432/rugvision?schema=public"
-JWT_SECRET="cok-uzun-rastgele-bir-deger"
+JWT_SECRET="cok-uzun-rastgele-bir-deger"   # EN AZ 32 KARAKTER (kisa olursa uygulama baslamaz)
+# STORAGE_DRIVER="local"                    # Faz 3'te: r2 / s3 / b2
 ```
+
+Hazir sablon icin `.env.example` dosyasini kopyalayabilirsin.
 
 Guclu bir `JWT_SECRET` uretmek icin:
 
@@ -164,8 +167,20 @@ Musteri sitesinin arka plani **fark etmez** (PHP, Laravel, WordPress/WooCommerce
 ></script>
 ```
 
-- `data-rug-id`: RugVision'daki hali kimligi (veya SKU eslemesi).
+- `data-rug-id`: RugVision'daki hali kimligi.
 - `data-target`: O sitedeki "Sepete Ekle" butonunun CSS selector'u. Widget butonu onun yanina eklenir.
+
+Alternatif: kendi SKU'nuzla esleme (rug-id yerine):
+
+```html
+<script
+  src="https://SENIN-ADRESIN/widget.js"
+  data-merchant-id="MERCHANT_ID"
+  data-sku="URUN_SKU"
+  data-target=".add-to-cart"
+  defer
+></script>
+```
 
 Lokal deneme icin hazir bir ornek sayfa: `public/widget-demo.html`.
 
@@ -209,6 +224,7 @@ Windows'ta kesintisiz calismak icin `baslat.bat` (cokerse otomatik yeniden basla
 | `npm run build` | Production build |
 | `npm run start` | Production sunucusu |
 | `npm run lint` | ESLint |
+| `npm test` | Otomatik birim testleri (`node:test` + `tsx`) |
 | `npx prisma migrate dev` | Sema migration (gelistirme) |
 | `npx prisma studio` | Veritabani gorsel arayuzu |
 

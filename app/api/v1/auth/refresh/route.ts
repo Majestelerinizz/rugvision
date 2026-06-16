@@ -1,30 +1,36 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
 import { signToken, verifyToken } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { apiOk, toErrorResponse, HttpError } from "@/lib/api";
+import { parseJsonBody } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/http";
 
 const refreshSchema = z.object({
   refreshToken: z.string().min(10),
 });
 
 export async function POST(request: NextRequest) {
-  const parse = refreshSchema.safeParse(await request.json());
-  if (!parse.success) {
-    return NextResponse.json(
-      { error: "Gecersiz body", details: parse.error.flatten() },
-      { status: 400 }
-    );
-  }
-
   try {
-    const payload = await verifyToken(parse.data.refreshToken);
+    enforceRateLimit(`refresh:${clientIp(request)}`, 60, 10 * 60 * 1000);
+
+    const { refreshToken } = await parseJsonBody(request, refreshSchema);
+
+    let payload;
+    try {
+      payload = await verifyToken(refreshToken);
+    } catch {
+      throw new HttpError("UNAUTHORIZED", "Refresh token gecersiz.");
+    }
+
     if (payload.type !== "refresh") {
-      return NextResponse.json({ error: "Token tipi gecersiz." }, { status: 401 });
+      throw new HttpError("UNAUTHORIZED", "Token tipi gecersiz.");
     }
 
     const user = await prisma.user.findUnique({ where: { id: payload.sub } });
     if (!user) {
-      return NextResponse.json({ error: "Kullanici bulunamadi." }, { status: 401 });
+      throw new HttpError("UNAUTHORIZED", "Kullanici bulunamadi.");
     }
 
     const accessToken = await signToken({
@@ -34,8 +40,8 @@ export async function POST(request: NextRequest) {
       type: "access",
     });
 
-    return NextResponse.json({ tokens: { accessToken } }, { status: 200 });
-  } catch {
-    return NextResponse.json({ error: "Refresh token gecersiz." }, { status: 401 });
+    return apiOk({ tokens: { accessToken } });
+  } catch (error) {
+    return toErrorResponse(error);
   }
 }

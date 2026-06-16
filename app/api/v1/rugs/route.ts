@@ -1,75 +1,91 @@
-import { NextRequest, NextResponse } from "next/server";
-import { RugStatus } from "@prisma/client";
+import { NextRequest } from "next/server";
+import { Prisma, RugStatus } from "@prisma/client";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { apiOk, apiError, toErrorResponse, HttpError } from "@/lib/api";
+import { requireAuth, resolveMerchantId } from "@/lib/auth-guard";
+import { parseJsonBody } from "@/lib/validation";
 
-type CreateRugBody = {
-  merchantId?: string;
-  sku?: string;
-  slug?: string;
-  name?: string;
-  widthCm?: number;
-  lengthCm?: number;
-  price?: number;
-  colors?: string[];
-  category?: string;
-  brand?: string;
-  description?: string;
-  coverImage?: string;
-  model3dUrl?: string;
-  status?: RugStatus;
-};
+const TERMINATED_STATUSES = new Set(["CANCELED", "PAST_DUE"]);
 
-function validateCreateBody(body: CreateRugBody): string | null {
-  if (!body.merchantId) return "merchantId zorunludur.";
-  if (!body.sku) return "sku zorunludur.";
-  if (!body.slug) return "slug zorunludur.";
-  if (!body.name) return "name zorunludur.";
-  if (!body.widthCm || body.widthCm <= 0) return "widthCm pozitif olmalidir.";
-  if (!body.lengthCm || body.lengthCm <= 0) return "lengthCm pozitif olmalidir.";
-  if (typeof body.price !== "number" || body.price <= 0) {
-    return "price pozitif sayi olmalidir.";
-  }
-  if (body.colors && !Array.isArray(body.colors)) return "colors dizi olmalidir.";
-  return null;
-}
+// Aktif abonelik plani varsa urun (hali) limitini uygular.
+// Abonelik yoksa engellemez (limit ozelligi opsiyonel kalir).
+async function assertWithinPlanLimit(merchantId: string): Promise<void> {
+  const subscription = await prisma.subscription.findUnique({
+    where: { merchantId },
+    select: { productLimit: true, status: true },
+  });
+  if (!subscription) return;
 
-export async function GET(request: NextRequest) {
-  const merchantId = request.nextUrl.searchParams.get("merchantId");
-
-  if (!merchantId) {
-    return NextResponse.json(
-      { error: "merchantId query parametresi zorunludur." },
-      { status: 400 }
+  if (TERMINATED_STATUSES.has(subscription.status)) {
+    throw new HttpError(
+      "FORBIDDEN",
+      "Aboneliginiz aktif degil. Lutfen planinizi yenileyin."
     );
   }
 
-  const rugs = await prisma.rug.findMany({
-    where: { merchantId },
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const count = await prisma.rug.count({ where: { merchantId } });
+  if (count >= subscription.productLimit) {
+    throw new HttpError(
+      "FORBIDDEN",
+      `Plan limitinize ulastiniz (${subscription.productLimit} urun). Daha fazlasi icin planinizi yukseltin.`
+    );
+  }
+}
 
-  return NextResponse.json({ data: rugs }, { status: 200 });
+const createRugSchema = z.object({
+  merchantId: z.string().min(1).optional(),
+  sku: z.string().trim().min(1).max(64),
+  slug: z.string().trim().min(1).max(120),
+  name: z.string().trim().min(1).max(200),
+  widthCm: z.number().int().positive().max(2000),
+  lengthCm: z.number().int().positive().max(2000),
+  price: z.number().positive().max(10_000_000),
+  colors: z.array(z.string().max(40)).max(50).optional(),
+  category: z.string().max(120).optional(),
+  brand: z.string().max(120).optional(),
+  description: z.string().max(5000).optional(),
+  coverImage: z.string().max(2000).optional(),
+  model3dUrl: z.string().max(2000).optional(),
+  status: z.nativeEnum(RugStatus).optional(),
+});
+
+export async function GET(request: NextRequest) {
+  try {
+    const ctx = await requireAuth(request);
+    const requested =
+      request.nextUrl.searchParams.get("merchantId") ?? undefined;
+    const merchantId = resolveMerchantId(ctx, requested);
+
+    const rugs = await prisma.rug.findMany({
+      where: { merchantId },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+
+    return apiOk(rugs);
+  } catch (error) {
+    return toErrorResponse(error);
+  }
 }
 
 export async function POST(request: NextRequest) {
-  const body = (await request.json()) as CreateRugBody;
-  const validationError = validateCreateBody(body);
-
-  if (validationError) {
-    return NextResponse.json({ error: validationError }, { status: 400 });
-  }
-
   try {
+    const ctx = await requireAuth(request);
+    const body = await parseJsonBody(request, createRugSchema);
+    const merchantId = resolveMerchantId(ctx, body.merchantId);
+
+    await assertWithinPlanLimit(merchantId);
+
     const created = await prisma.rug.create({
       data: {
-        merchantId: body.merchantId!,
-        sku: body.sku!,
-        slug: body.slug!,
-        name: body.name!,
-        widthCm: body.widthCm!,
-        lengthCm: body.lengthCm!,
-        price: body.price!,
+        merchantId,
+        sku: body.sku,
+        slug: body.slug,
+        name: body.name,
+        widthCm: body.widthCm,
+        lengthCm: body.lengthCm,
+        price: body.price,
         colors: body.colors ?? [],
         category: body.category,
         brand: body.brand,
@@ -80,10 +96,14 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ data: created }, { status: 201 });
+    return apiOk(created, 201);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Rug olusturulamadi.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return apiError("CONFLICT", "Bu SKU veya slug bu magazada zaten kayitli.");
+    }
+    return toErrorResponse(error);
   }
 }

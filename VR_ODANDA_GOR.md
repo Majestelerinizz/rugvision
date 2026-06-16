@@ -70,8 +70,15 @@ Faz 1 Durumu: **Tamamlandi (iPhone'da AR canli test edildi)**.
 
 ## Faz 2 - Islevsel Urunlesme
 
-- [~] Abonelik kurallari ve plan limitleri (su an kapsam disi - "hali gosterimi" oncelikli)
+- [x] Abonelik plan limiti uygulandi: `POST /api/v1/rugs` aktif abonelikteki `productLimit`'i kontrol eder (abonelik yoksa engellemez); iptal/odeme-gecikmesi durumunda urun eklenemez
 - [x] JWT tabanli auth guard eklendi (`lib/auth-guard.ts`); korumali endpointler merchant'a gore izole (`requireAuth` + `resolveMerchantId`)
+- [x] GUVENLIK SERTLESTIRME: Rugs CRUD + widget/settings artik auth + merchant izolasyonu zorunlu (eskiden acikti); `:id` islemlerinde sahiplik dogrulamasi
+- [x] GUVENLIK: tum endpointlerde standart hata (`lib/api.ts` + `lib/errors.ts`) + zod dogrulama (`lib/validation.ts`); ham hata mesaji sizdirilmiyor; P2002 -> 409 CONFLICT
+- [x] GUVENLIK: rate limiting (`lib/rate-limit.ts`) login/register/refresh/analytics/widget/domain-verify; brute-force + kullanici-sayimi (enumeration) onleme
+- [x] GUVENLIK: JWT issuer/audience + HS256 sabit + JWT_SECRET < 32 karakter ise uygulama baslamaz; guclu parola politikasi (harf+rakam)
+- [x] GUVENLIK: HTTP guvenlik basliklari (`next.config.ts`): HSTS, nosniff, Referrer-Policy, Permissions-Policy, clickjacking'e karsi X-Frame-Options/CSP (embed icin `/odamda-gor` haric)
+- [x] GUVENLIK: domain dogrulamada SSRF korumasi (ozel-ic IP reddi + redirect takibi kapali)
+- [x] Panel oturum dayanikliligi: refresh token saklanir, access token dolunca 401'de otomatik yenilenir
 - [x] Gercek widget embed scripti (`public/widget.js`) uretildi ve test edildi (tek satir kod)
 - [x] Urun sayfasinda `Sepete Ekle` yanina otomatik `Odamda Gor` butonu enjekte ediliyor
 - [x] Farkli tema yapilarinda buton selector fallback mekanizmasi eklendi (common add-to-cart selector listesi + `data-target`)
@@ -86,10 +93,11 @@ Faz 1 Durumu: **Tamamlandi (iPhone'da AR canli test edildi)**.
 - [x] Dosya yonetimi akisi tamamlandi: `POST /api/v1/uploads/model` (GLB/USDZ/GLTF upload + URL doner)
 - [x] API hata kodlari standardize edildi (`lib/api.ts`: BAD_REQUEST/UNAUTHORIZED/FORBIDDEN/NOT_FOUND/CONFLICT/UNPROCESSABLE/INTERNAL)
 - [x] Yeni endpointler uctan uca test edildi (register -> token -> overview/domains/verify/upload)
-- [~] R2/S3/B2 bulut depolama: MVP'de yerel `public/models` kullaniliyor; bulut entegrasyonu Faz 3'e birakildi
-- [~] Otomatik test paketi: manuel/script E2E yapildi; otomatik test runner Faz 3'e birakildi
+- [x] Depolama soyutlamasi eklendi (`lib/storage.ts`): upload artik driver uzerinden calisir; su an `local` driver aktif, R2/S3 driver Faz 3 Adim 2'de tek noktadan eklenecek (kod degismeden `STORAGE_DRIVER` ile secilir)
+- [x] Otomatik test paketi eklendi: `node:test` + `tsx`, `npm test` (13 test) - slug, SSRF host kontrolu, rate limit, JWT imzala/dogrula guvenlik-kritik saf mantik kapsandi
+- [x] (Faz 3 hazirligi) Widget SKU eslemesi: `data-rug-id` yerine `data-merchant-id` + `data-sku` ile cozumleme (`GET /api/v1/widget/rug?merchantId=&sku=`)
 
-Faz 2 Durumu: **Tamamlandi (cekirdek urunlesme)** - embed widget + buton enjeksiyonu + analytics + panel + upload + domain dogrulama + hata standardi calisir durumda. (Bulut depolama ve otomatik test runner Faz 3'e tasindi.)
+Faz 2 Durumu: **%100 Tamamlandi** - embed widget + buton enjeksiyonu + analytics + panel + upload + domain dogrulama + hata standardi + abonelik plan limiti + depolama soyutlamasi + otomatik test + guvenlik sertlestirme calisir durumda.
 
 ---
 
@@ -100,17 +108,21 @@ yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7)
 
 ### ADIM 1 - Production yayini (siteyi internete tasi)  [~2 gun]
 > Amac: `localhost`/tunnel yerine gercek, kalici HTTPS adres.
+> KOD HAZIRLIGI TAMAM: build `prisma generate && next build`, `npm run db:deploy`,
+> ana sayfa `force-dynamic` (build DB istemez), `/api/v1/health` DB readiness doner.
+> Adim adim runbook: **`docs/DEPLOY.md`**. Kalan kismi hesap/DNS islemleri (manuel).
 - [ ] 1.1 Yonetilen veritabani ac (Docker'siz): Neon (onerilen) / Supabase / Vercel Postgres
-- [ ] 1.2 `.env` -> `DATABASE_URL`'i yeni DB'ye cevir (sema ayni, kod degismez)
-- [ ] 1.3 `npx prisma migrate deploy` ile tablolari bulut DB'ye kur
-- [ ] 1.4 Projeyi Vercel'e deploy et
+- [ ] 1.2 Vercel env: `DATABASE_URL` + `JWT_SECRET` (>=32) + `STORAGE_DRIVER=local`
+- [ ] 1.3 `npm run db:deploy` ile tablolari bulut DB'ye kur
+- [ ] 1.4 Projeyi Vercel'e deploy et (build komutu hazir)
 - [ ] 1.5 Kalici domain bagla + HTTPS (orn. `app.rugvision.com`)
 - [ ] 1.6 Tunnel ve `baslat.bat` artik gereksiz (sadece lokal gelistirme icin kalir)
 
 ### ADIM 2 - Model dosya altyapisi (bulut depolama + otomatik uretim)  [~3-4 gun]
 > Amac: Modelleri sunucu diski yerine bulutta tut; yuzlerce hali icin uretimi otomatiklestir.
-- [ ] 2.1 Bulut depolama bagla (Cloudflare R2 / AWS S3 / Backblaze B2)
-- [ ] 2.2 `uploads/model` endpointini bulut depolamaya yonlendir
+> HAZIRLIK YAPILDI: `lib/storage.ts` driver soyutlamasi mevcut; sadece yeni driver eklenip `STORAGE_DRIVER` ile secilecek (route kodu degismez).
+- [ ] 2.1 Bulut depolama bagla (Cloudflare R2 / AWS S3 / Backblaze B2) — `StorageDriver` arayuzune yeni driver ekle
+- [ ] 2.2 `STORAGE_DRIVER=s3` (vb.) ile yeni driver'i etkinlestir (`uploads/model` zaten soyutlama uzerinden calisiyor)
 - [ ] 2.3 **Otomatik model uretimi**: urun fotografi (ustten) + en/boy olcusu -> gercek boyutlu dokulu GLB
 - [ ] 2.4 Otomatik GLB -> USDZ donusum hatti (sunucu tarafi, iOS uyumlu)
 - [ ] 2.5 Model pipeline standardi: olcek, pivot, axis, texture sabitlensin
@@ -119,7 +131,7 @@ yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7)
 > Amac: Tek satir kod ile musteri urun sayfasinda buton + AR.
 - [ ] 3.1 Embed kurulum dokumani yaz (tek satir `<script>` + `data-target` kullanimi)
 - [ ] 3.2 Musteri temasinda buton yerlesimini dogrula (orn. tarzhaliconcept.com PHP)
-- [ ] 3.3 SKU eslemesi: musteri urunu -> RugVision hali/model baglantisi
+- [~] 3.3 SKU eslemesi: widget altyapisi HAZIR (`data-merchant-id` + `data-sku` -> `GET /api/v1/widget/rug?merchantId=&sku=`); kalan is musteri urunleriyle eslemenin operasyonu
 - [ ] 3.4 Gercek halilarla 1-2 urunde uctan uca canli test
 
 ### ADIM 4 - Platform eklentileri  [BUYUME]
@@ -280,8 +292,8 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
 
 **Toplam kalan sure:** ~18-27 is gunu (yaklasik 3.5 - 5.5 hafta)
 
-**Bugune kadar tamamlanan (kabaca):** Tum projenin ~%60-65'i
-(Faz 1 bitti, Faz 2 cekirdek urunlesme tamamlandi).
+**Bugune kadar tamamlanan (kabaca):** Tum projenin ~%70'i
+(Faz 1 bitti, Faz 2 %100 tamamlandi + guvenlik sertlestirme + Faz 3 icin depolama/SKU temelleri atildi).
 
 Not: Dar kapsamli "hiz modu" (tek halici + temel embed + mobil AR) ile ilk canli satis demosu
 bugun itibariyle HAZIR. Geri kalan sure panel/otomasyon/entegrasyon/AI icin.

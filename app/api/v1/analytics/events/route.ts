@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import { AnalyticsEventType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { corsPreflight, withCors } from "@/lib/cors";
+import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/http";
 
 const VALID_EVENTS = new Set<string>(Object.values(AnalyticsEventType));
 
@@ -17,6 +19,12 @@ export function OPTIONS() {
 }
 
 export async function POST(request: NextRequest) {
+  // Public (widget) endpoint oldugu icin IP basina sert sinirlama uygulariz.
+  const limit = rateLimit(`analytics:${clientIp(request)}`, 120, 60 * 1000);
+  if (!limit.ok) {
+    return withCors({ error: "Cok fazla istek." }, { status: 429 });
+  }
+
   let body: EventBody;
   try {
     body = (await request.json()) as EventBody;
@@ -31,21 +39,46 @@ export async function POST(request: NextRequest) {
   }
   if (!eventType || !VALID_EVENTS.has(eventType)) {
     return withCors(
-      {
-        error: "Gecersiz eventType.",
-        allowed: Array.from(VALID_EVENTS),
-      },
+      { error: "Gecersiz eventType.", allowed: Array.from(VALID_EVENTS) },
       { status: 400 }
     );
   }
 
+  // metadata'yi makul bir boyutla sinirla (kotuye kullanim/sismeyi onle).
+  let safeMetadata: Prisma.InputJsonValue | undefined;
+  if (metadata !== undefined && metadata !== null) {
+    try {
+      const serialized = JSON.stringify(metadata);
+      if (serialized.length > 4000) {
+        return withCors({ error: "metadata cok buyuk." }, { status: 422 });
+      }
+      safeMetadata = metadata as Prisma.InputJsonValue;
+    } catch {
+      return withCors({ error: "metadata gecersiz." }, { status: 422 });
+    }
+  }
+
   try {
+    // Sahtecilik korumasi: rugId verildiyse, gercekten bu merchant'a ait olmali.
+    if (rugId) {
+      const owned = await prisma.rug.findFirst({
+        where: { id: rugId, merchantId },
+        select: { id: true },
+      });
+      if (!owned) {
+        return withCors(
+          { error: "rugId bu merchant'a ait degil." },
+          { status: 422 }
+        );
+      }
+    }
+
     const event = await prisma.analyticsEvent.create({
       data: {
         merchantId,
         rugId: rugId ?? null,
         eventType: eventType as AnalyticsEventType,
-        metadata: (metadata ?? undefined) as Prisma.InputJsonValue | undefined,
+        metadata: safeMetadata,
       },
       select: { id: true, eventType: true, occurredAt: true },
     });

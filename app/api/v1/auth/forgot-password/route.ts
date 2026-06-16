@@ -1,25 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { z } from "zod";
+import { apiOk, toErrorResponse } from "@/lib/api";
+import { parseJsonBody } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/http";
 
 const forgotPasswordSchema = z.object({
-  email: z.string().email(),
+  email: z.string().email().max(254),
 });
 
 export async function POST(request: NextRequest) {
-  const parse = forgotPasswordSchema.safeParse(await request.json());
-  if (!parse.success) {
-    return NextResponse.json(
-      { error: "Gecersiz body", details: parse.error.flatten() },
-      { status: 400 }
-    );
-  }
+  try {
+    enforceRateLimit(`forgot:${clientIp(request)}`, 5, 10 * 60 * 1000);
+    await parseJsonBody(request, forgotPasswordSchema);
 
-  return NextResponse.json(
-    {
-      success: true,
+    // Guvenlik: hesabin var olup olmadigini sizdirmamak icin her zaman ayni
+    // notr yaniti doneriz. (E-posta servisi entegrasyonu Faz 3'te eklenecek.)
+    return apiOk({
       message:
-        "MVP asamasinda e-posta servisi entegre edilmedi. Bu endpoint daha sonra provider ile tamamlanacak.",
-    },
-    { status: 200 }
-  );
+        "Eger bu e-posta kayitliysa, sifre sifirlama talimatlari gonderilecektir.",
+    });
+  } catch (error) {
+    return toErrorResponse(error);
+  }
 }

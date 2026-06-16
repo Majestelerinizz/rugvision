@@ -3,6 +3,10 @@
  * Kurulum (tek satir):
  *   <script src="https://BASE/widget.js" data-rug-id="RUG_ID" defer></script>
  *
+ * Kimlik (ikisinden biri):
+ *   data-rug-id        RugVision hali kimligi, VEYA
+ *   data-merchant-id + data-sku   (musterinin kendi SKU'su ile esleme)
+ *
  * Opsiyonel data-* nitelikleri:
  *   data-base          RugVision API/site adresi (varsayilan: script src origin)
  *   data-target        Butonun yanina eklenecegi elemanin CSS selector'u
@@ -30,8 +34,12 @@
   if (!script) return;
 
   var rugId = script.getAttribute("data-rug-id");
-  if (!rugId) {
-    console.warn("[RugVision] data-rug-id eksik, widget yuklenmedi.");
+  var merchantIdAttr = script.getAttribute("data-merchant-id");
+  var skuAttr = script.getAttribute("data-sku");
+  if (!rugId && !(merchantIdAttr && skuAttr)) {
+    console.warn(
+      "[RugVision] data-rug-id veya (data-merchant-id + data-sku) eksik, widget yuklenmedi."
+    );
     return;
   }
 
@@ -39,7 +47,7 @@
   if (!base) {
     try {
       base = new URL(script.src).origin;
-    } catch (e) {
+    } catch {
       base = "";
     }
   }
@@ -105,7 +113,7 @@
           keepalive: true,
         }).catch(function () {});
       }
-    } catch (e) {
+    } catch {
       /* best-effort */
     }
   }
@@ -114,7 +122,7 @@
     if (!model3dUrl) return;
     try {
       glbUrl = new URL(model3dUrl, base + "/").toString();
-    } catch (e) {
+    } catch {
       glbUrl = null;
     }
     var lower = model3dUrl.toLowerCase();
@@ -269,14 +277,29 @@
     }
   }
 
+  function buildRugUrl() {
+    if (rugId) {
+      return base + "/api/v1/widget/rug/" + encodeURIComponent(rugId);
+    }
+    return (
+      base +
+      "/api/v1/widget/rug?merchantId=" +
+      encodeURIComponent(merchantIdAttr) +
+      "&sku=" +
+      encodeURIComponent(skuAttr)
+    );
+  }
+
   function init() {
-    fetch(base + "/api/v1/widget/rug/" + encodeURIComponent(rugId))
+    fetch(buildRugUrl())
       .then(function (r) {
         if (!r.ok) throw new Error("rug fetch failed: " + r.status);
         return r.json();
       })
       .then(function (json) {
         var data = json && json.data ? json.data : {};
+        // SKU ile cozumlendiyse, sonraki adimlar icin gercek hali kimligini al.
+        if (!rugId && data.id) rugId = data.id;
         var merchant = data.merchant || {};
         var settings = merchant.widgetSettings || null;
         var merchantId = merchant.id || null;

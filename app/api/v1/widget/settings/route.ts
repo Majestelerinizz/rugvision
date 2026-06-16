@@ -1,49 +1,52 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { apiOk, toErrorResponse, HttpError } from "@/lib/api";
+import { requireAuth, resolveMerchantId } from "@/lib/auth-guard";
+import { parseJsonBody } from "@/lib/validation";
 
-type UpdateWidgetSettingsBody = {
-  merchantId?: string;
-  buttonColor?: string;
-  buttonText?: string;
-  borderRadius?: number;
-  logoUrl?: string | null;
-  darkMode?: boolean;
-};
+const updateSettingsSchema = z.object({
+  merchantId: z.string().min(1).optional(),
+  buttonColor: z
+    .string()
+    .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, "Gecerli bir HEX renk giriniz.")
+    .optional(),
+  buttonText: z.string().trim().min(1).max(40).optional(),
+  borderRadius: z.number().int().min(0).max(9999).optional(),
+  logoUrl: z.string().max(2000).nullable().optional(),
+  darkMode: z.boolean().optional(),
+});
 
 export async function GET(request: NextRequest) {
-  const merchantId = request.nextUrl.searchParams.get("merchantId");
+  try {
+    const ctx = await requireAuth(request);
+    const requested =
+      request.nextUrl.searchParams.get("merchantId") ?? undefined;
+    const merchantId = resolveMerchantId(ctx, requested);
 
-  if (!merchantId) {
-    return NextResponse.json(
-      { error: "merchantId query parametresi zorunludur." },
-      { status: 400 }
-    );
+    const settings = await prisma.widgetSettings.findUnique({
+      where: { merchantId },
+    });
+
+    if (!settings) {
+      throw new HttpError("NOT_FOUND", "Widget ayari bulunamadi.");
+    }
+
+    return apiOk(settings);
+  } catch (error) {
+    return toErrorResponse(error);
   }
-
-  const settings = await prisma.widgetSettings.findUnique({
-    where: { merchantId },
-  });
-
-  if (!settings) {
-    return NextResponse.json(
-      { error: "Widget ayari bulunamadi." },
-      { status: 404 }
-    );
-  }
-
-  return NextResponse.json({ data: settings }, { status: 200 });
 }
 
 export async function PUT(request: NextRequest) {
-  const body = (await request.json()) as UpdateWidgetSettingsBody;
-
-  if (!body.merchantId) {
-    return NextResponse.json({ error: "merchantId zorunludur." }, { status: 400 });
-  }
-
   try {
+    const ctx = await requireAuth(request);
+    const body = await parseJsonBody(request, updateSettingsSchema);
+    const merchantId = resolveMerchantId(ctx, body.merchantId);
+
     const updated = await prisma.widgetSettings.update({
-      where: { merchantId: body.merchantId },
+      where: { merchantId },
       data: {
         buttonColor: body.buttonColor,
         buttonText: body.buttonText,
@@ -53,10 +56,16 @@ export async function PUT(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ data: updated }, { status: 200 });
+    return apiOk(updated);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Widget ayari guncellenemedi.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return toErrorResponse(
+        new HttpError("NOT_FOUND", "Widget ayari bulunamadi.")
+      );
+    }
+    return toErrorResponse(error);
   }
 }

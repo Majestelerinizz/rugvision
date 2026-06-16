@@ -1,8 +1,8 @@
-import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { NextRequest } from "next/server";
 import { apiOk, apiError, toErrorResponse, HttpError } from "@/lib/api";
 import { requireAuth } from "@/lib/auth-guard";
+import { storage } from "@/lib/storage";
 
 const ALLOWED_EXT = [".glb", ".usdz", ".gltf"];
 const MAX_BYTES = 40 * 1024 * 1024; // 40 MB
@@ -48,12 +48,16 @@ export async function POST(request: NextRequest) {
     const base = slugifyBase(path.basename(file.name, ext)) || "model";
     const fileName = `${base}-${Date.now()}${ext}`;
 
-    const dir = path.join(process.cwd(), "public", "models");
-    await mkdir(dir, { recursive: true });
     const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(dir, fileName), buffer);
+    const contentType =
+      ext === ".glb"
+        ? "model/gltf-binary"
+        : ext === ".usdz"
+        ? "model/vnd.usdz+zip"
+        : "model/gltf+json";
+    const saved = await storage.saveModel(fileName, buffer, contentType);
 
-    const modelUrl = `/models/${fileName}`;
+    const modelUrl = saved.url;
     // GLB icin iOS Quick Look yolu (USDZ ayni isimle yuklendiyse calisir).
     const iosUrl =
       ext === ".glb"

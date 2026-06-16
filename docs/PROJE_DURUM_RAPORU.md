@@ -1,10 +1,10 @@
 # RugVision — Resmi Proje Durum Raporu
 
 > Belge turu: Proje Durum / Kabul Raporu
-> Surum: 1.0
-> Tarih: 14.06.2026
+> Surum: 1.1
+> Tarih: 16.06.2026
 > Hazirlayan: RugVision Gelistirme
-> Durum ozeti: **Faz 1 + Faz 2 (cekirdek urunlesme) TAMAMLANDI ve calisir durumda.**
+> Durum ozeti: **Faz 1 + Faz 2 %100 TAMAMLANDI; guvenlik sertlestirildi; Faz 3 temelleri atildi.**
 
 ---
 
@@ -34,18 +34,32 @@ durumdadir**.
   - `scripts/fix_rug_model.py` (olcek/pivot/yatay yerlesim)
   - `scripts/export_quicklook_usdz.py` (iOS uyumlu Y-up + ASCII USDZ)
 
-### Faz 2 — Islevsel Urunlesme (cekirdek %100)
+### Faz 2 — Islevsel Urunlesme (%100)
 - **Tek satir embed widget** (`public/widget.js`): "Sepete Ekle" yanina otomatik
   "Odamda Gor" butonu enjekte eder; mobilde dogrudan AR tetikler.
 - **Tema uyumu**: yaygin "sepete ekle" selector listesi + `data-target` override.
 - **Analytics**: `WIDGET_OPENED`, `AR_STARTED`, `VIEW_3D`, `PRODUCT_VIEWED` eventleri
   `analytics_events` tablosuna yaziliyor (CORS + `sendBeacon`).
 - **Merchant paneli** (`/panel`): giris, analitik kartlari, hali listesi, model
-  yukleme, embed kodu ureteci.
+  yukleme, embed kodu ureteci; refresh token ile otomatik oturum yenileme.
 - **Dosya yukleme** (`POST /api/v1/uploads/model`): GLB/USDZ/GLTF.
 - **Domain dogrulama** (`POST /api/v1/domains` + `/verify`).
-- **Standart API hata kodlari** (`lib/api.ts`).
+- **Abonelik plan limiti**: urun ekleme `productLimit`'e gore sinirlanir.
+- **Depolama soyutlamasi** (`lib/storage.ts`): yerel driver aktif; R2/S3 driver Faz 3'te.
+- **Otomatik test paketi**: `npm test` (`node:test` + `tsx`, 13 test).
+- **Standart API hata kodlari** (`lib/api.ts` + `lib/errors.ts`) + zod dogrulama.
 - **JWT auth guard** + merchant izolasyonu (`lib/auth-guard.ts`).
+
+### Guvenlik Sertlestirme (Yeni)
+- Rugs CRUD + widget/settings artik **auth + merchant izolasyonu** zorunlu (eskiden acikti);
+  `:id` islemlerinde sahiplik dogrulamasi.
+- **Rate limiting** (`lib/rate-limit.ts`): login/register/refresh/analytics/widget/domain-verify;
+  brute-force + kullanici-sayimi (enumeration) onleme (sabit-zaman parola karsilastirma).
+- **JWT**: issuer/audience + HS256 sabit; `JWT_SECRET < 32` ise uygulama baslamaz.
+- **HTTP guvenlik basliklari** (`next.config.ts`): HSTS, nosniff, Referrer-Policy,
+  Permissions-Policy, clickjacking korumasi (embed icin `/odamda-gor` haric).
+- **SSRF korumasi**: domain dogrulamada ozel-ic IP reddi + redirect takibi kapali.
+- Tum yanitlarda ham hata mesaji sizdirilmiyor; tekrar eden kayit -> 409 CONFLICT.
 
 ### Altyapi
 - Next.js 16 (App Router) + Prisma 7 (PostgreSQL, pg adapter).
@@ -103,13 +117,14 @@ baslat.bat          # kesintisiz mod: cokerse otomatik yeniden baslar
 ## 5. Kalan Isler (Faz 3 — Production & Buyume)
 
 - [ ] Production yayini (Vercel/sunucu) + kalici domain + HTTPS (tunnel'siz).
-- [ ] Bulut depolama (R2/S3/B2) ile model dosya yonetimi.
+- [ ] Bulut depolama (R2/S3/B2) driver'i ekle (soyutlama HAZIR: `lib/storage.ts`).
 - [ ] Otomatik GLB -> USDZ donusum hatti (sunucu tarafi).
+- [ ] SKU eslemesi operasyonu (widget altyapisi HAZIR: `data-merchant-id` + `data-sku`).
 - [ ] Shopify ve WooCommerce resmi entegrasyon/eklenti.
 - [ ] Coklu cihazda AR kabul testleri (genis cihaz matrisi).
 - [ ] AI floor/room detection ilk surum.
-- [ ] Otomatik test paketi (E2E runner) + CI.
-- [ ] (Opsiyonel) Abonelik/plan limitleri.
+- [ ] Rate limiter'i dagitik store'a (Upstash/Redis) tasi (cok-instance icin).
+- [ ] E2E test runner + CI (birim test temeli atildi: `npm test`).
 
 ---
 
@@ -118,10 +133,10 @@ baslat.bat          # kesintisiz mod: cokerse otomatik yeniden baslar
 | Asama | Durum | Kalan sure |
 |-------|-------|------------|
 | Faz 1 (AR cekirdegi) | %100 | — |
-| Faz 2 (cekirdek urunlesme) | %100 (cekirdek) | — (bulut depolama / oto test / oto donusum Faz 3'e tasindi) |
+| Faz 2 (islevsel urunlesme) | %100 | — (plan limiti + depolama soyutlamasi + otomatik test + guvenlik dahil) |
 | Faz 3 (production + entegrasyon + AI) | basliyor | ~12-18 is gunu |
 
-- **Tum projenin tamamlanma orani:** ~%60-65.
+- **Tum projenin tamamlanma orani:** ~%70.
 - **Production'a tam hazir (Faz 3 dahil):** ~3.5 - 5.5 hafta.
 - **Tek halici ile canli satis demosu:** BUGUN HAZIR.
 
