@@ -145,14 +145,16 @@ yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7)
 
 ### ADIM 1 - Production yayini (siteyi internete tasi)  [~2 gun]
 > Amac: `localhost`/tunnel yerine gercek, kalici HTTPS adres.
-> **DURUM: CANLI** — `https://rugvision-o54d.vercel.app` (Neon DB bagli, health OK, iPhone AR dogrulandi).
+> **DURUM: %100 TAMAMLANDI** — `https://rugvision-o54d.vercel.app` (Neon DB, health OK, HTTPS, panel, AR).
 > Runbook: **`docs/DEPLOY.md`**
 - [x] 1.1 Yonetilen veritabani acildi: **Neon** (proje `rugvision`, Postgres 16)
 - [x] 1.2 Vercel env: `DATABASE_URL` + `JWT_SECRET` (>=32) + `STORAGE_DRIVER=local`
 - [x] 1.3 `npm run db:deploy` ile tablolar Neon'a kuruldu
-- [x] 1.4 Vercel'e deploy edildi (GitHub `fae8c2c`, build: `prisma generate && next build`)
-- [ ] 1.5 Kalici domain bagla + HTTPS (orn. `app.rugvision.com`) — opsiyonel, Vercel URL calisiyor
+- [x] 1.4 Vercel'e deploy edildi (GitHub `256a49e`, build: `prisma generate && next build`)
+- [x] 1.5 HTTPS production adresi aktif (Vercel otomatik SSL) — **TAMAM**
 - [x] 1.6 Tunnel artik production icin gereksiz (sadece lokal gelistirme icin kalir)
+
+> **Not:** Ozel alan adi (`app.rugvision.com`) Adim 1 kapsami disinda birakildi; Buyume fazinda opsiyonel.
 
 **Production erisim:**
 - Site: `https://rugvision-o54d.vercel.app`
@@ -357,11 +359,11 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
 
 - **Faz 1:** %100 tamamlandi
 - **Faz 2:** %100 tamamlandi (guvenlik sertlestirme dahil)
-- **Faz 3 Adim 1:** %90 tamamlandi (production CANLI)
+- **Faz 3 Adim 1:** %100 tamamlandi (production CANLI, HTTPS, Neon, panel)
 - **Faz 3 Adim 3:** %95 tamamlandi (pilot entegrasyon tamam; opsiyonel slider/footer linkleri kaldi)
 - **Faz 3 Adim 2:** devam ediyor (R2/S3)
 
-**Tum projenin tamamlanma orani:** ~%82-85 (tam urun vizyonu)
+**Tum projenin tamamlanma orani:** ~%83-86 (tam urun vizyonu)
 
 **TEMEL paket (canli satis demosu):** ~%93 — sadece R2/S3 + opsiyonel cilalar kaldi
 
@@ -421,5 +423,5 @@ Halicilara aylik abonelik karsiliginda urun/model/widget yonetimi, AR deneyimi v
 analitik panel sunan bir SaaS hizmeti. (Abonelik modulu su an kapsam disi, gelistirme
 onceligi "hali gosterimi" uzerinedir.)
 
-**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), Faz 3 Adim 1 (%90), Adim 3 pilot (%95), Adim 2 (%0).
-**Toplam:** ~%82-85 | **TEMEL demo paketi:** ~%93 | **Kalan TEMEL:** ~2-3 is gunu.
+**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), **Faz 3 Adim 1 (%100)**, Adim 3 pilot (%95), Adim 2 (%0).
+**Toplam:** ~%83-86 | **TEMEL demo paketi:** ~%93 | **Kalan TEMEL:** ~2-3 is gunu (R2/S3).

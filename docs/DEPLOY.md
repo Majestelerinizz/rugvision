@@ -168,7 +168,8 @@ Vercel'in dosya sistemi **salt-okunurdur**; `STORAGE_DRIVER=local` ile
 - [x] iPhone 12 production AR doğrulandı
 - [x] İlk merchant + demo halı oluşturuldu
 - [x] **Pilot:** savasdogantekstil.com/rugvision canlı AR (ürün detay)
-- [ ] Kalıcı domain + HTTPS (opsiyonel)
+- [x] HTTPS production aktif (Vercel otomatik SSL) — Adım 1 tamam
+- [ ] Özel alan adı (`app.rugvision.com`) — opsiyonel, Buyume fazı
 - [ ] Model dosyaları için bulut depolama (R2/S3) — Adım 2
 - [ ] Rate limiter'ı dağıtık store'a (Upstash/Redis) taşı (çok-instance için)
 
