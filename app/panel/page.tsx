@@ -32,6 +32,7 @@ export default function PanelPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const [overview, setOverview] = useState<Overview | null>(null);
   const [rugs, setRugs] = useState<Rug[]>([]);
@@ -39,7 +40,6 @@ export default function PanelPage() {
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    // localStorage yalnizca istemcide var; SSR uyumu icin hidrasyon effect'te yapilir.
     /* eslint-disable react-hooks/set-state-in-effect */
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -78,8 +78,6 @@ export default function PanelPage() {
     persistSession(null, null, null);
   }, [persistSession]);
 
-  // Tum korumali istekleri tek noktadan yapar; access token (15 dk) dolduysa
-  // refresh token ile sessizce yeniler ve istegi bir kez tekrarlar.
   const authedFetch = useCallback(
     async (input: string, init: RequestInit = {}): Promise<Response> => {
       const withAuth = (t: string | null): RequestInit => ({
@@ -131,7 +129,6 @@ export default function PanelPage() {
   }, [token, merchantId, authedFetch]);
 
   useEffect(() => {
-    // Veri cekme effect'i; setState'ler await sonrasi asenkron yapilir.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData();
   }, [loadData]);
@@ -186,163 +183,319 @@ export default function PanelPage() {
     setUploadMsg(`Yuklendi: ${json.data.modelUrl}`);
   }
 
+  const selectedRug = rugs.find((r) => r.id === selectedRugId);
+
   const embedSnippet = useMemo(() => {
     if (typeof window === "undefined" || !selectedRugId) return "";
     const origin = window.location.origin;
-    return `<script src="${origin}/widget.js" data-rug-id="${selectedRugId}" data-target=".add-to-cart" defer></script>`;
-  }, [selectedRugId]);
+    if (selectedRug?.sku && merchantId) {
+      return `<script src="${origin}/widget.js"\n  data-merchant-id="${merchantId}"\n  data-sku="${selectedRug.sku}"\n  data-target=".add-to-cart"\n  defer></script>`;
+    }
+    return `<script src="${origin}/widget.js"\n  data-rug-id="${selectedRugId}"\n  data-target=".add-to-cart"\n  defer></script>`;
+  }, [selectedRugId, selectedRug, merchantId]);
+
+  async function copyEmbed() {
+    if (!embedSnippet) return;
+    await navigator.clipboard?.writeText(embedSnippet);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   if (!token) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-        <h1 className="text-2xl font-semibold">RugVision Panel</h1>
-        <p className="mt-1 text-sm text-zinc-500">Merchant girisi</p>
-        <form onSubmit={handleLogin} className="mt-6 space-y-3">
-          <input
-            type="email"
-            placeholder="E-posta"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2"
-            required
-          />
-          <input
-            type="password"
-            placeholder="Sifre"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border border-zinc-300 px-3 py-2"
-            required
-          />
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
-          >
-            {loading ? "Giris yapiliyor..." : "Giris yap"}
-          </button>
-        </form>
-      </main>
+      <div className="min-h-screen bg-gradient-to-br from-stone-100 via-amber-50 to-stone-200">
+        <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-12">
+          <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-xl shadow-stone-300/40">
+            <div className="mb-8 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-700 text-2xl font-bold text-white">
+                R
+              </div>
+              <h1 className="text-2xl font-bold text-stone-900">RugVision Panel</h1>
+              <p className="mt-2 text-sm text-stone-500">
+                Halilarinizi yonetin, embed kodunu alin
+              </p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-5">
+              <div>
+                <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-stone-700">
+                  E-posta
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  placeholder="ornek@magaza.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600/20"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-stone-700">
+                  Sifre
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  placeholder="********"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600/20"
+                  required
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-lg bg-amber-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Giris yapiliyor..." : "Panele gir"}
+              </button>
+            </form>
+          </div>
+
+          <p className="mt-6 text-center text-xs text-stone-500">
+            RugVision &mdash; Odamda Gor AR platformu
+          </p>
+        </main>
+      </div>
     );
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">RugVision Panel</h1>
-        <button onClick={logout} className="text-sm text-zinc-500 underline">
-          Cikis
-        </button>
-      </div>
-
-      <section className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label="Toplam Hali" value={overview?.totals.rugs ?? 0} />
-        <Stat label="Widget Acilis" value={overview?.totals.widgetOpened ?? 0} />
-        <Stat label="AR Baslatma" value={overview?.totals.arStarted ?? 0} />
-        <Stat label="3D Goruntuleme" value={overview?.totals.view3d ?? 0} />
-      </section>
-
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold">Halilar</h2>
-        <div className="mt-3 overflow-hidden rounded-xl border border-zinc-200">
-          <table className="w-full text-sm">
-            <thead className="bg-zinc-50 text-left text-zinc-500">
-              <tr>
-                <th className="px-4 py-2">Ad</th>
-                <th className="px-4 py-2">SKU</th>
-                <th className="px-4 py-2">Model</th>
-                <th className="px-4 py-2">Durum</th>
-                <th className="px-4 py-2"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {rugs.map((r) => (
-                <tr key={r.id} className="border-t border-zinc-100">
-                  <td className="px-4 py-2">{r.name}</td>
-                  <td className="px-4 py-2">{r.sku}</td>
-                  <td className="px-4 py-2">{r.model3dUrl ? "\u2713" : "\u2014"}</td>
-                  <td className="px-4 py-2">{r.status}</td>
-                  <td className="px-4 py-2 text-right">
-                    <a
-                      href={`/odamda-gor/${r.id}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-600 underline"
-                    >
-                      Onizle
-                    </a>
-                  </td>
-                </tr>
-              ))}
-              {rugs.length === 0 && (
-                <tr>
-                  <td className="px-4 py-6 text-center text-zinc-400" colSpan={5}>
-                    Hali bulunamadi.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="mt-10 grid gap-8 md:grid-cols-2">
-        <div>
-          <h2 className="text-lg font-semibold">Model Yukle (GLB/USDZ)</h2>
-          <form onSubmit={handleUpload} className="mt-3 space-y-3">
-            <input
-              type="file"
-              name="file"
-              accept=".glb,.usdz,.gltf"
-              className="block w-full text-sm"
-            />
-            <button
-              type="submit"
-              className="rounded-lg bg-black px-4 py-2 text-sm text-white"
-            >
-              Yukle
-            </button>
-            {uploadMsg && <p className="text-sm text-zinc-600">{uploadMsg}</p>}
-          </form>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-semibold">Embed Kodu</h2>
-          <select
-            value={selectedRugId}
-            onChange={(e) => setSelectedRugId(e.target.value)}
-            className="mt-3 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-          >
-            {rugs.map((r) => (
-              <option key={r.id} value={r.id}>
-                {r.name} ({r.sku})
-              </option>
-            ))}
-          </select>
-          <textarea
-            readOnly
-            value={embedSnippet}
-            rows={4}
-            className="mt-3 w-full rounded-lg border border-zinc-300 bg-zinc-50 p-3 font-mono text-xs"
-          />
+    <div className="min-h-screen bg-stone-100">
+      {/* Header */}
+      <header className="border-b border-stone-200 bg-white">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-700 text-lg font-bold text-white">
+              R
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-stone-900">RugVision Panel</h1>
+              <p className="text-xs text-stone-500">Merchant yonetim paneli</p>
+            </div>
+          </div>
           <button
-            onClick={() => navigator.clipboard?.writeText(embedSnippet)}
-            className="mt-2 rounded-lg border border-zinc-300 px-3 py-1.5 text-sm"
+            onClick={logout}
+            className="rounded-lg border border-stone-300 px-4 py-2 text-sm font-medium text-stone-600 transition hover:bg-stone-50"
           >
-            Kopyala
+            Cikis yap
           </button>
         </div>
-      </section>
-    </main>
+      </header>
+
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+        {/* Merchant ID */}
+        {merchantId && (
+          <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-amber-800">
+              Merchant ID (embed kodunda kullanilir)
+            </p>
+            <p className="mt-1 font-mono text-sm text-amber-900">{merchantId}</p>
+          </div>
+        )}
+
+        {/* Stats */}
+        <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <StatCard label="Toplam Hali" value={overview?.totals.rugs ?? 0} accent="stone" />
+          <StatCard label="Widget Acilis" value={overview?.totals.widgetOpened ?? 0} accent="blue" />
+          <StatCard label="AR Baslatma" value={overview?.totals.arStarted ?? 0} accent="green" />
+          <StatCard label="3D Goruntuleme" value={overview?.totals.view3d ?? 0} accent="purple" />
+        </section>
+
+        {/* Rugs table */}
+        <section className="mt-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-stone-900">Halilariniz</h2>
+            <span className="text-sm text-stone-500">{rugs.length} urun</span>
+          </div>
+          <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-stone-200 bg-stone-50 text-left">
+                    <th className="px-5 py-3 font-semibold text-stone-600">Ad</th>
+                    <th className="px-5 py-3 font-semibold text-stone-600">SKU</th>
+                    <th className="px-5 py-3 font-semibold text-stone-600">Model</th>
+                    <th className="px-5 py-3 font-semibold text-stone-600">Durum</th>
+                    <th className="px-5 py-3 font-semibold text-stone-600"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {rugs.map((r) => (
+                    <tr key={r.id} className="transition hover:bg-stone-50">
+                      <td className="px-5 py-4 font-medium text-stone-900">{r.name}</td>
+                      <td className="px-5 py-4">
+                        <code className="rounded bg-stone-100 px-2 py-0.5 text-xs text-stone-700">
+                          {r.sku}
+                        </code>
+                      </td>
+                      <td className="px-5 py-4">
+                        {r.model3dUrl ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                            Var
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-stone-100 px-2.5 py-0.5 text-xs font-medium text-stone-500">
+                            Yok
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 capitalize text-stone-600">{r.status}</td>
+                      <td className="px-5 py-4 text-right">
+                        <a
+                          href={`/odamda-gor/${r.id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-stone-700"
+                        >
+                          AR Onizle
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
+                  {rugs.length === 0 && (
+                    <tr>
+                      <td className="px-5 py-12 text-center text-stone-400" colSpan={5}>
+                        Henuz hali eklenmemis. API veya panel uzerinden urun ekleyin.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        {/* Upload + Embed */}
+        <section className="mt-8 grid gap-6 lg:grid-cols-2">
+          {/* Upload */}
+          <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-stone-900">Model Yukle</h2>
+            <p className="mt-1 text-sm text-stone-500">GLB veya USDZ dosyasi yukleyin</p>
+            <form onSubmit={handleUpload} className="mt-5 space-y-4">
+              <div className="rounded-lg border-2 border-dashed border-stone-300 bg-stone-50 p-6 text-center">
+                <input
+                  type="file"
+                  name="file"
+                  accept=".glb,.usdz,.gltf"
+                  className="block w-full text-sm text-stone-600 file:mr-4 file:rounded-lg file:border-0 file:bg-amber-700 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-amber-800"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full rounded-lg bg-stone-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-stone-700"
+              >
+                Dosyayi Yukle
+              </button>
+              {uploadMsg && (
+                <p
+                  className={`text-sm ${uploadMsg.startsWith("Yuklendi") ? "text-green-700" : "text-red-600"}`}
+                >
+                  {uploadMsg}
+                </p>
+              )}
+            </form>
+            <p className="mt-4 text-xs text-stone-400">
+              Not: Production ortaminda kalici depolama icin R2/S3 yapilandirmasi gerekir.
+            </p>
+          </div>
+
+          {/* Embed */}
+          <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-stone-900">Embed Kodu</h2>
+            <p className="mt-1 text-sm text-stone-500">
+              Bu kodu urun sayfaniza yapistirin; &quot;Odamda Gor&quot; butonu otomatik eklenir
+            </p>
+
+            <label htmlFor="rug-select" className="mt-5 block text-sm font-medium text-stone-700">
+              Hali secin
+            </label>
+            <select
+              id="rug-select"
+              value={selectedRugId}
+              onChange={(e) => setSelectedRugId(e.target.value)}
+              className="mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-stone-900 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600/20"
+            >
+              {rugs.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.name} ({r.sku})
+                </option>
+              ))}
+            </select>
+
+            <label htmlFor="embed-code" className="mt-4 block text-sm font-medium text-stone-700">
+              Kod
+            </label>
+            <textarea
+              id="embed-code"
+              readOnly
+              value={embedSnippet}
+              rows={6}
+              className="mt-1.5 w-full rounded-lg border border-stone-300 bg-stone-50 p-4 font-mono text-xs leading-relaxed text-stone-800"
+            />
+
+            <button
+              onClick={copyEmbed}
+              disabled={!embedSnippet}
+              className="mt-3 w-full rounded-lg bg-amber-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {copied ? "Kopyalandi!" : "Kodu Kopyala"}
+            </button>
+
+            <div className="mt-4 rounded-lg bg-stone-50 p-4 text-xs text-stone-600">
+              <p className="font-semibold text-stone-700">Kurulum:</p>
+              <ol className="mt-2 list-decimal space-y-1 pl-4">
+                <li>Kodu urun sayfa sablonuna yapistirin</li>
+                <li>
+                  <code className="text-stone-800">data-target</code> degerini sitenizdeki
+                  &quot;Sepete Ekle&quot; butonunun CSS sinifi ile eslestirin
+                </li>
+                <li>Mobil cihazda test edin (iPhone Quick Look / Android Scene Viewer)</li>
+              </ol>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function StatCard({
+  label,
+  value,
+  accent,
+}: {
+  label: string;
+  value: number;
+  accent: "stone" | "blue" | "green" | "purple";
+}) {
+  const accents = {
+    stone: "border-stone-200 bg-white text-stone-900",
+    blue: "border-blue-200 bg-blue-50 text-blue-900",
+    green: "border-green-200 bg-green-50 text-green-900",
+    purple: "border-purple-200 bg-purple-50 text-purple-900",
+  };
+  const labelColors = {
+    stone: "text-stone-500",
+    blue: "text-blue-600",
+    green: "text-green-600",
+    purple: "text-purple-600",
+  };
+
   return (
-    <div className="rounded-xl border border-zinc-200 p-4">
-      <p className="text-2xl font-semibold">{value}</p>
-      <p className="mt-1 text-xs text-zinc-500">{label}</p>
+    <div className={`rounded-xl border p-5 shadow-sm ${accents[accent]}`}>
+      <p className="text-3xl font-bold">{value}</p>
+      <p className={`mt-1 text-sm font-medium ${labelColors[accent]}`}>{label}</p>
     </div>
   );
 }
