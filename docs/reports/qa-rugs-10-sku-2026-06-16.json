@@ -1,0 +1,121 @@
+{
+  "generatedAt": "2026-06-16T21:50:52.142Z",
+  "summary": {
+    "pass": 10,
+    "fail": 0,
+    "skip": 0,
+    "total": 10
+  },
+  "items": [
+    {
+      "sku": "RV-LUNA-001",
+      "name": "Luna Natural Siyah Bordurlu Hali",
+      "widthCm": "160",
+      "lengthCm": "230",
+      "photoOk": true,
+      "glbBytes": 1591736,
+      "usdzBytes": 1593488,
+      "status": "PASS",
+      "issues": ""
+    },
+    {
+      "sku": "RV-TERRA-002",
+      "name": "Terra Krem Dokuma Salon Halisi",
+      "widthCm": "200",
+      "lengthCm": "290",
+      "photoOk": true,
+      "glbBytes": 1519936,
+      "usdzBytes": 1521805,
+      "status": "PASS",
+      "issues": ""
+    },
+    {
+      "sku": "RV-ARYA-003",
+      "name": "Arya Modern Naturel Hali",
+      "widthCm": "120",
+      "lengthCm": "180",
+      "photoOk": true,
+      "glbBytes": 1454848,
+      "usdzBytes": 1456610,
+      "status": "PASS",
+      "issues": ""
+    },
+    {
+      "sku": "RV-NOVA-004",
+      "name": "Nova Minimal Desenli Hali",
+      "widthCm": "80",
+      "lengthCm": "150",
+      "photoOk": true,
+      "glbBytes": 1537592,
+      "usdzBytes": 1539380,
+      "status": "PASS",
+      "issues": ""
+    },
+    {
+      "sku": "RV-MIRA-005",
+      "name": "Mira Soft Yatak Odasi Halisi",
+      "widthCm": "160",
+      "lengthCm": "230",
+      "photoOk": true,
+      "glbBytes": 1342136,
+      "usdzBytes": 1343888,
+      "status": "PASS",
+      "issues": ""
+    },
+    {
+      "sku": "RV-SAFIR-006",
+      "name": "Safir Premium Salon Halisi",
+      "widthCm": "200",
+      "lengthCm": "300",
+      "photoOk": true,
+      "glbBytes": 1607772,
+      "usdzBytes": 1609623,
+      "status": "PASS",
+      "issues": ""
+    },
+    {
+      "sku": "RV-ELARA-007",
+      "name": "Elara Dogal Dokulu Hali",
+      "widthCm": "160",
+      "lengthCm": "230",
+      "photoOk": true,
+      "glbBytes": 1517976,
+      "usdzBytes": 1519728,
+      "status": "PASS",
+      "issues": ""
+    },
+    {
+      "sku": "RV-VERONA-008",
+      "name": "Verona Klasik Modern Hali",
+      "widthCm": "160",
+      "lengthCm": "230",
+      "photoOk": true,
+      "glbBytes": 1404960,
+      "usdzBytes": 1406839,
+      "status": "PASS",
+      "issues": ""
+    },
+    {
+      "sku": "RV-LIVA-009",
+      "name": "Liva Bej Siyah Cerceveli Hali",
+      "widthCm": "80",
+      "lengthCm": "300",
+      "photoOk": true,
+      "glbBytes": 1719668,
+      "usdzBytes": 1721475,
+      "status": "PASS",
+      "issues": ""
+    },
+    {
+      "sku": "RV-NARIN-010",
+      "name": "Narin Natural Koridor Halisi",
+      "widthCm": "80",
+      "lengthCm": "200",
+      "photoOk": true,
+      "glbBytes": 1607364,
+      "usdzBytes": 1609182,
+      "status": "PASS",
+      "issues": ""
+    }
+  ]
+}

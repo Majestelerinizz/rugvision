@@ -1,0 +1,11 @@
+sku,name,width_cm,length_cm,glb_ok,usdz_ok,glb_bytes,usdz_bytes,ar_status,iphone12_quick_look,glb_cdn_url
+RV-LUNA-001,"Luna Natural Siyah Bordurlu Hali",160,230,true,true,1591736,1593488,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-LUNA-001.glb
+RV-TERRA-002,"Terra Krem Dokuma Salon Halisi",200,290,true,true,1519936,1521805,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-TERRA-002.glb
+RV-ARYA-003,"Arya Modern Naturel Hali",120,180,true,true,1454848,1456610,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-ARYA-003.glb
+RV-NOVA-004,"Nova Minimal Desenli Hali",80,150,true,true,1537592,1539380,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-NOVA-004.glb
+RV-MIRA-005,"Mira Soft Yatak Odasi Halisi",160,230,true,true,1342136,1343888,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-MIRA-005.glb
+RV-SAFIR-006,"Safir Premium Salon Halisi",200,300,true,true,1607772,1609623,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-SAFIR-006.glb
+RV-ELARA-007,"Elara Dogal Dokulu Hali",160,230,true,true,1517976,1519728,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-ELARA-007.glb
+RV-VERONA-008,"Verona Klasik Modern Hali",160,230,true,true,1404960,1406839,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-VERONA-008.glb
+RV-LIVA-009,"Liva Bej Siyah Cerceveli Hali",80,300,true,true,1719668,1721475,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-LIVA-009.glb
+RV-NARIN-010,"Narin Natural Koridor Halisi",80,200,true,true,1607364,1609182,READY,PASS,https://pub-692fed61add14fdca565fa5967c47df1.r2.dev/models/RV-NARIN-010.glb

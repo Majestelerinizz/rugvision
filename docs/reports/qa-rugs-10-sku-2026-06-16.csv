@@ -1,0 +1,11 @@
+sku,name,width_cm,length_cm,photo_ok,glb_bytes,usdz_bytes,status,issues
+RV-LUNA-001,"Luna Natural Siyah Bordurlu Hali",160,230,true,1591736,1593488,PASS,
+RV-TERRA-002,"Terra Krem Dokuma Salon Halisi",200,290,true,1519936,1521805,PASS,
+RV-ARYA-003,"Arya Modern Naturel Hali",120,180,true,1454848,1456610,PASS,
+RV-NOVA-004,"Nova Minimal Desenli Hali",80,150,true,1537592,1539380,PASS,
+RV-MIRA-005,"Mira Soft Yatak Odasi Halisi",160,230,true,1342136,1343888,PASS,
+RV-SAFIR-006,"Safir Premium Salon Halisi",200,300,true,1607772,1609623,PASS,
+RV-ELARA-007,"Elara Dogal Dokulu Hali",160,230,true,1517976,1519728,PASS,
+RV-VERONA-008,"Verona Klasik Modern Hali",160,230,true,1404960,1406839,PASS,
+RV-LIVA-009,"Liva Bej Siyah Cerceveli Hali",80,300,true,1719668,1721475,PASS,
+RV-NARIN-010,"Narin Natural Koridor Halisi",80,200,true,1607364,1609182,PASS,

@@ -14,6 +14,33 @@ type Overview = {
   };
   topRugsByAr: { rugId: string; name: string | null; sku: string | null; arStarted: number }[];
 };
+type AnalyticsReport = {
+  periodDays: number;
+  totals: {
+    widgetOpened: number;
+    arStarted: number;
+    view3d: number;
+    productViewed: number;
+  };
+  conversion: {
+    widgetToArPercent: number;
+    productToView3dPercent: number;
+  };
+  topRugsByAr: { rugId: string; name: string | null; sku: string | null; arStarted: number }[];
+};
+type SubscriptionInfo = {
+  hasSubscription: boolean;
+  snapshot: {
+    plan: string;
+    status: string;
+    productLimit: number;
+    rugCount: number;
+    usagePercent: number;
+    trialDaysLeft: number | null;
+    isTrialExpired: boolean;
+    canAddRug: boolean;
+  } | null;
+};
 type Rug = {
   id: string;
   name: string;
@@ -35,6 +62,8 @@ export default function PanelPage() {
   const [copied, setCopied] = useState(false);
 
   const [overview, setOverview] = useState<Overview | null>(null);
+  const [report, setReport] = useState<AnalyticsReport | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [rugs, setRugs] = useState<Rug[]>([]);
   const [selectedRugId, setSelectedRugId] = useState<string>("");
   const [uploadMsg, setUploadMsg] = useState<string | null>(null);
@@ -112,11 +141,15 @@ export default function PanelPage() {
   const loadData = useCallback(async () => {
     if (!token || !merchantId) return;
     try {
-      const [ovRes, rugRes] = await Promise.all([
+      const [ovRes, rugRes, repRes, subRes] = await Promise.all([
         authedFetch(`/api/v1/analytics/overview?merchantId=${merchantId}`),
         authedFetch(`/api/v1/rugs?merchantId=${merchantId}`),
+        authedFetch(`/api/v1/analytics/report?merchantId=${merchantId}&days=30`),
+        authedFetch(`/api/v1/subscription?merchantId=${merchantId}`),
       ]);
       if (ovRes.ok) setOverview((await ovRes.json()).data);
+      if (repRes.ok) setReport((await repRes.json()).data);
+      if (subRes.ok) setSubscription((await subRes.json()).data);
       if (rugRes.ok) {
         const list: Rug[] = (await rugRes.json()).data ?? [];
         setRugs(list);
@@ -159,6 +192,17 @@ export default function PanelPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function downloadWithAuth(url: string, filename: string) {
+    const res = await authedFetch(url);
+    if (!res.ok) return;
+    const blob = await res.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
   }
 
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
@@ -305,12 +349,118 @@ export default function PanelPage() {
         )}
 
         {/* Stats */}
-        <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <section className="grid grid-cols-2 gap-4 lg:grid-cols-5">
           <StatCard label="Toplam Hali" value={overview?.totals.rugs ?? 0} accent="stone" />
           <StatCard label="Widget Acilis" value={overview?.totals.widgetOpened ?? 0} accent="blue" />
           <StatCard label="AR Baslatma" value={overview?.totals.arStarted ?? 0} accent="green" />
           <StatCard label="3D Goruntuleme" value={overview?.totals.view3d ?? 0} accent="purple" />
+          <StatCard label="Urun Goruntuleme" value={overview?.totals.productViewed ?? 0} accent="stone" />
         </section>
+
+        {/* Plan + Analytics Report */}
+        <section className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-stone-900">Abonelik / Plan</h2>
+            {subscription?.snapshot ? (
+              <div className="mt-4 space-y-3 text-sm text-stone-700">
+                <p>
+                  <span className="font-semibold">Plan:</span> {subscription.snapshot.plan}{" "}
+                  <span className="text-stone-500">({subscription.snapshot.status})</span>
+                </p>
+                <p>
+                  Kullanim: {subscription.snapshot.rugCount} / {subscription.snapshot.productLimit} hali
+                </p>
+                <div className="h-2 overflow-hidden rounded-full bg-stone-100">
+                  <div
+                    className="h-full rounded-full bg-amber-600"
+                    style={{ width: `${subscription.snapshot.usagePercent}%` }}
+                  />
+                </div>
+                {subscription.snapshot.trialDaysLeft != null && (
+                  <p className="text-amber-800">Deneme: {subscription.snapshot.trialDaysLeft} gun kaldi</p>
+                )}
+                {!subscription.snapshot.canAddRug && (
+                  <p className="text-red-600">Yeni urun eklemek icin plan yukseltin veya limit bosaltin.</p>
+                )}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-stone-500">Abonelik kaydi bulunamadi.</p>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-stone-900">Analitik Rapor (30 gun)</h2>
+            {report ? (
+              <div className="mt-4 space-y-2 text-sm text-stone-700">
+                <p>
+                  Widget → AR donusum:{" "}
+                  <strong>{report.conversion.widgetToArPercent}%</strong>
+                </p>
+                <p>
+                  Urun → 3D donusum:{" "}
+                  <strong>{report.conversion.productToView3dPercent}%</strong>
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <a
+                    href={`/api/v1/analytics/export?merchantId=${merchantId}`}
+                    className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-medium hover:bg-stone-50"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void downloadWithAuth(
+                        `/api/v1/analytics/export?merchantId=${merchantId}`,
+                        "rugvision-analytics.csv"
+                      );
+                    }}
+                  >
+                    Analitik CSV
+                  </a>
+                  <a
+                    href={`/api/v1/reports/ar-acceptance?format=csv`}
+                    className="rounded-lg border border-stone-300 px-3 py-1.5 text-xs font-medium hover:bg-stone-50"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      void downloadWithAuth(
+                        `/api/v1/reports/ar-acceptance?format=csv`,
+                        "ar-acceptance-pilot-10.csv"
+                      );
+                    }}
+                  >
+                    AR Kabul CSV
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-stone-500">Rapor yukleniyor...</p>
+            )}
+          </div>
+        </section>
+
+        {/* Top rugs by AR */}
+        {report && report.topRugsByAr.length > 0 && (
+          <section className="mt-8 rounded-xl border border-stone-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-bold text-stone-900">En Cok AR Baslatilan Halilar</h2>
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-stone-200 text-left text-stone-600">
+                    <th className="py-2 pr-4">SKU</th>
+                    <th className="py-2 pr-4">Ad</th>
+                    <th className="py-2">AR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {report.topRugsByAr.map((r) => (
+                    <tr key={r.rugId} className="border-b border-stone-100">
+                      <td className="py-2 pr-4 font-mono text-xs">{r.sku}</td>
+                      <td className="py-2 pr-4">{r.name}</td>
+                      <td className="py-2">{r.arStarted}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
 
         {/* Rugs table */}
         <section className="mt-8">

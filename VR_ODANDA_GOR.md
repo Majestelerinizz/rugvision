@@ -202,19 +202,27 @@ Faz 3 Durumu: **Adım 1 + Adım 2 + Adım 3 %100 (TEMEL paket tamam).**
 - [ ] 4.1 Shopify uygulaması/eklentisi MVP
 - [ ] 4.2 WooCommerce eklentisi MVP
 
+### ADIM 4b - Buyume ozellikleri (Shopify haric) [%100]
+> Runbook: **`docs/GROWTH-FEATURES.md`**
+- [x] 4b.1 AR kabul raporu (10 SKU CSV/HTML + API)
+- [x] 4b.2 AI zemin/oda tespiti v1 (`/api/v1/ai/scans`)
+- [x] 4b.3 Analitik dashboard raporlari (report API + panel CSV)
+- [x] 4b.4 100+ hali QA pipeline (`npm run models:qa`)
+- [x] 4b.5 Abonelik/plan limitleri (subscription API + panel)
+
 ### ADIM 5 - AR kalite ve cihaz testleri  [BUYUME]
 - [ ] 5.1 iOS Quick Look + Android Scene Viewer çoklu cihazda doğrulama (geniş matris)
-- [~] 5.2 Production (HTTPS) üzerinde mobil AR acceptance testi (iPhone 12 Quick Look OK; geniş matris bekliyor)
-- [~] 5.3 En az 10 üründe AR gecis raporu (pilot 10 SKU iPhone OK; resmi rapor bekliyor)
+- [x] 5.2 Production (HTTPS) üzerinde mobil AR acceptance testi (iPhone 12 Quick Look OK)
+- [x] 5.3 En az 10 üründe AR kabul raporu (`npm run reports:ar-acceptance`)
 
 ### ADIM 6 - AI özellikleri  [BUYUME]
-- [ ] 6.1 AI floor (zemin) detection ilk sürüm
-- [ ] 6.2 AI room (oda) detection ilk sürüm
+- [x] 6.1 AI floor (zemin) detection ilk sürüm (heuristic v1 + AiScan kaydi)
+- [x] 6.2 AI room (oda) detection ilk sürüm (heuristic v1)
 
 ### ADIM 7 - Izleme, raporlama ve otomasyon  [BUYUME]
-- [ ] 7.1 Dönüşüm + AR kullanım analitikleri dashboard'da raporlansin
+- [x] 7.1 Dönüşüm + AR kullanım analitikleri dashboard'da raporlansin
 - [ ] 7.2 Otomatik test paketi (E2E runner) + CI
-- [ ] 7.3 (Opsiyonel) Abonelik/plan limitleri
+- [x] 7.3 Abonelik/plan limitleri (panel + API)
 
 ---
 

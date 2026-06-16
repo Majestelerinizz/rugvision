@@ -5,32 +5,20 @@ import { prisma } from "@/lib/prisma";
 import { apiOk, apiError, toErrorResponse, HttpError } from "@/lib/api";
 import { requireAuth, resolveMerchantId } from "@/lib/auth-guard";
 import { parseJsonBody } from "@/lib/validation";
+import {
+  buildSubscriptionSnapshot,
+  assertCanCreateRug,
+} from "@/lib/subscription";
 
-const TERMINATED_STATUSES = new Set(["CANCELED", "PAST_DUE"]);
-
-// Aktif abonelik plani varsa urun (hali) limitini uygular.
-// Abonelik yoksa engellemez (limit ozelligi opsiyonel kalir).
 async function assertWithinPlanLimit(merchantId: string): Promise<void> {
   const subscription = await prisma.subscription.findUnique({
     where: { merchantId },
-    select: { productLimit: true, status: true },
   });
   if (!subscription) return;
 
-  if (TERMINATED_STATUSES.has(subscription.status)) {
-    throw new HttpError(
-      "FORBIDDEN",
-      "Aboneliginiz aktif degil. Lutfen planinizi yenileyin."
-    );
-  }
-
-  const count = await prisma.rug.count({ where: { merchantId } });
-  if (count >= subscription.productLimit) {
-    throw new HttpError(
-      "FORBIDDEN",
-      `Plan limitinize ulastiniz (${subscription.productLimit} urun). Daha fazlasi icin planinizi yukseltin.`
-    );
-  }
+  const rugCount = await prisma.rug.count({ where: { merchantId } });
+  const snapshot = buildSubscriptionSnapshot(subscription, rugCount);
+  assertCanCreateRug(snapshot);
 }
 
 const createRugSchema = z.object({

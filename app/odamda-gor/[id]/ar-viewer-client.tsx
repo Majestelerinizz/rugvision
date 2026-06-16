@@ -67,6 +67,43 @@ function openIosQuickLook(iosSrc: string) {
   anchor.remove();
 }
 
+function trackAiScan(
+  merchantId: string,
+  rugId: string,
+  scanType: "FLOOR_DETECTION" | "ROOM_DETECTION"
+) {
+  try {
+    const payload = JSON.stringify({
+      merchantId,
+      rugId,
+      scanType,
+      context: {
+        platform: typeof navigator !== "undefined" ? navigator.userAgent : "",
+        hasGyroscope:
+          typeof window !== "undefined" && "DeviceOrientationEvent" in window,
+        screenWidth: typeof window !== "undefined" ? window.screen?.width : undefined,
+        screenHeight: typeof window !== "undefined" ? window.screen?.height : undefined,
+        portrait:
+          typeof window !== "undefined"
+            ? window.matchMedia?.("(orientation: portrait)")?.matches
+            : undefined,
+        aspectRatio:
+          typeof window !== "undefined" && window.screen?.height
+            ? Number((window.screen.width / window.screen.height).toFixed(3))
+            : undefined,
+      },
+    });
+    fetch("/api/v1/ai/scans", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: payload,
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // best-effort
+  }
+}
+
 function trackEvent(
   eventType: "VIEW_3D" | "AR_STARTED",
   merchantId: string,
@@ -115,6 +152,8 @@ export default function ArViewerClient({
     if (!viewer) return;
 
     trackEvent("AR_STARTED", merchantId, rugId);
+    trackAiScan(merchantId, rugId, "FLOOR_DETECTION");
+    trackAiScan(merchantId, rugId, "ROOM_DETECTION");
 
     if (isIOSDevice() && iosSrc) {
       openIosQuickLook(iosSrc);
@@ -154,6 +193,7 @@ export default function ArViewerClient({
             ios-src={iosSrc}
             alt={name}
             ar
+            ar-placement="floor"
             ar-modes="webxr scene-viewer quick-look"
             camera-controls
             auto-rotate
@@ -195,6 +235,7 @@ export default function ArViewerClient({
             ios-src={iosSrc}
             alt={name}
             ar
+            ar-placement="floor"
             ar-modes="webxr scene-viewer quick-look"
             camera-controls
             auto-rotate
