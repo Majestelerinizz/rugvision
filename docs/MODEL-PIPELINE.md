@@ -1,0 +1,130 @@
+# RugVision — Otomatik Model Pipeline (Faz 3 · Adım 2)
+
+> Amaç: 100+ halı için **fotoğraf + ölçü → GLB + USDZ** otomatik üretimi.  
+> Elle Blender yok; batch script tüm SKU'ları işler.
+
+---
+
+## Gereksinimler
+
+- **Blender 4.x** (PATH veya `BLENDER_PATH` env)
+- Ürün **üstten fotoğrafları** (`jpg`/`png`)
+- CSV manifest: SKU, görsel yolu, en/boy (cm)
+
+---
+
+## Hızlı başlangıç
+
+### 1) Fotoğrafları koy
+
+`data/rug-photos/` klasörüne SKU adıyla kaydet:
+
+```
+data/rug-photos/RV-LUNA-001.jpg
+data/rug-photos/RV-ARYA-003.jpg
+...
+```
+
+Manifest: `data/rugs-batch.csv` (pilot 10 SKU hazır).
+
+### 2) Toplu model üret
+
+```powershell
+# Tum manifest
+npm run models:batch
+
+# Tek SKU
+npm run models:batch -- --sku RV-LUNA-001
+
+# Uzerine yaz
+npm run models:batch -- --force
+```
+
+Blender yolu bulunamazsa:
+
+```powershell
+$env:BLENDER_PATH="C:\Program Files\Blender Foundation\Blender 4.4\blender.exe"
+npm run models:batch
+```
+
+**Çıktı:** `public/models/{SKU}.glb` + `{SKU}.usdz`
+
+### 3) Veritabanına bağla
+
+```powershell
+npm run models:attach
+# veya
+npm run models:attach -- --merchant-id cmqgswc5a000004lanqoxc666
+```
+
+Her SKU için `model3dUrl` → `/models/{SKU}.glb` güncellenir.
+
+### 4) Widget / AR test
+
+- Lokal: `http://localhost:3000/odamda-gor/{rugId}`
+- Production: deploy sonrası veya R2 URL'leri ile
+
+---
+
+## Bulut depolama (R2 / S3)
+
+Vercel'de kalıcı dosya için `STORAGE_DRIVER=r2` (veya `s3`).
+
+| Env | Açıklama |
+|-----|----------|
+| `STORAGE_DRIVER` | `local` (dev) veya `r2` / `s3` |
+| `R2_BUCKET` | Bucket adı |
+| `R2_ACCESS_KEY_ID` | API key |
+| `R2_SECRET_ACCESS_KEY` | Secret |
+| `R2_ENDPOINT` | `https://<account>.r2.cloudflarestorage.com` |
+| `R2_PUBLIC_URL` | CDN/public URL (örn. `https://cdn.example.com`) |
+
+Upload: `POST /api/v1/uploads/model` → driver üzerinden R2'ye yazar.  
+USDZ: `GET /api/v1/ar/usdz/:filename` → storage'dan okur.
+
+Production'da `model3dUrl` tam CDN URL olabilir:
+
+```powershell
+npm run models:attach -- --base-url https://rugvision-o54d.vercel.app
+```
+
+---
+
+## Teknik akış
+
+```
+Foto (JPG) + 160x230 cm
+        |
+        v
+generate_rug_model.py (Blender headless)
+  - düzlem + dokulu materyal
+  - gerçek ölçek (metre)
+  - GLB export
+  - USDZ export (Quick Look)
+        |
+        v
+public/models/ veya R2
+        |
+        v
+attach-rug-models.ts -> rugs.model3dUrl
+```
+
+---
+
+## Süre tahmini
+
+| Adet | Elle Blender | Otomatik batch |
+|------|--------------|----------------|
+| 10 | ~5-10 saat | ~10-15 dk |
+| 100 | ~50-100 saat | ~2-3 saat |
+
+---
+
+## Sorun giderme
+
+| Belirti | Çözüm |
+|---------|--------|
+| Blender bulunamadı | `BLENDER_PATH` set et |
+| `[skip] gorsel yok` | `data/rug-photos/{SKU}.jpg` ekle |
+| USDZ paketlenmedi | Blender USD eklentisi / `pxr` kontrol |
+| AR açılmıyor | `npm run models:attach` çalıştırıldı mı? |

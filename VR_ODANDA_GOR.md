@@ -163,13 +163,18 @@ yukaridan aşağıya gidilir. Toplam: TEMEL (Adım 1-3) ~6-10 gün, BUYUME (Adı
 - Örnek AR: `https://rugvision-o54d.vercel.app/odamda-gor/<RUG_ID>`
 
 ### ADIM 2 - Model dosya altyapısı (bulut depolama + otomatik üretim)  [~3-4 gün]
-> Amaç: Modelleri sunucu diski yerine bulutta tut; yuzlerce halı için üretimi otomatikleştir.
-> HAZIRLIK YAPILDI: `lib/storage.ts` driver soyutlaması mevcut; sadece yeni driver eklenip `STORAGE_DRIVER` ile seçilecek (route kodu değişmez).
-- [ ] 2.1 Bulut depolama bağla (Cloudflare R2 / AWS S3 / Backblaze B2) — `StorageDriver` arayuzune yeni driver ekle
-- [ ] 2.2 `STORAGE_DRIVER=s3` (vb.) ile yeni driver'ı etkinleştir (`uploads/model` zaten soyutlama üzerinden çalışıyor)
-- [ ] 2.3 **Otomatik model üretimi**: ürün fotoğrafı (ustten) + en/boy ölçüsu -> gerçek boyutlu dokulu GLB
-- [ ] 2.4 Otomatik GLB -> USDZ dönüşüm hattı (sunucu tarafı, iOS uyumlu)
-- [ ] 2.5 Model pipeline standardı: ölçek, pivot, axis, texture sabitlensin
+> Amaç: Modelleri sunucu diski yerine bulutta tut; yüzlerce halı için üretimi otomatikleştir.
+> **DURUM: DEVAM EDİYOR** — batch pipeline + R2 driver eklendi; foto manifest ile üretim hazır.
+> Runbook: **`docs/MODEL-PIPELINE.md`**
+- [x] 2.0 Depolama soyutlaması genişletildi: `readModel` + S3/R2 driver (`lib/storage.ts`)
+- [x] 2.0 USDZ endpoint storage üzerinden okur (local + R2)
+- [x] 2.3 **Otomatik model üretimi (v1):** `scripts/generate_rug_model.py` — foto + en/boy → GLB/USDZ
+- [x] 2.3 **Batch runner:** `npm run models:batch` + `data/rugs-batch.csv` (10 pilot SKU)
+- [x] 2.3 **DB bağlama:** `npm run models:attach` → `model3dUrl` güncelleme
+- [ ] 2.1 Bulut depolama bağla (Cloudflare R2) — production env + upload test
+- [ ] 2.2 `STORAGE_DRIVER=r2` production'da etkin
+- [ ] 2.4 Pilot 10 SKU için gerçek fotoğraflarla batch üretim + canlı AR doğrulama
+- [ ] 2.5 Model pipeline standardı: toplu QA raporu
 
 ### ADIM 3 - E-ticaret entegrasyonu (müşteri sitesine ekleme)  [~1-2 gün]
 > Amaç: Tek satır kod ile müşteri ürün sayfasında buton + AR.
@@ -182,7 +187,7 @@ yukaridan aşağıya gidilir. Toplam: TEMEL (Adım 1-3) ~6-10 gün, BUYUME (Adı
 
 > **Not:** Slider/footer köprü linkleri ve panel domain doğrulama Adım 3 kapsamı dışında bırakıldı (Büyüme fazı / opsiyonel cila).
 
-Faz 3 Durumu: **Adım 1 + Adım 3 %100; sırada yalnızca Adım 2 (R2/S3).**
+Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch pipeline hazır (R2 + foto üretim sırada).**
 
 ### ADIM 4 - Platform eklentileri  [BUYUME]
 > Amaç: Kurulumu "tek tik" yapan resmi eklentiler.
@@ -203,7 +208,7 @@ Faz 3 Durumu: **Adım 1 + Adım 3 %100; sırada yalnızca Adım 2 (R2/S3).**
 - [ ] 7.2 Otomatik test paketi (E2E runner) + CI
 - [ ] 7.3 (Opsiyonel) Abonelik/plan limitleri
 
-Faz 3 Durumu: **Adım 1 + Adım 3 %100; sırada yalnızca Adım 2 (R2/S3).**
+Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch pipeline hazır (R2 + foto üretim sırada).**
 
 ---
 
