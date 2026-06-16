@@ -1,11 +1,11 @@
 sku,image,width_cm,length_cm,name
-RV-LUNA-001,data/rug-photos/RV-LUNA-001.jpg,160,230,Luna Klasik
-RV-ARYA-002,data/rug-photos/RV-ARYA-002.jpg,160,230,Arya Modern
-RV-ARYA-003,data/rug-photos/RV-ARYA-003.jpg,200,290,Arya Salon
-RV-DENIZ-004,data/rug-photos/RV-DENIZ-004.jpg,120,180,Deniz Cocuk
-RV-ELIF-005,data/rug-photos/RV-ELIF-005.jpg,160,230,Elif Vintage
-RV-KALE-006,data/rug-photos/RV-KALE-006.jpg,200,300,Kale Koleksiyon
-RV-MIRA-007,data/rug-photos/RV-MIRA-007.jpg,160,230,Mira Soft
-RV-NIL-008,data/rug-photos/RV-NIL-008.jpg,180,260,Nil Geometrik
-RV-SERA-009,data/rug-photos/RV-SERA-009.jpg,160,230,Sera Pastel
-RV-NARIN-010,data/rug-photos/RV-NARIN-010.jpg,200,290,Narin Premium
+RV-LUNA-001,data/rug-photos/RV-LUNA-001.png,160,230,Luna Natural Siyah Bordurlu Hali
+RV-TERRA-002,data/rug-photos/RV-TERRA-002.png,200,290,Terra Krem Dokuma Salon Halisi
+RV-ARYA-003,data/rug-photos/RV-ARYA-003.png,120,180,Arya Modern Naturel Hali
+RV-NOVA-004,data/rug-photos/RV-NOVA-004.png,80,150,Nova Minimal Desenli Hali
+RV-MIRA-005,data/rug-photos/RV-MIRA-005.png,160,230,Mira Soft Yatak Odasi Halisi
+RV-SAFIR-006,data/rug-photos/RV-SAFIR-006.png,200,300,Safir Premium Salon Halisi
+RV-ELARA-007,data/rug-photos/RV-ELARA-007.png,160,230,Elara Dogal Dokulu Hali
+RV-VERONA-008,data/rug-photos/RV-VERONA-008.png,160,230,Verona Klasik Modern Hali
+RV-LIVA-009,data/rug-photos/RV-LIVA-009.png,80,300,Liva Bej Siyah Cerceveli Hali
+RV-NARIN-010,data/rug-photos/RV-NARIN-010.png,80,200,Narin Natural Koridor Halisi

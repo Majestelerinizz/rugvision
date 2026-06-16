@@ -18,6 +18,7 @@ function parseArgs() {
   const opts = {
     manifest: path.join(ROOT, "data", "rugs-batch.csv"),
     modelsDir: path.join(ROOT, "public", "models"),
+    coversDir: path.join(ROOT, "public", "rug-covers"),
     merchantId: process.env.MERCHANT_ID || "cmqgswc5a000004lanqoxc666",
     dryRun: false,
     baseUrl: process.env.MODEL_PUBLIC_BASE || "",
@@ -59,6 +60,19 @@ function modelUrlForSku(sku: string, baseUrl: string) {
   return baseUrl ? `${baseUrl}${rel}` : rel;
 }
 
+function coverUrlForSku(sku: string, baseUrl: string) {
+  const rel = `/rug-covers/${sku}.png`;
+  return baseUrl ? `${baseUrl}${rel}` : rel;
+}
+
+function syncCoverImage(sku: string, photoPath: string, coversDir: string) {
+  if (!photoPath || !fs.existsSync(photoPath)) return null;
+  fs.mkdirSync(coversDir, { recursive: true });
+  const dest = path.join(coversDir, `${sku}.png`);
+  fs.copyFileSync(photoPath, dest);
+  return dest;
+}
+
 async function main() {
   const opts = parseArgs();
   const rows = parseCsv(opts.manifest);
@@ -78,11 +92,18 @@ async function main() {
     }
 
     const model3dUrl = modelUrlForSku(sku, opts.baseUrl);
+    const imageRel = row.image?.trim();
+    const photoPath = imageRel ? path.join(ROOT, imageRel.replace(/\//g, path.sep)) : "";
+    syncCoverImage(sku, photoPath, opts.coversDir);
+    const coverImage = fs.existsSync(path.join(opts.coversDir, `${sku}.png`))
+      ? coverUrlForSku(sku, opts.baseUrl)
+      : null;
+
     const rug = await prisma.rug.findUnique({
       where: {
         merchantId_sku: { merchantId: opts.merchantId, sku },
       },
-      select: { id: true, name: true, model3dUrl: true },
+      select: { id: true, name: true, model3dUrl: true, coverImage: true },
     });
 
     if (!rug) {
@@ -91,16 +112,26 @@ async function main() {
       continue;
     }
 
-    if (rug.model3dUrl === model3dUrl) {
+    const data: { model3dUrl: string; coverImage?: string | null } = { model3dUrl };
+    if (coverImage && rug.coverImage !== coverImage) {
+      data.coverImage = coverImage;
+    }
+
+    const modelChanged = rug.model3dUrl !== model3dUrl;
+    const coverChanged = coverImage != null && rug.coverImage !== coverImage;
+    if (!modelChanged && !coverChanged) {
       console.log(`[unchanged] ${sku}`);
       continue;
     }
 
-    console.log(`[update] ${sku}: ${rug.model3dUrl ?? "(null)"} -> ${model3dUrl}`);
+    const parts = [];
+    if (modelChanged) parts.push(`model ${rug.model3dUrl ?? "(null)"} -> ${model3dUrl}`);
+    if (coverChanged) parts.push(`cover ${rug.coverImage ?? "(null)"} -> ${coverImage}`);
+    console.log(`[update] ${sku}: ${parts.join("; ")}`);
     if (!opts.dryRun) {
       await prisma.rug.update({
         where: { id: rug.id },
-        data: { model3dUrl },
+        data,
       });
     }
     updated++;
