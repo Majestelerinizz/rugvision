@@ -5,6 +5,7 @@ import {
   GetObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { MODEL_OBJECT_CACHE_CONTROL } from "@/lib/cache-tags";
 
 export type SavedModel = {
   fileName: string;
@@ -110,6 +111,7 @@ class S3StorageDriver implements StorageDriver {
         Key: this.objectKey(safeName),
         Body: data,
         ContentType: contentType,
+        CacheControl: MODEL_OBJECT_CACHE_CONTROL,
       })
     );
     return { fileName: safeName, url: this.publicUrl(safeName) };

@@ -22,6 +22,8 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 
+const MODEL_OBJECT_CACHE_CONTROL = "public, max-age=31536000, immutable";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
@@ -132,6 +134,7 @@ async function uploadFile(r2, filePath, dryRun, force) {
       Key: key,
       Body: body,
       ContentType: contentType,
+      CacheControl: MODEL_OBJECT_CACHE_CONTROL,
     })
   );
   const url = publicUrl(r2.publicBase, r2.prefix, fileName);

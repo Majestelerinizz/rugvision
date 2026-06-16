@@ -9,6 +9,7 @@ import {
   buildSubscriptionSnapshot,
   assertCanCreateRug,
 } from "@/lib/subscription";
+import { invalidateRugPublicCache } from "@/lib/invalidate-rug-cache";
 
 async function assertWithinPlanLimit(merchantId: string): Promise<void> {
   const subscription = await prisma.subscription.findUnique({
@@ -83,6 +84,8 @@ export async function POST(request: NextRequest) {
         status: body.status ?? RugStatus.ACTIVE,
       },
     });
+
+    invalidateRugPublicCache();
 
     return apiOk(created, 201);
   } catch (error) {

@@ -132,6 +132,45 @@
     } else if (lower.indexOf(".glb") !== -1 && glbUrl) {
       usdzUrl = glbUrl.replace(/\.glb$/i, ".usdz");
     }
+    warmModelCdn();
+  }
+
+  // AR acilisini hizlandirmak: CDN baglantisi + model prefetch (idle).
+  function warmModelCdn() {
+    var targetUrl = isIOS() ? usdzUrl : glbUrl;
+    if (!targetUrl) return;
+
+    try {
+      var cdnOrigin = new URL(targetUrl).origin;
+      if (cdnOrigin && cdnOrigin !== base) {
+        var preconnect = document.createElement("link");
+        preconnect.rel = "preconnect";
+        preconnect.href = cdnOrigin;
+        preconnect.crossOrigin = "anonymous";
+        document.head.appendChild(preconnect);
+      }
+    } catch {
+      /* best-effort */
+    }
+
+    var prefetch = function () {
+      try {
+        var link = document.createElement("link");
+        link.rel = "prefetch";
+        link.as = "fetch";
+        link.href = targetUrl;
+        link.crossOrigin = "anonymous";
+        document.head.appendChild(link);
+      } catch {
+        /* best-effort */
+      }
+    };
+
+    if (window.requestIdleCallback) {
+      window.requestIdleCallback(prefetch, { timeout: 1500 });
+    } else {
+      setTimeout(prefetch, 400);
+    }
   }
 
   // iOS Quick Look: en guvenilir tetikleme rel="ar" anchor ile (ust sayfada).

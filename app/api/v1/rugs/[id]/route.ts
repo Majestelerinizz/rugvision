@@ -9,6 +9,7 @@ import {
   type AuthContext,
 } from "@/lib/auth-guard";
 import { parseJsonBody } from "@/lib/validation";
+import { invalidateRugPublicCache } from "@/lib/invalidate-rug-cache";
 
 const updateRugSchema = z.object({
   name: z.string().trim().min(1).max(200).optional(),
@@ -75,6 +76,8 @@ export async function PUT(
       },
     });
 
+    invalidateRugPublicCache();
+
     return apiOk(updated);
   } catch (error) {
     if (
@@ -99,6 +102,7 @@ export async function DELETE(
     await loadOwnedRug(ctx, id);
 
     await prisma.rug.delete({ where: { id } });
+    invalidateRugPublicCache();
     return apiOk({ success: true });
   } catch (error) {
     return toErrorResponse(error);

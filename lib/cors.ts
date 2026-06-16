@@ -16,6 +16,20 @@ export function withCors<T>(data: T, init?: ResponseInit) {
   return res;
 }
 
+// Widget rug verisi nadiren degisir; CDN/edge cache ile TTFB duser.
+export function withCorsCached<T>(
+  data: T,
+  init?: ResponseInit,
+  maxAgeSec = 300
+) {
+  const res = withCors(data, init);
+  res.headers.set(
+    "Cache-Control",
+    `public, s-maxage=${maxAgeSec}, stale-while-revalidate=${maxAgeSec * 2}`
+  );
+  return res;
+}
+
 export function corsPreflight() {
   return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
 }

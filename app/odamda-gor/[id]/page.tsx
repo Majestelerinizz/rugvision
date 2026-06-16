@@ -1,5 +1,10 @@
 import Link from "next/link";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import {
+  ODAMDA_GOR_CACHE_TAG,
+  ODAMDA_GOR_REVALIDATE_SEC,
+} from "@/lib/cache-tags";
 import ArViewerClient from "./ar-viewer-client";
 
 const FALLBACK_MODEL_URL = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
@@ -8,7 +13,6 @@ function buildIosSrc(modelUrl: string) {
   const lower = modelUrl.toLowerCase();
   if (!lower.endsWith(".glb")) return undefined;
 
-  // Local model URLs like /models/Modern_rug.glb -> /api/v1/ar/usdz/Modern_rug.usdz
   if (modelUrl.startsWith("/models/")) {
     const fileName = modelUrl.split("/").pop();
     if (!fileName) return undefined;
@@ -17,6 +21,26 @@ function buildIosSrc(modelUrl: string) {
 
   return modelUrl.replace(/\.glb$/i, ".usdz");
 }
+
+async function loadRugForViewer(id: string) {
+  return prisma.rug.findUnique({
+    where: { id },
+    include: {
+      merchant: {
+        select: {
+          id: true,
+          name: true,
+          widgetSettings: true,
+        },
+      },
+    },
+  });
+}
+
+const getRugForViewer = unstable_cache(loadRugForViewer, ["odamda-gor-rug"], {
+  revalidate: ODAMDA_GOR_REVALIDATE_SEC,
+  tags: [ODAMDA_GOR_CACHE_TAG],
+});
 
 export default async function OdamdaGorPage({
   params,
@@ -29,18 +53,7 @@ export default async function OdamdaGorPage({
   const { embed } = await searchParams;
   const isEmbed = embed === "1" || embed === "true";
 
-  const rug = await prisma.rug.findUnique({
-    where: { id },
-    include: {
-      merchant: {
-        select: {
-          id: true,
-          name: true,
-          widgetSettings: true,
-        },
-      },
-    },
-  });
+  const rug = await getRugForViewer(id);
 
   if (!rug) {
     return (

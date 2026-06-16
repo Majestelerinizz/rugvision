@@ -16,6 +16,7 @@
     "photos:clean": "node scripts/clean-rug-photos.mjs",
     "reports:ar-acceptance": "node scripts/generate-ar-acceptance-report.mjs",
     "models:qa": "node scripts/qa-rug-models.mjs",
+    "perf:check": "node scripts/perf-check.mjs",
     "tunnel": "node scripts/tunnel.mjs",
     "dev:all": "concurrently -n dev,tunnel -c blue,magenta \"npm:dev\" \"npm:tunnel\""
   },

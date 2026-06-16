@@ -2,7 +2,6 @@
 
 import { useEffect, useRef } from "react";
 import Script from "next/script";
-
 type Props = {
   modelUrl: string;
   iosSrc?: string;
@@ -147,6 +146,27 @@ export default function ArViewerClient({
     trackEvent("VIEW_3D", merchantId, rugId);
   }, [merchantId, rugId]);
 
+  useEffect(() => {
+    if (!modelUrl) return;
+    try {
+      const origin = new URL(modelUrl, window.location.href).origin;
+      if (origin === window.location.origin) return;
+      const preconnect = document.createElement("link");
+      preconnect.rel = "preconnect";
+      preconnect.href = origin;
+      preconnect.crossOrigin = "anonymous";
+      document.head.appendChild(preconnect);
+
+      const preload = document.createElement("link");
+      preload.rel = "preload";
+      preload.as = "fetch";
+      preload.href = modelUrl;
+      preload.crossOrigin = "anonymous";
+      document.head.appendChild(preload);
+    } catch {
+      // best-effort
+    }
+  }, [modelUrl]);
   const handleActivateAr = async () => {
     const viewer = viewerRef.current;
     if (!viewer) return;
@@ -184,6 +204,7 @@ export default function ArViewerClient({
         <Script
           type="module"
           src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
+          strategy="lazyOnload"
         />
 
         <div className="relative h-[calc(100vh-24px)] w-full">
@@ -199,6 +220,7 @@ export default function ArViewerClient({
             auto-rotate
             shadow-intensity="1"
             exposure="1"
+            loading="lazy"
             style={{
               width: "100%",
               height: "100%",
@@ -225,6 +247,7 @@ export default function ArViewerClient({
       <Script
         type="module"
         src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
+        strategy="lazyOnload"
       />
 
       <div className="grid gap-6 md:grid-cols-3">
@@ -241,6 +264,7 @@ export default function ArViewerClient({
             auto-rotate
             shadow-intensity="1"
             exposure="1"
+            loading="lazy"
             style={{
               width: "100%",
               height: "65vh",

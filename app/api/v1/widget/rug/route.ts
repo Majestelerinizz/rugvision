@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { corsPreflight, withCors } from "@/lib/cors";
+import { corsPreflight, withCorsCached } from "@/lib/cors";
 import { rateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/http";
 import { findWidgetRugBySku } from "@/lib/widget-rug";
@@ -13,14 +13,17 @@ export function OPTIONS() {
 export async function GET(request: NextRequest) {
   const limit = rateLimit(`widget-rug:${clientIp(request)}`, 240, 60 * 1000);
   if (!limit.ok) {
-    return withCors({ error: "Cok fazla istek." }, { status: 429 });
+    return withCorsCached(
+      { error: "Cok fazla istek." },
+      { status: 429 }
+    );
   }
 
   const merchantId = request.nextUrl.searchParams.get("merchantId");
   const sku = request.nextUrl.searchParams.get("sku");
 
   if (!merchantId || !sku) {
-    return withCors(
+    return withCorsCached(
       { error: "merchantId ve sku query parametreleri zorunludur." },
       { status: 400 }
     );
@@ -28,8 +31,8 @@ export async function GET(request: NextRequest) {
 
   const data = await findWidgetRugBySku(merchantId, sku);
   if (!data) {
-    return withCors({ error: "Rug bulunamadi." }, { status: 404 });
+    return withCorsCached({ error: "Rug bulunamadi." }, { status: 404 });
   }
 
-  return withCors({ data }, { status: 200 });
+  return withCorsCached({ data }, { status: 200 });
 }

@@ -1,4 +1,9 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import {
+  WIDGET_RUG_CACHE_TAG,
+  WIDGET_RUG_REVALIDATE_SEC,
+} from "@/lib/cache-tags";
 
 // Widget'in ihtiyaci olan minimal/public hali verisini sekillendirir.
 function shapeWidgetRug(rug: {
@@ -37,8 +42,7 @@ const merchantInclude = {
   },
 } as const;
 
-// Hali kimligine gore (panelden uretilen embed: data-rug-id).
-export async function findWidgetRugById(id: string) {
+async function loadWidgetRugById(id: string) {
   const rug = await prisma.rug.findUnique({
     where: { id },
     include: merchantInclude,
@@ -46,11 +50,38 @@ export async function findWidgetRugById(id: string) {
   return rug ? shapeWidgetRug(rug) : null;
 }
 
-// Merchant + SKU eslemesine gore (data-merchant-id + data-sku).
-export async function findWidgetRugBySku(merchantId: string, sku: string) {
+async function loadWidgetRugBySku(merchantId: string, sku: string) {
   const rug = await prisma.rug.findUnique({
     where: { merchantId_sku: { merchantId, sku } },
     include: merchantInclude,
   });
   return rug ? shapeWidgetRug(rug) : null;
+}
+
+const cachedWidgetRugById = unstable_cache(
+  loadWidgetRugById,
+  ["widget-rug-by-id"],
+  {
+    revalidate: WIDGET_RUG_REVALIDATE_SEC,
+    tags: [WIDGET_RUG_CACHE_TAG],
+  }
+);
+
+const cachedWidgetRugBySku = unstable_cache(
+  loadWidgetRugBySku,
+  ["widget-rug-by-sku"],
+  {
+    revalidate: WIDGET_RUG_REVALIDATE_SEC,
+    tags: [WIDGET_RUG_CACHE_TAG],
+  }
+);
+
+// Hali kimligine gore (panelden uretilen embed: data-rug-id).
+export async function findWidgetRugById(id: string) {
+  return cachedWidgetRugById(id);
+}
+
+// Merchant + SKU eslemesine gore (data-merchant-id + data-sku).
+export async function findWidgetRugBySku(merchantId: string, sku: string) {
+  return cachedWidgetRugBySku(merchantId, sku);
 }

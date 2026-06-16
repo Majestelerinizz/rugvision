@@ -22,7 +22,7 @@ export async function GET(
     headers: {
       "Content-Type": "model/vnd.usdz+zip",
       "Content-Disposition": `inline; filename="${safeFileName}"`,
-      "Cache-Control": "public, max-age=3600",
+      "Cache-Control": "public, max-age=31536000, immutable",
     },
   });
 }

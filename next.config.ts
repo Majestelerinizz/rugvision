@@ -19,8 +19,33 @@ const nextConfig: NextConfig = {
   // Localtunnel/ngrok gibi tunnel adresleri uzerinden dev test icin.
   allowedDevOrigins: ["*.loca.lt", "rugvision-demo.loca.lt"],
 
+  // Vercel uzerinde statik dosya ve widget API edge cache.
+  compress: true,
+
   async headers() {
+    const staticAssetCache = [
+      {
+        source: "/widget.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      {
+        source: "/models/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
+
     return [
+      ...staticAssetCache,
       // AR goruntuleyici musteri sitelerine iframe ile gomulebildigi icin
       // framing'e izin veririz (frame-ancestors *), X-Frame-Options koymayiz.
       {
