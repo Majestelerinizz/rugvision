@@ -57,12 +57,29 @@ npm run models:attach
 npm run models:attach -- --merchant-id cmqgswc5a000004lanqoxc666
 ```
 
-Her SKU için `model3dUrl` → `/models/{SKU}.glb` güncellenir.
+Her SKU için `model3dUrl` → `/models/{SKU}.glb` ve `coverImage` → `/rug-covers/{SKU}.png` güncellenir.
 
-### 4) Widget / AR test
+### 4) Halı sitesi ürün görselleri (pilot)
 
-- Lokal: `http://localhost:3000/odamda-gor/{rugId}`
-- Production: deploy sonrası veya R2 URL'leri ile
+RugVision `rug-covers` ile aynı PNG'leri halı sitesine yükle:
+
+- FTP: `assets/images/products/RV-*.png`
+- SQL: `update_product_images.sql` (bkz. `docs/PILOT-ECOMMERCE.md` Adım 4)
+
+### 5) Widget / AR test
+
+- Production: `https://rugvision-o54d.vercel.app/models/RV-ARYA-003.glb`
+- Pilot site: `https://savasdogantekstil.com/rugvision/product-detail.php?id=3`
+
+---
+
+## Pilot durumu (17.06.2026)
+
+- [x] 10 SKU batch üretildi (`npm run models:batch -- --force`)
+- [x] Neon DB bağlandı (`npm run models:attach`)
+- [x] GitHub + Vercel deploy (`29a31d3`)
+- [x] iPhone Quick Look canlı doğrulama (ürün bazlı model)
+- [ ] R2 production (`STORAGE_DRIVER=r2`)
 
 ---
 

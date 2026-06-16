@@ -1,7 +1,7 @@
 # RugVision — E-Ticaret Pilot Entegrasyon Rehberi
 
 > Pilot site: **https://savasdogantekstil.com/rugvision/**  
-> Durum: **Ürün detay sayfasında canlı AR çalışıyor** (iPhone Quick Look doğrulandı)  
+> Durum: **CANLI** — 10 ürün, ürün bazlı fotoğraf + AR model, iPhone Quick Look doğrulandı  
 > Tarih: 17.06.2026
 
 ---
@@ -25,15 +25,14 @@ Widget ve 3D modeller **RugVision sunucusundan** gelir. Halı sitesine GLB yükl
 | Merchant ID | `cmqgswc5a000004lanqoxc666` |
 | Panel giriş | `savas@rugvision.com` / `Savas2026!` |
 | Ürün sayısı | 10 (SKU: `RV-LUNA-001` … `RV-NARIN-010`) |
-| Demo model | `/models/Modern_rug.glb` (tüm ürünlerde pilot için) |
+| AR modeller | `/models/RV-{SKU}.glb` (her ürün kendi modeli) |
+| Site görselleri | `assets/images/products/RV-{SKU}.png` |
 
 ---
 
 ## Kurulum adımları (PHP alt klasör `/rugvision`)
 
 ### Adım 1 — `config/rugvision.php` ✅
-
-Yol: `rugvision/config/rugvision.php`
 
 ```php
 <?php
@@ -45,14 +44,9 @@ if (!defined('RUGVISION_MERCHANT_ID')) {
 }
 ```
 
-> `config/` klasörü `.htaccess` ile tarayıcıdan kapalıdır (403 normal). PHP `require_once` ile okur.
-
 ### Adım 2 — `product-detail.php` ✅
 
-1. `require_önce __DIR__ . '/config/rugvision.php';` ekle
-2. Eski turuncu köprü butonunu sil (`rugvision_url` linki)
-3. `<div class="pd-cart-row" data-rugvision>` işareti ekle
-4. Footer öncesi widget script:
+Widget script (footer öncesi):
 
 ```html
 <script
@@ -67,13 +61,64 @@ if (!defined('RUGVISION_MERCHANT_ID')) {
 
 ### Adım 3 — `includes/functions.php` ✅
 
-`render_product_card` içinde kart linki ürün detaya yönlendirildi.
+Ürün kartlarında "Odanda Gör" → ürün detay sayfasına yönlendirir.
 
-### Opsiyonel — slider ve footer (Büyüme fazına ertelendi)
+### Adım 4 — Ürün görselleri (SKU bazlı) ✅
 
-Ana akış (ürün detay + kartlar) tamam. İstenirse ileride:
-- `index.php` slider: `rugvision/index.php` → `products.php`
-- `includes/footer.php` strip: aynı şekilde
+Her halı **kendi fotoğrafını** gösterir (artık tek `hali123.jpg` yok).
+
+**4a) FTP — görselleri yükle**
+
+cPanel → `rugvision/assets/images/products/` klasörüne:
+
+```
+RV-LUNA-001.png
+RV-TERRA-002.png
+RV-ARYA-003.png
+RV-NOVA-004.png
+RV-MIRA-005.png
+RV-SAFIR-006.png
+RV-ELARA-007.png
+RV-VERONA-008.png
+RV-LIVA-009.png
+RV-NARIN-010.png
+```
+
+Kaynak (RugVision repo): `public/rug-covers/RV-*.png`
+
+**4b) phpMyAdmin — veritabanını güncelle**
+
+`database/update_product_images.sql` import et veya SQL sekmesinde çalıştır:
+
+```sql
+UPDATE products
+SET image = CONCAT('assets/images/products/', sku, '.png')
+WHERE sku LIKE 'RV-%';
+
+UPDATE product_images pi
+INNER JOIN products p ON p.id = pi.product_id
+SET pi.image = p.image
+WHERE p.sku LIKE 'RV-%';
+```
+
+**Kontrol:** https://savasdogantekstil.com/rugvision/products.php → 10 farklı halı görseli.
+
+---
+
+## SKU eşleme tablosu
+
+| id | Ürün | SKU | Site görseli | AR model |
+|----|------|-----|--------------|----------|
+| 1 | Luna | RV-LUNA-001 | `RV-LUNA-001.png` | `/models/RV-LUNA-001.glb` |
+| 2 | Terra | RV-TERRA-002 | `RV-TERRA-002.png` | `/models/RV-TERRA-002.glb` |
+| 3 | Arya | RV-ARYA-003 | `RV-ARYA-003.png` | `/models/RV-ARYA-003.glb` |
+| 4 | Nova | RV-NOVA-004 | `RV-NOVA-004.png` | `/models/RV-NOVA-004.glb` |
+| 5 | Mira | RV-MIRA-005 | `RV-MIRA-005.png` | `/models/RV-MIRA-005.glb` |
+| 6 | Safir | RV-SAFIR-006 | `RV-SAFIR-006.png` | `/models/RV-SAFIR-006.glb` |
+| 7 | Elara | RV-ELARA-007 | `RV-ELARA-007.png` | `/models/RV-ELARA-007.glb` |
+| 8 | Verona | RV-VERONA-008 | `RV-VERONA-008.png` | `/models/RV-VERONA-008.glb` |
+| 9 | Liva | RV-LIVA-009 | `RV-LIVA-009.png` | `/models/RV-LIVA-009.glb` |
+| 10 | Narin | RV-NARIN-010 | `RV-NARIN-010.png` | `/models/RV-NARIN-010.glb` |
 
 ---
 
@@ -81,17 +126,11 @@ Ana akış (ürün detay + kartlar) tamam. İstenirse ileride:
 
 | Test | URL / beklenen |
 |------|----------------|
+| Ürün listesi | https://savasdogantekstil.com/rugvision/products.php |
 | Ürün detay | https://savasdogantekstil.com/rugvision/product-detail.php?id=3 |
 | SKU | `RV-ARYA-003` |
-| Buton | Tek "Odanda Gör" (widget) — eski turuncu buton yok |
-| iPhone | Quick Look AR açılır, halı zeminde görünür |
-| Masaüstü | 3D modal (iframe) — normal |
-
-API doğrulama:
-
-```
-GET https://rugvision-o54d.vercel.app/api/v1/widget/rug?merchantId=cmqgswc5a000004lanqoxc666&sku=RV-ARYA-003
-```
+| iPhone AR | Quick Look → ürünün kendi halısı zeminde |
+| API | `GET .../widget/rug?merchantId=cmqgswc5a000004lanqoxc666&sku=RV-ARYA-003` |
 
 ---
 
@@ -101,31 +140,20 @@ GET https://rugvision-o54d.vercel.app/api/v1/widget/rug?merchantId=cmqgswc5a0000
 |--------|----------|
 | **GLB** | Android AR, masaüstü 3D |
 | **USDZ** | iPhone Quick Look |
-| JPG/PNG/WebP | Ürün fotoğrafı only — AR değil |
+| PNG | Ürün fotoğrafı (sitede) — AR modeli değil |
 
-Modeller RugVision'da: `https://rugvision-o54d.vercel.app/models/Modern_rug.glb`
+Modeller RugVision'da: `https://rugvision-o54d.vercel.app/models/RV-ARYA-003.glb`
 
----
-
-## Cihaz uyumluluğu (AR)
-
-| Marka / platform | Tam AR | Fallback |
-|------------------|--------|----------|
-| iPhone / iPad | Evet (Quick Look) | — |
-| Samsung, Pixel | Evet (Scene Viewer) | 3D |
-| Oppo / Vivo global | Çoğunlukla evet | 3D |
-| POCO / Xiaomi | Kısmen | 3D |
-| Huawei (GMS yok) | Hayır | 3D |
-
-Tam tablo: `docs/PROJE_DURUM_RAPORU.md` §7.
+Yeni halı ekleme: `docs/MODEL-PIPELINE.md` (`npm run models:batch` + `models:attach`)
 
 ---
 
-## Sıradaki işler
+## Sıradaki işler (opsiyonel)
 
-- [x] `functions.php` kart linki (Adım 3) ✅
-- [x] **Faz 3 Adım 3 tamamlandı** (pilot CANLI AR) ✅
-- [ ] **Adım 2:** R2/S3 bulut depolama (kalıcı upload) — sırada
-- [ ] Slider/footer köprü linkleri → Büyüme fazı (opsiyonel)
-- [ ] Domain doğrulama (`savasdogantekstil.com` panelde) — opsiyonel
-- [ ] Ürün bazlı GLB/USDZ (şu an tek demo model)
+- [x] Widget + ürün detay AR ✅
+- [x] 10 SKU ürün bazlı model ✅
+- [x] 10 SKU ürün bazlı site görselleri ✅
+- [ ] Cloudflare R2 production (100+ halı ölçeği)
+- [ ] Slider/footer köprü linkleri
+- [ ] Domain doğrulama panelde
+- [ ] Fotoğraf inset temizleme (AR kalite iyileştirme)

@@ -195,7 +195,8 @@ Lokal deneme için hazır bir örnek sayfa: `public/widget-demo.html`.
 - Model hazırlama/düzeltme için Blender headless scriptleri:
   - `scripts/fix_rug_model.py` - ölçek/pivot/yatay yerleşim
   - `scripts/export_quicklook_usdz.py` - iOS uyumlu USDZ üretimi
-- Örnek modeller: `public/models/` (örn. `Modern_rug.glb`, `Modern_rug.usdz`).
+- Örnek modeller: `public/models/` — pilot 10 SKU: `RV-LUNA-001.glb` … `RV-NARIN-010.glb`
+- Toplu üretim: `npm run models:batch` + `npm run models:attach` (bkz. `docs/MODEL-PIPELINE.md`)
 
 ### Cihaz uyumluluğu (özet)
 
@@ -238,6 +239,8 @@ Windows'ta kesintisiz çalışmak için `baslat.bat` (çökerse otomatik yeniden
 | `npm run start` | Production sunucusu |
 | `npm run lint` | ESLint |
 | `npm test` | Otomatik birim testleri (`node:test` + `tsx`) |
+| `npm run models:batch` | Foto+ölçü → GLB/USDZ toplu üretim (Blender) |
+| `npm run models:attach` | Üretilen modelleri DB'ye bağla (`model3dUrl`) |
 | `npx prisma migrate dev` | Şema migration (geliştirme) |
 | `npx prisma studio` | Veritabanı görsel arayüzü |
 
@@ -294,8 +297,8 @@ Postman koleksiyonu: `docs/postman/`.
 - **Faz 2 - Ürünlesme çekirdeği:** Tamamlandı (embed widget, analytics, panel, upload, domain doğrulama, auth guard).
 - **Faz 3 - Production & büyüme:**
   - Adım 1 (Production): **%100** — Vercel + Neon CANLI
-  - Adım 3 (Pilot e-ticaret): **%100** — savasdogantekstil.com CANLI AR
-  - Adım 2 (R2/S3): sırada (yarın devam)
+  - Adım 3 (Pilot e-ticaret): **%100** — savasdogantekstil.com CANLI AR + 10 SKU görsel
+  - Adım 2 (Model pipeline): **%85** — 10 SKU batch tamam; R2 production sırada
   - Adım 4-7 (Shopify, AI, CI): planlandı
 
 Detaylı kapsam ve takip:
@@ -303,9 +306,10 @@ Detaylı kapsam ve takip:
 - `docs/PROJE_DURUM_RAPORU.md` (resmi durum raporu)
 - `docs/DEPLOY.md` (production runbook)
 - `docs/PILOT-ECOMMERCE.md` (PHP pilot entegrasyon)
+- `docs/MODEL-PIPELINE.md` (batch GLB/USDZ üretim)
 - `VR_ODANDA_GOR.md` (faz takibi + Faz 3 adım adım plan)
 
-**Tamamlanma:** ~%86-88 (tam vizyon) | **TEMEL satış paketi:** ~%97 (yalnızca R2/S3 kaldı)
+**Tamamlanma:** ~%88-90 (tam vizyon) | **TEMEL satış paketi:** ~%98 (yalnızca R2 production kaldı)
 
 ---
 

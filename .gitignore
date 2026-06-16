@@ -40,4 +40,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Blender ara cikti (USDZ uretiminde)
+public/models/*.usda
+
 /app/generated/prisma

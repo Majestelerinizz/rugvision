@@ -27,7 +27,10 @@ Desteklenecek cihaz hedefi:
 - [x] Pilot merchant oluşturuldu: **Savas Dogan Tekstil** (`savas@rugvision.com`).
 - [x] Merchant ID: `cmqgswc5a000004lanqoxc666`.
 - [x] `products.sql` ile birebir **10 SKU** RugVision paneline eklendi (`RV-LUNA-001` … `RV-NARIN-010`).
-- [x] Demo model: `/models/Modern_rug.glb` + USDZ (tüm ürünlerde pilot için).
+- [x] **Ürün bazlı GLB/USDZ:** her SKU için ayrı model (`/models/RV-*.glb`) — commit `29a31d3`, Vercel'de CANLI.
+- [x] **Ürün bazlı kapak görselleri:** `public/rug-covers/RV-*.png` + Neon `coverImage` güncellendi.
+- [x] Halı sitesinde **10 ayrı ürün fotoğrafı:** `assets/images/products/RV-*.png` (FTP + SQL).
+- [x] `npm run models:batch` + `npm run models:attach` ile 10 pilot SKU üretildi ve DB'ye bağlandı.
 - [x] `config/rugvision.php` hosting'e yüklendi (widget base + merchant ID).
 - [x] `product-detail.php` widget entegrasyonu tamamlandı (eski koprü butonu kaldirildi).
 - [x] **iPhone'da canlı AR doğrulandi** — ürün detay sayfasından Quick Look acildi, halı görüldü.
@@ -43,9 +46,11 @@ Desteklenecek cihaz hedefi:
   defer></script>
 ```
 
-**Pilot test URL:** `https://savasdogantekstil.com/rugvision/product-detail.php?id=3` (Arya, SKU: `RV-ARYA-003`)
+**Pilot test URL:** `https://savasdogantekstil.com/rugvision/product-detail.php?id=3` (Arya, SKU: `RV-ARYA-003`, model: `/models/RV-ARYA-003.glb`)
 
-Detaylı kurulum: **`docs/PILOT-ECOMMERCE.md`**
+**Ürün listesi (farklı görseller):** `https://savasdogantekstil.com/rugvision/products.php`
+
+Detaylı kurulum: **`docs/PILOT-ECOMMERCE.md`** · Model pipeline: **`docs/MODEL-PIPELINE.md`**
 
 ### Production (16.06.2026) — Vercel + Neon CANLI
 - [x] **Neon PostgreSQL** acildi (proje: `rugvision`, Postgres 16, AWS US East 1).
@@ -164,17 +169,17 @@ yukaridan aşağıya gidilir. Toplam: TEMEL (Adım 1-3) ~6-10 gün, BUYUME (Adı
 
 ### ADIM 2 - Model dosya altyapısı (bulut depolama + otomatik üretim)  [~3-4 gün]
 > Amaç: Modelleri sunucu diski yerine bulutta tut; yüzlerce halı için üretimi otomatikleştir.
-> **DURUM: DEVAM EDİYOR** — batch pipeline + R2 driver eklendi; foto manifest ile üretim hazır.
+> **DURUM: %85 TAMAMLANDI** — 10 SKU batch üretim + canlı AR doğrulandı; yalnızca R2 production bağlantısı kaldı.
 > Runbook: **`docs/MODEL-PIPELINE.md`**
 - [x] 2.0 Depolama soyutlaması genişletildi: `readModel` + S3/R2 driver (`lib/storage.ts`)
 - [x] 2.0 USDZ endpoint storage üzerinden okur (local + R2)
 - [x] 2.3 **Otomatik model üretimi (v1):** `scripts/generate_rug_model.py` — foto + en/boy → GLB/USDZ
 - [x] 2.3 **Batch runner:** `npm run models:batch` + `data/rugs-batch.csv` (10 pilot SKU)
-- [x] 2.3 **DB bağlama:** `npm run models:attach` → `model3dUrl` güncelleme
+- [x] 2.3 **DB bağlama:** `npm run models:attach` → `model3dUrl` + `coverImage` güncelleme
+- [x] 2.4 Pilot 10 SKU için gerçek fotoğraflarla batch üretim + **canlı iPhone AR doğrulama** (commit `29a31d3`)
 - [ ] 2.1 Bulut depolama bağla (Cloudflare R2) — production env + upload test
-- [ ] 2.2 `STORAGE_DRIVER=r2` production'da etkin
-- [ ] 2.4 Pilot 10 SKU için gerçek fotoğraflarla batch üretim + canlı AR doğrulama
-- [ ] 2.5 Model pipeline standardı: toplu QA raporu
+- [ ] 2.2 `STORAGE_DRIVER=r2` production'da etkin (şu an Vercel `local` + `public/models/` git deploy)
+- [ ] 2.5 Model pipeline standardı: toplu QA raporu (100+ halı ölçeği için)
 
 ### ADIM 3 - E-ticaret entegrasyonu (müşteri sitesine ekleme)  [~1-2 gün]
 > Amaç: Tek satır kod ile müşteri ürün sayfasında buton + AR.
@@ -187,7 +192,7 @@ yukaridan aşağıya gidilir. Toplam: TEMEL (Adım 1-3) ~6-10 gün, BUYUME (Adı
 
 > **Not:** Slider/footer köprü linkleri ve panel domain doğrulama Adım 3 kapsamı dışında bırakıldı (Büyüme fazı / opsiyonel cila).
 
-Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch pipeline hazır (R2 + foto üretim sırada).**
+Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch + pilot modeller %85 (R2 production sırada).**
 
 ### ADIM 4 - Platform eklentileri  [BUYUME]
 > Amaç: Kurulumu "tek tik" yapan resmi eklentiler.
@@ -197,7 +202,7 @@ Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch pipeline hazır (R2 + foto
 ### ADIM 5 - AR kalite ve cihaz testleri  [BUYUME]
 - [ ] 5.1 iOS Quick Look + Android Scene Viewer çoklu cihazda doğrulama (geniş matris)
 - [~] 5.2 Production (HTTPS) üzerinde mobil AR acceptance testi (iPhone 12 Quick Look OK; geniş matris bekliyor)
-- [ ] 5.3 En az 10 üründe AR gecis raporu
+- [~] 5.3 En az 10 üründe AR gecis raporu (pilot 10 SKU iPhone OK; resmi rapor bekliyor)
 
 ### ADIM 6 - AI özellikleri  [BUYUME]
 - [ ] 6.1 AI floor (zemin) detection ilk sürüm
@@ -207,8 +212,6 @@ Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch pipeline hazır (R2 + foto
 - [ ] 7.1 Dönüşüm + AR kullanım analitikleri dashboard'da raporlansin
 - [ ] 7.2 Otomatik test paketi (E2E runner) + CI
 - [ ] 7.3 (Opsiyonel) Abonelik/plan limitleri
-
-Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch pipeline hazır (R2 + foto üretim sırada).**
 
 ---
 
@@ -220,7 +223,7 @@ Faz 3 Durumu: **Adım 1 + Adım 3 %100; Adım 2 batch pipeline hazır (R2 + foto
 | **USDZ** | iPhone Quick Look | ✅ Evet |
 | JPG / PNG / WebP | Ürün fotoğrafı, kapak görseli | ❌ AR modeli değil |
 
-Halıcı fotoğraf verir; sistem (manuel veya otomatik pipeline) GLB/USDZ üretir. Pilot'te tüm ürünlerde tek demo model (`Modern_rug.glb`) kullanıldı.
+Halıcı fotoğraf verir; sistem batch pipeline ile GLB/USDZ üretir (`npm run models:batch`). Pilot'te **10 SKU için ayrı model** canlıda (`RV-LUNA-001` … `RV-NARIN-010`).
 
 ---
 
@@ -234,11 +237,12 @@ Faz 1 ve Faz 2 cekirdek isleri tamamlandı. **Adım 1 (production) CANLI.** Sır
 | Production deploy (Vercel + Neon DB) | **TAMAM** | — |
 | Kalıcı domain + HTTPS | opsiyonel | 0.5 |
 | Bulut depolama (R2/S3) | **SIRADA** | 1-2 |
-| Otomatik foto+ölçü -> GLB/USDZ üretimi (ilk sürüm) | bekliyor | 2-3 |
-| Müşteri temasina embed + buton yerleşimi + SKU eşlemesi | **PILOT TAMAM** (detay sayfası) | — |
-| Gerçek halılarla test (birkaç ürün) | **iPhone AR OK** (savasdogantekstil) | — |
-| Ana sayfa kart linkleri (`functions.php`) | bekliyor | 0.1 |
-| **Kalan toplam** | | **~5-8 iş günü** |
+| Otomatik foto+ölçü -> GLB/USDZ üretimi (ilk sürüm) | **TAMAM** (10 SKU) | — |
+| Müşteri temasina embed + buton yerleşimi + SKU eşlemesi | **PILOT TAMAM** | — |
+| Gerçek halılarla test (10 ürün) | **iPhone AR OK** (ürün bazlı model) | — |
+| Halı sitesi ürün fotoğrafları (SKU bazlı) | **TAMAM** (FTP + SQL) | — |
+| Bulut depolama (R2/S3) — 100+ halı ölçeği | **SIRADA** | 1-2 |
+| **Kalan toplam (TEMEL)** | | **~1-2 iş günü** (R2) |
 
 ### B) Tam ürünlesme (her e-ticarete dagitilabilir) - BUYUME
 - Shopify + WooCommerce resmi eklentileri
@@ -326,12 +330,11 @@ Bu bölüm, Faz 3 tamamlandığında halıcı firmalara sunulacak operasyon mode
 
 ## Son Durum (Gun Sonu Özeti)
 
-### Pilot + Production (17.06.2026)
-- [x] **İlk gerçek halıcı pilot CANLI:** https://savasdogantekstil.com/rugvision/
-- [x] Merchant: Savas Dogan Tekstil (`cmqgswc5a000004lanqoxc666`), 10 SKU eşlemesi.
-- [x] Ürün detayda widget + **iPhone Quick Look AR başarılı** (canlı müşteri sitesi).
-- [x] Merchant paneli yenilendi (okunakli UI, SKU tabanlı embed üreteci) — commit `ef4295a`.
-- [x] E-ticaret `functions.php` kart linki tamamlandı (Adım 3).
+### Pilot + Production (17.06.2026 — güncel)
+- [x] **10 SKU ürün bazlı AR CANLI:** her halı kendi GLB/USDZ + kendi site fotoğrafı.
+- [x] GitHub `29a31d3`: modeller, rug-covers, batch manifest push edildi; Vercel deploy OK.
+- [x] iPhone Quick Look: ürün detaydan **ürün bazlı halı** zeminde görüldü (kullanıcı onayı).
+- [x] `products.php`: 10 farklı ürün görseli (`assets/images/products/RV-*.png`).
 
 ### Production (16.06.2026)
 - [x] **Vercel + Neon production CANLI:** `https://rugvision-o54d.vercel.app`
@@ -357,7 +360,7 @@ Bu bölüm, Faz 3 tamamlandığında halıcı firmalara sunulacak operasyon mode
 - [x] Faz 3 gün plani 2 kademeye ayrıldı: tek müşteri canlıya alma ~6-10 gün, tam ürünlesme +12-18 gün.
 - [x] Otomatik model üretimi (foto+ölçü -> GLB/USDZ) Faz 3 önceliği olarak eklendi (yuzlerce halı için ölçeklenme).
 - [x] Docker'siz DB seçenekleri belirlendi: Neon / Supabase / Vercel Postgres (şema ayni, sadece `DATABASE_URL`).
-- [ ] Faz 3 kalan: bulut depolama (R2/S3), ürün bazlı modeller, oto GLB->USDZ, Shopify/WooCommerce, AI floor detection.
+- [ ] Faz 3 kalan: Cloudflare R2 production, Shopify/WooCommerce, AI floor detection.
 - [x] İlk halıcı embed CANLI: savasdogantekstil.com/rugvision (pilot).
 
 ---
@@ -368,11 +371,11 @@ Bu bölüm, Faz 3 tamamlandığında halıcı firmalara sunulacak operasyon mode
 - **Faz 2:** %100 tamamlandı (güvenlik sertleştirme dahil)
 - **Faz 3 Adım 1:** %100 tamamlandı (production CANLI, HTTPS, Neon, panel)
 - **Faz 3 Adım 3:** %100 tamamlandı (pilot entegrasyon + canlı AR + kart linkleri)
-- **Faz 3 Adım 2:** sırada (R2/S3 — yarın devam)
+- **Faz 3 Adım 2:** **%85** (10 SKU batch + canlı AR tamam; R2 production sırada)
 
-**Tüm projenin tamamlanma orani:** ~%86-88 (tam ürün vizyonu)
+**Tüm projenin tamamlanma orani:** ~%88-90 (tam ürün vizyonu)
 
-**TEMEL paket (canlı satış demosu):** ~%97 — **yalnızca Adım 2 (R2/S3) kaldı**
+**TEMEL paket (canlı satış demosu):** ~%98 — **yalnızca R2 production kaldı**
 
 **Canlı production adresi:** `https://rugvision-o54d.vercel.app`  
 **Canlı pilot müşteri sitesi:** `https://savasdogantekstil.com/rugvision/`
@@ -431,5 +434,5 @@ Halıcılara aylık abonelik karşılığında ürün/model/widget yönetimi, AR
 analitik panel sunan bir SaaS hizmeti. (Abonelik modülü şu an kapsam dışı, geliştirme
 önceliği "halı gösterimi" üzerinedir.)
 
-**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), **Faz 3 Adım 1 (%100)**, **Adım 3 (%100)**, Adım 2 (%0).
-**Toplam:** ~%86-88 | **TEMEL demo paketi:** ~%97 | **Kalan TEMEL:** ~1-2 iş günü (R2/S3).
+**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), **Faz 3 Adım 1 (%100)**, **Adım 3 (%100)**, **Adım 2 (%85)**.
+**Toplam:** ~%88-90 | **TEMEL demo paketi:** ~%98 | **Kalan TEMEL:** ~1-2 iş günü (R2 production).
