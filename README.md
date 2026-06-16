@@ -294,8 +294,8 @@ Postman koleksiyonu: `docs/postman/`.
 - **Faz 2 - Ürünlesme çekirdeği:** Tamamlandı (embed widget, analytics, panel, upload, domain doğrulama, auth guard).
 - **Faz 3 - Production & büyüme:**
   - Adım 1 (Production): **%100** — Vercel + Neon CANLI
-  - Adım 3 (Pilot e-ticaret): **%95** — savasdogantekstil.com CANLI AR
-  - Adım 2 (R2/S3): bekliyor
+  - Adım 3 (Pilot e-ticaret): **%100** — savasdogantekstil.com CANLI AR
+  - Adım 2 (R2/S3): sırada (yarın devam)
   - Adım 4-7 (Shopify, AI, CI): planlandı
 
 Detaylı kapsam ve takip:
@@ -305,7 +305,7 @@ Detaylı kapsam ve takip:
 - `docs/PILOT-ECOMMERCE.md` (PHP pilot entegrasyon)
 - `VR_ODANDA_GOR.md` (faz takibi + Faz 3 adım adım plan)
 
-**Tamamlanma:** ~%83-86 (tam vizyon) | **TEMEL satış paketi:** ~%93
+**Tamamlanma:** ~%86-88 (tam vizyon) | **TEMEL satış paketi:** ~%97 (yalnızca R2/S3 kaldı)
 
 ---
 

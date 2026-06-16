@@ -31,7 +31,7 @@ Desteklenecek cihaz hedefi:
 - [x] `config/rugvision.php` hosting'e yüklendi (widget base + merchant ID).
 - [x] `product-detail.php` widget entegrasyonu tamamlandı (eski koprü butonu kaldirildi).
 - [x] **iPhone'da canlı AR doğrulandi** — ürün detay sayfasından Quick Look acildi, halı görüldü.
-- [~] `includes/functions.php` — ana sayfa ürün kartlarındaki "Odanda Gör" linki (1 satır, Adım 3 bekliyor).
+- [x] `includes/functions.php` — ana sayfa ürün kartlarındaki "Odanda Gör" linki ürün detaya yönlendirildi.
 - [x] Model format notu: AR için **GLB + USDZ zorunlu**; JPG/PNG/WebP sadece ürün fotoğrafı (`coverImage`).
 
 **Pilot embed örneği (`product-detail.php`):**
@@ -173,15 +173,16 @@ yukaridan aşağıya gidilir. Toplam: TEMEL (Adım 1-3) ~6-10 gün, BUYUME (Adı
 
 ### ADIM 3 - E-ticaret entegrasyonu (müşteri sitesine ekleme)  [~1-2 gün]
 > Amaç: Tek satır kod ile müşteri ürün sayfasında buton + AR.
-> **DURUM: PILOT CANLI** — `savasdogantekstil.com/rugvision` ürün detayda AR çalışıyor.
+> **DURUM: %100 TAMAMLANDI** — `savasdogantekstil.com/rugvision` pilot CANLI (ürün detay AR + kart linkleri).
 - [x] 3.1 Embed kurulum dokümani: `docs/PILOT-ECOMMERCE.md` (PHP alt klasör `/rugvision`)
 - [x] 3.2 İlk pilot müşteri sitesi: **savasdogantekstil.com/rugvision** — `product-detail.php` widget
 - [x] 3.3 SKU eşlemesi: 10 ürün (`RV-LUNA-001` … `RV-NARIN-010`) merchant `cmqgswc5a000004lanqoxc666`
-- [x] 3.4 Canlı AR testi: iPhone Quick Look, ürün detay sayfasından **BASARILI**
+- [x] 3.4 Canlı AR testi: iPhone Quick Look, ürün detay sayfasından **BAŞARILI**
 - [x] 3.5 Ana sayfa ürün kartları: `functions.php` — "Odanda Gör" artık ürün detaya yönlendiriyor
-- [ ] 3.6 Domain doğrulama: `savasdogantekstil.com` panelde kayıt (opsiyonel güvenlik)
 
-Faz 3 Durumu: **Adım 1 + Adım 3 pilot TAMAM (detay + kartlar); Adım 2 (R2/S3) sırada.**
+> **Not:** Slider/footer köprü linkleri ve panel domain doğrulama Adım 3 kapsamı dışında bırakıldı (Büyüme fazı / opsiyonel cila).
+
+Faz 3 Durumu: **Adım 1 + Adım 3 %100; sırada yalnızca Adım 2 (R2/S3).**
 
 ### ADIM 4 - Platform eklentileri  [BUYUME]
 > Amaç: Kurulumu "tek tik" yapan resmi eklentiler.
@@ -202,7 +203,7 @@ Faz 3 Durumu: **Adım 1 + Adım 3 pilot TAMAM (detay + kartlar); Adım 2 (R2/S3)
 - [ ] 7.2 Otomatik test paketi (E2E runner) + CI
 - [ ] 7.3 (Opsiyonel) Abonelik/plan limitleri
 
-Faz 3 Durumu: **Adım 1 + Adım 3 pilot CANLI; Adım 2 (R2/S3) sırada.**
+Faz 3 Durumu: **Adım 1 + Adım 3 %100; sırada yalnızca Adım 2 (R2/S3).**
 
 ---
 
@@ -361,18 +362,18 @@ Bu bölüm, Faz 3 tamamlandığında halıcı firmalara sunulacak operasyon mode
 - **Faz 1:** %100 tamamlandı
 - **Faz 2:** %100 tamamlandı (güvenlik sertleştirme dahil)
 - **Faz 3 Adım 1:** %100 tamamlandı (production CANLI, HTTPS, Neon, panel)
-- **Faz 3 Adım 3:** %95 tamamlandı (pilot entegrasyon tamam; opsiyonel slider/footer linkleri kaldi)
-- **Faz 3 Adım 2:** devam ediyor (R2/S3)
+- **Faz 3 Adım 3:** %100 tamamlandı (pilot entegrasyon + canlı AR + kart linkleri)
+- **Faz 3 Adım 2:** sırada (R2/S3 — yarın devam)
 
-**Tüm projenin tamamlanma orani:** ~%83-86 (tam ürün vizyonu)
+**Tüm projenin tamamlanma orani:** ~%86-88 (tam ürün vizyonu)
 
-**TEMEL paket (canlı satış demosu):** ~%93 — sadece R2/S3 + opsiyonel cilalar kaldi
+**TEMEL paket (canlı satış demosu):** ~%97 — **yalnızca Adım 2 (R2/S3) kaldı**
 
 **Canlı production adresi:** `https://rugvision-o54d.vercel.app`  
 **Canlı pilot müşteri sitesi:** `https://savasdogantekstil.com/rugvision/`
 
 **Kalan iş günü (tahmini):**
-- TEMEL bitirmek için: **~2-3 iş günü** (R2/S3 + opsiyonel domain/cila)
+- TEMEL bitirmek için: **~1-2 iş günü** (R2/S3)
 - Tam ürünlesme (Shopify, AI, CI vb.): **+10-14 iş günü**
 
 ---
@@ -425,5 +426,5 @@ Halıcılara aylık abonelik karşılığında ürün/model/widget yönetimi, AR
 analitik panel sunan bir SaaS hizmeti. (Abonelik modülü şu an kapsam dışı, geliştirme
 önceliği "halı gösterimi" üzerinedir.)
 
-**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), **Faz 3 Adım 1 (%100)**, Adım 3 pilot (%95), Adım 2 (%0).
-**Toplam:** ~%83-86 | **TEMEL demo paketi:** ~%93 | **Kalan TEMEL:** ~2-3 iş günü (R2/S3).
+**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), **Faz 3 Adım 1 (%100)**, **Adım 3 (%100)**, Adım 2 (%0).
+**Toplam:** ~%86-88 | **TEMEL demo paketi:** ~%97 | **Kalan TEMEL:** ~1-2 iş günü (R2/S3).

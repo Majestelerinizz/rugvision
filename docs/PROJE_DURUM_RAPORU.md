@@ -1,10 +1,10 @@
 # RugVision — Resmi Proje Durum Raporu
 
 > Belge türü: Proje Durum / Kabul Raporu  
-> Sürüm: 1.5  
+> Sürüm: 1.6  
 > Tarih: 17.06.2026  
 > Hazırlayan: RugVision Geliştirme  
-> Durum özeti: **Faz 1 + Faz 2 + Faz 3 Adım 1 %100; pilot CANLI AR.**
+> Durum özeti: **Faz 1 + Faz 2 + Faz 3 Adım 1 + Adım 3 %100; sırada Adım 2 (R2/S3).**
 
 ---
 
@@ -51,15 +51,16 @@ RugVision, halıcı ve ev dekorasyon markalarının ürün sayfalarına **tek sa
 
 Runbook: **`docs/DEPLOY.md`**
 
-### Faz 3 Adım 3 — E-ticaret pilotu (%95)
+### Faz 3 Adım 3 — E-ticaret pilotu (%100)
 
 - [x] Pilot site: **savasdogantekstil.com/rugvision** (PHP alt klasör)
 - [x] Merchant: `cmqgswc5a000004lanqoxc666`, 10 SKU (`RV-LUNA-001` … `RV-NARIN-010`)
 - [x] `config/rugvision.php` + `product-detail.php` widget entegrasyonu
 - [x] **Canlı iPhone AR** ürün detay sayfasından
 - [x] `includes/functions.php` — ana sayfa ürün kartları ürün detaya yönlendiriyor
-- [ ] Opsiyonel: `index.php` slider + `footer.php` strip linkleri (eski köprü sayfası)
-- [ ] Opsiyonel: domain doğrulama panelde (`savasdogantekstil.com`)
+- [x] Pilot embed dokümantasyonu: `docs/PILOT-ECOMMERCE.md`
+
+> Slider/footer linkleri ve domain doğrulama → Büyüme fazına ertelendi (Adım 3 tamam sayılır).
 
 Kurulum: **`docs/PILOT-ECOMMERCE.md`**
 
@@ -170,9 +171,9 @@ Desteklenmeyen cihazlarda widget yine açılır; müşteri modeli **3D olarak** 
 
 | Öncelik | İş | Durum |
 |---------|-----|-------|
-| 1 | R2/S3 bulut depolama | Bekliyor (Adım 2) |
+| 1 | R2/S3 bulut depolama (Adım 2) | **Sırada — yarın devam** |
 | 2 | Ürün bazlı 3D modeller | Bekliyor |
-| 3 | Pilot slider/footer linkleri | Opsiyonel cila |
+| 3 | Pilot slider/footer linkleri | Büyüme fazı (opsiyonel) |
 | 4 | Özel domain (`app.rugvision.com`) | Opsiyonel |
 | 5 | Shopify/WooCommerce, AI zemin, CI | Büyüme fazı |
 
@@ -184,21 +185,20 @@ Desteklenmeyen cihazlarda widget yine açılır; müşteri modeli **3D olarak** 
 |-------|-------|
 | Faz 1–2 | %100 |
 | **Faz 3 Adım 1** | **%100** |
-| Faz 3 Adım 3 pilot | %95 |
-| Faz 3 Adım 2 (R2/S3) | %0 — bekliyor |
+| **Faz 3 Adım 3 pilot** | **%100** |
+| Faz 3 Adım 2 (R2/S3) | %0 — sırada (yarın) |
 
-**Tüm proje (tam vizyon):** ~%83-86  
-**TEMEL satış paketi:** ~%93 — kalan ~2-3 iş günü (R2/S3)  
-**Tam ürünlesme ek sure:** +10-14 iş günü
+**Tüm proje (tam vizyon):** ~%86-88  
+**TEMEL satış paketi:** ~%97 — kalan ~1-2 iş günü (yalnızca R2/S3)  
+**Tam ürünleşme ek süre:** +10-14 iş günü
 
 ---
 
 ## 10. Sonuç
 
-RugVision artık sadece kendi sunucusunda değil, **gerçek bir halı e-ticaret sitesinde**
-canlı AR olarak çalışıyor. Production altyapısı tamamlandı; pilot başarılı.
+Production altyapısı ve **pilot e-ticaret entegrasyonu (Adım 3) tamamlandı**. Canlı AR kanıtlandı.
 
-Sıradaki kritik teknik is: **R2/S3 bulut depolama** (Adım 2).
+Sıradaki tek TEMEL iş: **R2/S3 bulut depolama** (Adım 2).
 
 ---
 

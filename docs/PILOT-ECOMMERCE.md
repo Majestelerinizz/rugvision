@@ -69,9 +69,10 @@ if (!defined('RUGVISION_MERCHANT_ID')) {
 
 `render_product_card` içinde kart linki ürün detaya yönlendirildi.
 
-### Opsiyonel — slider ve footer (henüz köprü sayfasına gider)
+### Opsiyonel — slider ve footer (Büyüme fazına ertelendi)
 
-- `index.php` slider: `rugvision/index.php` → `products.php` yapılabilir
+Ana akış (ürün detay + kartlar) tamam. İstenirse ileride:
+- `index.php` slider: `rugvision/index.php` → `products.php`
 - `includes/footer.php` strip: aynı şekilde
 
 ---
@@ -123,7 +124,8 @@ Tam tablo: `docs/PROJE_DURUM_RAPORU.md` §7.
 ## Sıradaki işler
 
 - [x] `functions.php` kart linki (Adım 3) ✅
-- [ ] Slider/footer köprü linkleri → `products.php` (opsiyonel)
-- [ ] Domain doğrulama (`savasdogantekstil.com` panelde)
-- [ ] R2/S3 bulut depolama (kalıcı upload)
+- [x] **Faz 3 Adım 3 tamamlandı** (pilot CANLI AR) ✅
+- [ ] **Adım 2:** R2/S3 bulut depolama (kalıcı upload) — sırada
+- [ ] Slider/footer köprü linkleri → Büyüme fazı (opsiyonel)
+- [ ] Domain doğrulama (`savasdogantekstil.com` panelde) — opsiyonel
 - [ ] Ürün bazlı GLB/USDZ (şu an tek demo model)
