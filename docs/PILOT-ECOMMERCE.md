@@ -49,7 +49,7 @@ if (!defined('RUGVISION_MERCHANT_ID')) {
 
 ### Adım 2 — `product-detail.php` ✅
 
-1. `require_once __DIR__ . '/config/rugvision.php';` ekle
+1. `require_önce __DIR__ . '/config/rugvision.php';` ekle
 2. Eski turuncu köprü butonunu sil (`rugvision_url` linki)
 3. `<div class="pd-cart-row" data-rugvision>` işareti ekle
 4. Footer öncesi widget script:
@@ -106,15 +106,15 @@ Modeller RugVision'da: `https://rugvision-o54d.vercel.app/models/Modern_rug.glb`
 
 ---
 
-## Cihaz uyumlulugu (AR)
+## Cihaz uyumluluğu (AR)
 
 | Marka / platform | Tam AR | Fallback |
 |------------------|--------|----------|
 | iPhone / iPad | Evet (Quick Look) | — |
 | Samsung, Pixel | Evet (Scene Viewer) | 3D |
-| Oppo / Vivo global | Cogunlukla evet | 3D |
-| POCO / Xiaomi | Kismen | 3D |
-| Huawei (GMS yok) | Hayir | 3D |
+| Oppo / Vivo global | Çoğunlukla evet | 3D |
+| POCO / Xiaomi | Kısmen | 3D |
+| Huawei (GMS yok) | Hayır | 3D |
 
 Tam tablo: `docs/PROJE_DURUM_RAPORU.md` §7.
 

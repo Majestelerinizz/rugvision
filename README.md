@@ -1,49 +1,49 @@
 # RugVision
 
-RugVision, halici ve ev dekorasyonu markalari icin gelistirilen **SaaS tabanli AR (artirilmis gerceklik) platformudur**.
-Amac: bir e-ticaret urun sayfasina **tek satir kod** ekleyerek, musterinin halici telefonuyla
-kendi odasinin zemininde **gercek boyutta** gormesini saglamaktir ("Odamda Gor").
+RugVision, halıcı ve ev dekorasyonu markaları için geliştirilen **SaaS tabanlı AR (artırılmış gerçeklik) platformudur**.
+Amaç: bir e-ticaret ürün sayfasına **tek satır kod** ekleyerek, müşterinin halıcı telefonuyla
+kendi odasının zemininde **gerçek boyutta** görmesini sağlamaktır ("Odamda Gör").
 
 > _RugVision is a SaaS AR platform that lets e-commerce stores add a one-line script to show
 > rugs in the customer's room at real scale (iOS Quick Look + Android Scene Viewer)._
 
 ---
 
-## Icindekiler
+## İçindekiler
 
-- [Ozellikler](#ozellikler)
+- [Özellikler](#özellikler)
 - [Teknoloji](#teknoloji)
 - [Gereksinimler](#gereksinimler)
-- [Hizli Kurulum](#hizli-kurulum)
-- [Veritabani Secenekleri](#veritabani-secenekleri)
-- [Ilk Hesabi Olusturma](#ilk-hesabi-olusturma)
-- [Panel Kullanimi](#panel-kullanimi)
-- [Widget'i Bir Siteye Ekleme](#widgeti-bir-siteye-ekleme)
-- [AR / 3D Model Notlari](#ar--3d-model-notlari)
+- [Hızlı Kurulum](#hızlı-kurulum)
+- [Veritabanı Seçenekleri](#veritabanı-seçenekleri)
+- [İlk Hesabı Oluşturma](#ilk-hesabı-oluşturma)
+- [Panel Kullanımı](#panel-kullanımı)
+- [Widget'ı Bir Siteye Ekleme](#widgetı-bir-siteye-ekleme)
+- [AR / 3D Model Notları](#ar--3d-model-notları)
 - [Telefonda Test (HTTPS Tunnel)](#telefonda-test-https-tunnel)
 - [Komutlar](#komutlar)
-- [Proje Yapisi](#proje-yapisi)
-- [API Ozeti](#api-ozeti)
-- [Yol Haritasi](#yol-haritasi)
-- [Canli Production](#canli-production)
+- [Proje Yapısı](#proje-yapısı)
+- [API Özeti](#api-özeti)
+- [Yol Haritası](#yol-haritası)
+- [Canlı Production](#canlı-production)
 
 ---
 
-## Ozellikler
+## Özellikler
 
-- 3D/AR goruntuleyici sayfasi (`/odamda-gor/:id`) - `model-viewer` tabanli.
-- iPhone **Quick Look** (USDZ) + Android **Scene Viewer** (GLB) AR akisi.
-- Tek satir **embed widget** (`public/widget.js`): "Sepete Ekle" yanina otomatik "Odamda Gor" butonu.
-- Merchant paneli (`/panel`): giris, analitik, hali listesi, model yukleme, embed kodu ureteci.
-- JWT auth (register/login/refresh/logout) + merchant bazli izolasyon.
-- Rugs CRUD, widget ayarlari, analytics, domain dogrulama, model upload endpointleri.
+- 3D/AR görüntüleyici sayfası (`/odamda-gor/:id`) - `model-viewer` tabanlı.
+- iPhone **Quick Look** (USDZ) + Android **Scene Viewer** (GLB) AR akışı.
+- Tek satır **embed widget** (`public/widget.js`): "Sepete Ekle" yanına otomatik "Odamda Gör" butonu.
+- Merchant paneli (`/panel`): giriş, analitik, halı listesi, model yükleme, embed kodu üreteci.
+- JWT auth (register/login/refresh/logout) + merchant bazlı izolasyon.
+- Rugs CRUD, widget ayarları, analytics, domain doğrulama, model upload endpoint'leri.
 
 ## Teknoloji
 
 - **Next.js 16** (App Router) + React 19
 - **Prisma 7** + **PostgreSQL** (pg adapter)
 - **TailwindCSS 4**
-- Auth: `jose` (JWT) + `bcryptjs`, dogrulama: `zod`
+- Auth: `jose` (JWT) + `bcryptjs`, doğrulama: `zod`
 - AR: `<model-viewer>`, GLB (Android/WebXR) ve USDZ (iOS Quick Look)
 
 ---
@@ -51,46 +51,46 @@ kendi odasinin zemininde **gercek boyutta** gormesini saglamaktir ("Odamda Gor")
 ## Gereksinimler
 
 - **Node.js 20+** ve npm
-- Bir **PostgreSQL veritabani** (asagidaki seceneklerden biri)
-- (Opsiyonel) Telefonda AR testi icin HTTPS - bu repo `localtunnel` ile gelir
+- Bir **PostgreSQL veritabanı** (aşağıdaki seçeneklerden biri)
+- (Opsiyonel) Telefonda AR testi için HTTPS - bu repo `localtunnel` ile gelir
 
 ---
 
-## Hizli Kurulum
+## Hızlı Kurulum
 
 ```bash
 # 1) Projeyi klonla
 git clone https://github.com/Majestelerinizz/rugvision.git
 cd rugvision
 
-# 2) Bagimliliklari kur
+# 2) Bağımlılıkları kur
 npm install
 
-# 3) Ortam degiskenlerini ayarla
+# 3) Ortam değişkenlerini ayarla
 cp .env.example .env
-#   .env icindeki DATABASE_URL ve JWT_SECRET degerlerini doldur (asagiya bak)
+#   .env içindeki DATABASE_URL ve JWT_SECRET değerlerini doldur (aşağıya bak)
 
-# 4) Veritabani semasini olustur + Prisma client uret
+# 4) Veritabanı şemasını oluştur + Prisma client üret
 npx prisma migrate dev --name init
 npx prisma generate
 
-# 5) Calistir
+# 5) Çalıştır
 npm run dev
 ```
 
 Uygulama: **http://localhost:3000**
 
-`.env` ornegi:
+`.env` örneği:
 
 ```env
 DATABASE_URL="postgresql://KULLANICI:SIFRE@HOST:5432/rugvision?schema=public"
-JWT_SECRET="cok-uzun-rastgele-bir-deger"   # EN AZ 32 KARAKTER (kisa olursa uygulama baslamaz)
+JWT_SECRET="çok-uzun-rastgele-bir-değer"   # EN AZ 32 KARAKTER (kısa olursa uygulama başlamaz)
 # STORAGE_DRIVER="local"                    # Faz 3'te: r2 / s3 / b2
 ```
 
-Hazir sablon icin `.env.example` dosyasini kopyalayabilirsin.
+Hazır şablon için `.env.example` dosyasını kopyalayabilirsin.
 
-Guclu bir `JWT_SECRET` uretmek icin:
+Güçlü bir `JWT_SECRET` üretmek için:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
@@ -98,14 +98,14 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 
 ---
 
-## Veritabani Secenekleri
+## Veritabanı Seçenekleri
 
-Sema PostgreSQL'dir; **Docker zorunlu degildir**. Iki kolay yol:
+Şema PostgreSQL'dir; **Docker zorunlu değildir**. Iki kolay yol:
 
-### A) Bulutta yonetilen Postgres (onerilen, Docker yok)
-[Neon](https://neon.tech), [Supabase](https://supabase.com) veya Vercel Postgres uzerinden
-ucretsiz bir veritabani ac, baglanti adresini `.env` -> `DATABASE_URL`'e yapistir. Baska
-kod degisikligi gerekmez.
+### A) Bulutta yönetilen Postgres (önerilen, Docker yok)
+[Neon](https://neon.tech), [Supabase](https://supabase.com) veya Vercel Postgres üzerinden
+ücretsiz bir veritabanı ac, bağlantı adresini `.env` -> `DATABASE_URL`'e yapıştır. Başka
+kod değişikliği gerekmez.
 
 ### B) Yerelde Docker ile Postgres
 ```bash
@@ -117,47 +117,47 @@ Sonra `.env`:
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/rugvision?schema=public"
 ```
 
-Her iki durumda da semayi kurmak icin: `npx prisma migrate dev` (veya production'da `npx prisma migrate deploy`).
+Her iki durumda da şemayi kurmak için: `npx prisma migrate dev` (veya production'da `npx prisma migrate deploy`).
 
 ---
 
-## Ilk Hesabi Olusturma
+## İlk Hesabı Oluşturma
 
-Panelde su an **kayit (register)** ekrani yoktur; ilk merchant hesabini API ile olusturursun.
+Panelde şu an **kayıt (register)** ekranı yoktur; ilk merchant hesabıni API ile oluşturursun.
 
 **macOS / Linux (curl):**
 ```bash
 curl -X POST http://localhost:3000/api/v1/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"email":"demo@ornek.com","password":"Test12345!","fullName":"Demo Kullanici","companyName":"Demo Magaza"}'
+  -d '{"email":"demo@ornek.com","password":"Test12345!","fullName":"Demo Kullanıcı","companyName":"Demo Mağaza"}'
 ```
 
 **Windows (PowerShell):**
 ```powershell
-$body = @{ email="demo@ornek.com"; password="Test12345!"; fullName="Demo Kullanici"; companyName="Demo Magaza" } | ConvertTo-Json
+$body = @{ email="demo@ornek.com"; password="Test12345!"; fullName="Demo Kullanıcı"; companyName="Demo Mağaza" } | ConvertTo-Json
 Invoke-RestMethod -Uri "http://localhost:3000/api/v1/auth/register" -Method POST -ContentType "application/json" -Body $body
 ```
 
-Alan kurallari: `password` en az 8 karakter, `fullName` ve `companyName` en az 2 karakter.
-Kayit sonrasi donen `merchantId` ve token'lar ile panele giris yapabilirsin.
+Alan kuralları: `password` en az 8 karakter, `fullName` ve `companyName` en az 2 karakter.
+Kayıt sonrası donen `merchantId` ve token'lar ile panele giriş yapabilirsin.
 
 ---
 
-## Panel Kullanimi
+## Panel Kullanımı
 
-1. `http://localhost:3000/panel` adresini ac.
-2. Kayit ettigin **e-posta + sifre** ile giris yap.
-3. Panelde: analitik kartlari, hali listesi, **model yukleme (GLB/USDZ)** ve **embed kodu ureteci** bulunur.
+1. `http://localhost:3000/panel` adresini aç.
+2. Kayıt ettigin **e-posta + şifre** ile giriş yap.
+3. Panelde: analitik kartları, halı listesi, **model yükleme (GLB/USDZ)** ve **embed kodu üreteci** bulunur.
 
-Hali olusturmak icin `POST /api/v1/rugs` endpointini kullan (bkz. [API Ozeti](#api-ozeti)).
-Olusturdugun haliyi `http://localhost:3000/odamda-gor/<RUG_ID>` adresinde 3D/AR olarak gorebilirsin.
+Halı oluşturmak için `POST /api/v1/rugs` endpoint'ini kullan (bkz. [API Özeti](#api-özeti)).
+Oluşturduğun halıyı `http://localhost:3000/odamda-gor/<RUG_ID>` adresinde 3D/AR olarak görebilirsin.
 
 ---
 
-## Widget'i Bir Siteye Ekleme
+## Widget'ı Bir Siteye Ekleme
 
-Musteri sitesinin arka plani **fark etmez** (PHP, Laravel, WordPress/WooCommerce, duz HTML...).
-`widget.js` tamamen tarayicida calisir. Urun sayfasi sablonuna su tek satiri ekle:
+Müşteri sitesinin arka planı **fark etmez** (PHP, Laravel, WordPress/WooCommerce, düz HTML...).
+`widget.js` tamamen tarayıcıda çalışır. Ürün sayfası şablonuna su tek satırı ekle:
 
 ```html
 <script
@@ -168,10 +168,10 @@ Musteri sitesinin arka plani **fark etmez** (PHP, Laravel, WordPress/WooCommerce
 ></script>
 ```
 
-- `data-rug-id`: RugVision'daki hali kimligi.
-- `data-target`: O sitedeki "Sepete Ekle" butonunun CSS selector'u. Widget butonu onun yanina eklenir.
+- `data-rug-id`: RugVision'daki halı kimliği.
+- `data-target`: O sitedeki "Sepete Ekle" butonunun CSS selector'u. Widget butonu onun yanına eklenir.
 
-Alternatif: kendi SKU'nuzla esleme (rug-id yerine):
+Alternatif: kendi SKU'nuzla eşleme (rug-id yerine):
 
 ```html
 <script
@@ -183,29 +183,29 @@ Alternatif: kendi SKU'nuzla esleme (rug-id yerine):
 ></script>
 ```
 
-Lokal deneme icin hazir bir ornek sayfa: `public/widget-demo.html`.
+Lokal deneme için hazır bir örnek sayfa: `public/widget-demo.html`.
 
 ---
 
-## AR / 3D Model Notlari
+## AR / 3D Model Notları
 
-- **Android / masaustu:** `GLB` formati kullanilir (`model/gltf-binary`).
-- **iOS (Quick Look):** `USDZ` formati gerekir; dogru `Content-Type` (`model/vnd.usdz+zip`) ile servis edilir.
-- USDZ'in iPhone'da sorunsuz acilmasi icin **Y-up + ASCII** paketleme onemlidir.
-- Model hazirlama/duzeltme icin Blender headless scriptleri:
-  - `scripts/fix_rug_model.py` - olcek/pivot/yatay yerlesim
-  - `scripts/export_quicklook_usdz.py` - iOS uyumlu USDZ uretimi
-- Ornek modeller: `public/models/` (orn. `Modern_rug.glb`, `Modern_rug.usdz`).
+- **Android / masaüstü:** `GLB` formatı kullanılır (`model/gltf-binary`).
+- **iOS (Quick Look):** `USDZ` formatı gerekir; doğru `Content-Type` (`model/vnd.usdz+zip`) ile servis edilir.
+- USDZ'in iPhone'da sorunsuz açılması için **Y-up + ASCII** paketleme önemlidir.
+- Model hazırlama/düzeltme için Blender headless scriptleri:
+  - `scripts/fix_rug_model.py` - ölçek/pivot/yatay yerleşim
+  - `scripts/export_quicklook_usdz.py` - iOS uyumlu USDZ üretimi
+- Örnek modeller: `public/models/` (örn. `Modern_rug.glb`, `Modern_rug.usdz`).
 
-### Cihaz uyumlulugu (ozet)
+### Cihaz uyumluluğu (özet)
 
 | Platform | Tam AR | Not |
 |----------|--------|-----|
 | iPhone / iPad | Evet | Quick Look |
 | Samsung, Pixel, Oppo/Vivo (global) | Evet | ARCore + Scene Viewer |
-| POCO / Xiaomi | Kismen | Modele bagli |
+| POCO / Xiaomi | Kısmen | Modele bağlı |
 | Huawei (GMS yok) | 3D only | Tam AR desteklenmez |
-| Masaustu | 3D modal | Tam AR degil |
+| Masaüstü | 3D modal | Tam AR değil |
 
 Detay: `docs/PROJE_DURUM_RAPORU.md` §7.
 
@@ -213,109 +213,109 @@ Detay: `docs/PROJE_DURUM_RAPORU.md` §7.
 
 ## Telefonda Test (HTTPS Tunnel)
 
-Mobil AR icin HTTPS gerekir. Repo, sabit adresli ve **kendi kendini iyilestiren** bir tunnel ile gelir:
+Mobil AR için HTTPS gerekir. Repo, sabit adresli ve **kendi kendini iyileştiren** bir tunnel ile gelir:
 
 ```bash
 npm run dev:all     # next dev + tunnel birlikte
 ```
 
-Varsayilan adres: `https://rugvision-demo.loca.lt` (degistirmek icin `TUNNEL_SUBDOMAIN` ortam degiskeni).
-Windows'ta kesintisiz calismak icin `baslat.bat` (cokerse otomatik yeniden baslar) kullanilabilir.
+Varsayılan adres: `https://rugvision-demo.loca.lt` (değiştirmek için `TUNNEL_SUBDOMAIN` ortam degiskeni).
+Windows'ta kesintisiz çalışmak için `baslat.bat` (çökerse otomatik yeniden başlar) kullanılabilir.
 
-> Not: `loca.lt` ilk acilista bir uyari/sifre sayfasi gosterebilir; bu sadece gelistirme icindir.
-> Production'da gercek domain + HTTPS kullanilir (tunnel'a gerek kalmaz).
+> Not: `loca.lt` ilk açılışta bir uyarı/şifre sayfası gösterebilir; bu sadece geliştirme içindir.
+> Production'da gerçek domain + HTTPS kullanılır (tunnel'a gerek kalmaz).
 
 ---
 
 ## Komutlar
 
-| Komut | Aciklama |
+| Komut | Açıklama |
 |-------|----------|
-| `npm run dev` | Gelistirme sunucusu (http://localhost:3000) |
+| `npm run dev` | Geliştirme sunucusu (http://localhost:3000) |
 | `npm run dev:all` | Sunucu + sabit HTTPS tunnel birlikte |
 | `npm run tunnel` | Sadece tunnel |
 | `npm run build` | Production build |
 | `npm run start` | Production sunucusu |
 | `npm run lint` | ESLint |
 | `npm test` | Otomatik birim testleri (`node:test` + `tsx`) |
-| `npx prisma migrate dev` | Sema migration (gelistirme) |
-| `npx prisma studio` | Veritabani gorsel arayuzu |
+| `npx prisma migrate dev` | Şema migration (geliştirme) |
+| `npx prisma studio` | Veritabanı görsel arayüzü |
 
 ---
 
-## Proje Yapisi
+## Proje Yapısı
 
 ```
 app/
-  api/v1/            # API endpointleri (auth, rugs, widget, analytics, uploads, domains, ar)
-  odamda-gor/[id]/   # 3D/AR goruntuleyici sayfasi
+  api/v1/            # API endpoint'leri (auth, rugs, widget, analytics, uploads, domains, ar)
+  odamda-gor/[id]/   # 3D/AR görüntüleyici sayfası
   panel/             # Merchant paneli
-lib/                 # prisma, auth, auth-guard, cors, api helper'lari
+lib/                 # prisma, auth, auth-guard, cors, api helper'ları
 prisma/              # schema.prisma
 public/
   widget.js          # Embed widget scripti
-  widget-demo.html   # Ornek musteri sayfasi
-  models/            # Ornek 3D modeller (GLB/USDZ)
+  widget-demo.html   # Örnek müşteri sayfası
+  models/            # Örnek 3D modeller (GLB/USDZ)
 scripts/             # tunnel.mjs + Blender model scriptleri
 docs/                # Master reference + durum raporu
 ```
 
 ---
 
-## API Ozeti
+## API Özeti
 
-Tum endpointler `/api/v1/*` altindadir.
+Tüm endpoint'ler `/api/v1/*` altındadır.
 
-| Method | Endpoint | Aciklama |
+| Method | Endpoint | Açıklama |
 |--------|----------|----------|
-| GET | `/health` | Servis kontrolu |
-| POST | `/auth/register` | Merchant + kullanici olustur |
-| POST | `/auth/login` | Giris (access/refresh token) |
+| GET | `/health` | Servis kontrolü |
+| POST | `/auth/register` | Merchant + kullanıcı oluştur |
+| POST | `/auth/login` | Giriş (access/refresh token) |
 | POST | `/auth/refresh` | Token yenile |
-| POST | `/auth/logout` | Cikis |
-| GET/POST | `/rugs` | Hali listesi / olusturma |
-| GET/PUT/DELETE | `/rugs/:id` | Hali detay / guncelle / sil |
-| GET | `/widget/rug/:id` | Widget icin hali verisi (CORS) |
-| GET/PUT | `/widget/settings` | Widget ayarlari |
-| POST | `/analytics/events` | Olay kaydi (CORS) |
-| GET | `/analytics/overview` | Merchant analitik ozeti (auth) |
-| POST | `/uploads/model` | GLB/USDZ/GLTF yukleme (auth) |
+| POST | `/auth/logout` | Çıkış |
+| GET/POST | `/rugs` | Halı listesi / oluşturma |
+| GET/PUT/DELETE | `/rugs/:id` | Halı detay / güncelle / sil |
+| GET | `/widget/rug/:id` | Widget için halı verisi (CORS) |
+| GET/PUT | `/widget/settings` | Widget ayarları |
+| POST | `/analytics/events` | Olay kaydı (CORS) |
+| GET | `/analytics/overview` | Merchant analitik özeti (auth) |
+| POST | `/uploads/model` | GLB/USDZ/GLTF yükleme (auth) |
 | GET/POST | `/domains` | Domain listele / kaydet (auth) |
-| POST | `/domains/verify` | Domain dogrula (auth) |
-| GET | `/ar/usdz/:filename` | USDZ dosyasini dogru Content-Type ile servis et |
+| POST | `/domains/verify` | Domain doğrula (auth) |
+| GET | `/ar/usdz/:filename` | USDZ dosyasını doğru Content-Type ile servis et |
 
 Postman koleksiyonu: `docs/postman/`.
 
 ---
 
-## Yol Haritasi
+## Yol Haritası
 
-- **Faz 1 - AR cekirdegi:** Tamamlandi (iPhone + Android AR, model pipeline).
-- **Faz 2 - Urunlesme cekirdegi:** Tamamlandi (embed widget, analytics, panel, upload, domain dogrulama, auth guard).
-- **Faz 3 - Production & buyume:**
-  - Adim 1 (Production): **%100** — Vercel + Neon CANLI
-  - Adim 3 (Pilot e-ticaret): **%95** — savasdogantekstil.com CANLI AR
-  - Adim 2 (R2/S3): bekliyor
-  - Adim 4-7 (Shopify, AI, CI): planlandi
+- **Faz 1 - AR çekirdeği:** Tamamlandı (iPhone + Android AR, model pipeline).
+- **Faz 2 - Ürünlesme çekirdeği:** Tamamlandı (embed widget, analytics, panel, upload, domain doğrulama, auth guard).
+- **Faz 3 - Production & büyüme:**
+  - Adım 1 (Production): **%100** — Vercel + Neon CANLI
+  - Adım 3 (Pilot e-ticaret): **%95** — savasdogantekstil.com CANLI AR
+  - Adım 2 (R2/S3): bekliyor
+  - Adım 4-7 (Shopify, AI, CI): planlandı
 
-Detayli kapsam ve takip:
+Detaylı kapsam ve takip:
 - `docs/rugvision-master-reference-v1.md` (master reference)
 - `docs/PROJE_DURUM_RAPORU.md` (resmi durum raporu)
 - `docs/DEPLOY.md` (production runbook)
 - `docs/PILOT-ECOMMERCE.md` (PHP pilot entegrasyon)
-- `VR_ODANDA_GOR.md` (faz takibi + Faz 3 adim adim plan)
+- `VR_ODANDA_GOR.md` (faz takibi + Faz 3 adım adım plan)
 
-**Tamamlanma:** ~%83-86 (tam vizyon) | **TEMEL satis paketi:** ~%93
+**Tamamlanma:** ~%83-86 (tam vizyon) | **TEMEL satış paketi:** ~%93
 
 ---
 
-## Canli Production
+## Canlı Production
 
-| Alan | Deger |
+| Alan | Değer |
 |------|-------|
 | SaaS | https://rugvision-o54d.vercel.app |
 | Panel | https://rugvision-o54d.vercel.app/panel |
-| Pilot magaza | https://savasdogantekstil.com/rugvision/ |
+| Pilot mağaza | https://savasdogantekstil.com/rugvision/ |
 | GitHub | https://github.com/Majestelerinizz/rugvision |
 
 Demo: `demo@ornek.com` / `Test12345!`  
@@ -325,4 +325,4 @@ Pilot: `savas@rugvision.com` / `Savas2026!`
 
 ## Lisans
 
-Ozel proje. Tum haklari sakli (c) Yusuf KARAGUZEL.
+Özel Proje. Tüm hakları saklı (c) Yusuf KARAGUZEL.

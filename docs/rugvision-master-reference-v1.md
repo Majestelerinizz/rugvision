@@ -1,48 +1,48 @@
 # RugVision — Master Reference v1.0
 
-## Proje Ozeti
+## Proje Özeti
 
-**RugVision**, halicilar ve ev dekorasyonu markalari icin gelistirilen SaaS tabanli artirilmis gerceklik (AR) platformudur.
+**RugVision**, halıcılar ve ev dekorasyonu markaları için geliştirilen SaaS tabanlı artırılmış gerçeklik (AR) platformudur.
 
-Amac:
+Amaç:
 
-Kullanicilarin satin almak istedikleri halilari kendi odalarinda gercek olculeriyle goruntuleyebilmesini saglamak.
+Kullanıcıların satın almak istedikleri halıları kendi odalarında gerçek ölçüleriyle görüntüleyebilmesini sağlamak.
 
 Sistem:
 
-- Web tabanli SaaS
-- AR goruntuleme
-- 3D hali goruntuleme
-- Gomulebilir widget
+- Web tabanlı SaaS
+- AR görüntüleme
+- 3D halı görüntüleme
+- Gömülebilir widget
 - Analitik panel
-- E-ticaret entegrasyonlari
+- E-ticaret entegrasyonları
 - AI destekli oda analizi
 
 ## Vizyon
 
-Dunyadaki tum halicilarin;
+Dünyadaki tüm halıcıların;
 
-tek satir kod ile,
+tek satır kod ile,
 
-urun sayfalarina
+ürün sayfalarına
 
-"Odamda Gor"
+"Odamda Gör"
 
-ozelligi ekleyebilmesini saglamak.
+özelliği ekleyebilmesini sağlamak.
 
 ## Misyon
 
-Online hali satislarinda:
+Online halı satışlarinda:
 
-- Iade oranlarini azaltmak
-- Donusum oranlarini artirmak
-- Musteri guvenini yukseltmek
-- Satin alma kararini hizlandirmak
+- İade oranlarını azaltmak
+- Dönüşüm oranlarını artırmak
+- Müşteri güvenini yükseltmek
+- Satın alma kararını hızlandırmak
 
 ## Sistem Mimarisi
 
 ```txt
-Kullanici
+Kullanıcı
 
 ↓
 
@@ -103,44 +103,44 @@ infrastructure/
 prisma/
 ```
 
-## Kullanici Rolleri
+## Kullanıcı Rolleri
 
 ### SUPER_ADMIN
 
-Tum sistemi yonetir.
+Tüm sistemi yonetir.
 
 Yetkiler:
 
-- Firma yonetimi
-- Abonelik yonetimi
-- Sistem ayarlari
-- Analitik goruntuleme
-- Kullanici yonetimi
+- Firma yönetimi
+- Abonelik yönetimi
+- Sistem ayarları
+- Analitik görüntüleme
+- Kullanıcı yönetimi
 
 ### MERCHANT
 
-Halici firma hesabi
+Halıcı firma hesabı
 
 Yetkiler:
 
-- Urun ekleme
-- Urun silme
-- Urun guncelleme
-- Widget olusturma
-- Analitik goruntuleme
-- Domain yonetimi
+- Ürün ekleme
+- Ürün silme
+- Ürün güncelleme
+- Widget oluşturma
+- Analitik görüntüleme
+- Domain yönetimi
 
 ### STAFF
 
-Firma calisani
+Firma çalışani
 
 Yetkiler:
 
-- Urun yonetimi
-- Gorsel yukleme
-- Model yukleme
+- Ürün yönetimi
+- Görsel yükleme
+- Model yükleme
 
-## Veritabani
+## Veritabanı
 
 Ana Tablolar:
 
@@ -167,22 +167,22 @@ api_keys
 ai_scans
 ```
 
-## Hali Sistemi
+## Halı Sistemi
 
-Her hali icin:
+Her halı için:
 
 ```txt
 ID
 SKU
 Slug
 
-Urun Adi
+Ürün Adi
 
 Kategori
 
 Marka
 
-Aciklama
+Açıklama
 
 Genislik
 
@@ -192,14 +192,14 @@ Fiyat
 
 Renkler
 
-Kapak Gorseli
+Kapak Görseli
 
 3D Model
 
 Aktif/Pasif
 ```
 
-## Gorsel Sistemi
+## Görsel Sistemi
 
 Desteklenen formatlar:
 
@@ -213,9 +213,9 @@ AVIF
 Optimizasyon:
 
 ```txt
-WebP donusumu
+WebP dönüşümu
 
-Thumbnail uretimi
+Thumbnail üretimi
 
 CDN cache
 ```
@@ -229,7 +229,7 @@ GLB
 GLTF
 ```
 
-Ozellikler:
+Özellikler:
 
 ```txt
 LOD destegi
@@ -238,7 +238,7 @@ Sikistirma
 
 Texture optimizasyonu
 
-Model dogrulama
+Model doğrulama
 ```
 
 ## AR Sistemi
@@ -255,14 +255,14 @@ Apple Quick Look
 model-viewer
 ```
 
-Ozellikler:
+Özellikler:
 
 ```txt
-Gercek olcu
+Gerçek ölçü
 
 Dondurme
 
-Olcekleme
+Ölçekleme
 
 Golge
 
@@ -293,10 +293,10 @@ TV Unitesi
 
 ### AI Floor Detection
 
-Amac:
+Amaç:
 
 ```txt
-Haliyi dogru zemine yerlestirmek
+Halıyı doğru zemine yerleştirmek
 ```
 
 ### AI Color Match
@@ -318,11 +318,11 @@ Dekorasyon uyumu
 Oneriler:
 
 ```txt
-Bu odaya uygun halilar
+Bu odaya uygun halılar
 
-Renk onerileri
+Renk önerileri
 
-Boyut onerileri
+Boyut önerileri
 ```
 
 ## API
@@ -404,13 +404,13 @@ Widget Acildi
 
 AR Baslatildi
 
-3D Goruntuleme
+3D Görüntüleme
 
-Urun Goruntuleme
+Ürün Görüntüleme
 
 Sepete Ekleme
 
-Satin Alma
+Satın Alma
 
 Paylasim
 ```
@@ -418,17 +418,17 @@ Paylasim
 ### Dashboard Kartlari
 
 ```txt
-Toplam Urun
+Toplam Ürün
 
-Toplam AR Goruntuleme
+Toplam AR Görüntüleme
 
-Toplam Widget Kullanimi
+Toplam Widget Kullanımi
 
-Toplam Satis
+Toplam Satış
 
-Donusum Orani
+Dönüşüm Orani
 
-Aylik Gelir
+Aylık Gelir
 ```
 
 ## Widget Sistemi
@@ -444,7 +444,7 @@ data-rug-id="PRODUCT_ID">
 <script src="https://widget.rugvision.com/widget.js"></script>
 ```
 
-### Widget Ozellestirme
+### Widget Özellestirme
 
 ```txt
 Buton Rengi
@@ -458,14 +458,14 @@ Firma Logosu
 Dark Mode
 ```
 
-## Halici Paneli
+## Halıcı Paneli
 
 Menuler:
 
 ```txt
 Dashboard
 
-Urunler
+Ürünler
 
 Widget
 
@@ -483,13 +483,13 @@ Ayarlar
 Kartlar:
 
 ```txt
-Toplam Urun
+Toplam Ürün
 
 Aktif Widget
 
-AR Kullanimi
+AR Kullanımi
 
-Donusum
+Dönüşüm
 
 Abonelik Durumu
 ```
@@ -501,7 +501,7 @@ Abonelik Durumu
 ```txt
 999 TL / Ay
 
-50 Urun
+50 Ürün
 
 Temel Widget
 
@@ -513,37 +513,37 @@ Temel Analitik
 ```txt
 2499 TL / Ay
 
-500 Urun
+500 Ürün
 
-Ozel Widget
+Özel Widget
 
-Detayli Analitik
+Detaylı Analitik
 
-Alan Adi Dogrulama
+Alan Adi Doğrulama
 ```
 
 ### Enterprise
 
 ```txt
-Ozel Fiyat
+Özel Fiyat
 
-Sinirsiz Urun
+Sinirsiz Ürün
 
 API
 
-Ozel Entegrasyonlar
+Özel Entegrasyonlar
 
-Ozel Destek
+Özel Destek
 ```
 
 ## Entegrasyonlar
 
 ### Shopify
 
-Ozellikler:
+Özellikler:
 
 ```txt
-Urun Senkronizasyonu
+Ürün Senkronizasyonu
 
 Stok Senkronizasyonu
 
@@ -552,7 +552,7 @@ Otomatik Widget
 
 ### WooCommerce
 
-Ozellikler:
+Özellikler:
 
 ```txt
 WordPress Eklentisi
@@ -572,7 +572,7 @@ XML Aktarim
 XML Aktarim
 ```
 
-## Guvenlik
+## Güvenlik
 
 ```txt
 JWT
@@ -622,7 +622,7 @@ Nginx
 PM2
 ```
 
-Veritabani:
+Veritabanı:
 
 ```txt
 PostgreSQL
@@ -644,7 +644,7 @@ iOS
 Android
 ```
 
-Ozellikler:
+Özellikler:
 
 ```txt
 AR Tarama
@@ -656,20 +656,20 @@ Katalog
 Bildirimler
 ```
 
-## MVP Yol Haritasi
+## MVP Yol Haritası
 
 ### Faz 1
 
 ```txt
 Auth
 
-Urun CRUD
+Ürün CRUD
 
 Dashboard
 
 Widget
 
-AR Goruntuleme
+AR Görüntüleme
 ```
 
 ### Faz 2
@@ -679,9 +679,9 @@ Abonelik
 
 Analitik
 
-Domain Dogrulama
+Domain Doğrulama
 
-Dosya Yonetimi
+Dosya Yönetimi
 ```
 
 ### Faz 3
@@ -720,7 +720,7 @@ Native AR
 
 RugVision'in hedefi:
 
-Dunyadaki halicilarin ve ev dekorasyonu markalarinin urunlerini musterilerine kendi evlerinde artirilmis gerceklik ile deneyimletebildigi lider SaaS platformu olmaktir.
+Dünyadaki halıcıların ve ev dekorasyonu markalarının ürünlerini müşterilerine kendi evlerinde artırılmış gerçeklik ile deneyimletebildiği lider SaaS platformu olmaktır.
 
-Surum: v1.0.0  
+Sürüm: v1.0.0  
 Durum: Planlama

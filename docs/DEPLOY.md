@@ -18,7 +18,7 @@
 | **Health durumu** | `{"status":"ok","db":"up"}` |
 | **AR doğrulama** | RugVision + **pilot müşteri sitesi** iPhone Quick Look ✅ |
 
-**Demo merchant:** `demo@ornek.com` / `Test12345!` (Demo Magaza)
+**Demo merchant:** `demo@ornek.com` / `Test12345!` (Demo Mağaza)
 
 **Pilot merchant:** `savas@rugvision.com` / `Savas2026!` (Savas Dogan Tekstil)  
 **Pilot site:** https://savasdogantekstil.com/rugvision/  
@@ -79,8 +79,8 @@ npm run db:deploy
 $body = @{
   email="demo@ornek.com"
   password="Test12345!"
-  fullName="Demo Kullanici"
-  companyName="Demo Magaza"
+  fullName="Demo Kullanıcı"
+  companyName="Demo Mağaza"
 } | ConvertTo-Json
 
 Invoke-RestMethod -Uri "https://rugvision-o54d.vercel.app/api/v1/auth/register" `
@@ -169,7 +169,7 @@ Vercel'in dosya sistemi **salt-okunurdur**; `STORAGE_DRIVER=local` ile
 - [x] İlk merchant + demo halı oluşturuldu
 - [x] **Pilot:** savasdogantekstil.com/rugvision canlı AR (ürün detay)
 - [x] HTTPS production aktif (Vercel otomatik SSL) — Adım 1 tamam
-- [ ] Özel alan adı (`app.rugvision.com`) — opsiyonel, Buyume fazı
+- [ ] Özel alan adı (`app.rugvision.com`) — opsiyonel, Büyüme fazı
 - [ ] Model dosyaları için bulut depolama (R2/S3) — Adım 2
 - [ ] Rate limiter'ı dağıtık store'a (Upstash/Redis) taşı (çok-instance için)
 
