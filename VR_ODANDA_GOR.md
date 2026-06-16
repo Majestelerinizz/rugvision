@@ -22,7 +22,19 @@ Desteklenecek cihaz hedefi:
 
 ## Son Guncellemeler (Bu Asamaya Kadar)
 
-- [x] Auth + Rugs + Widget temel API akislari ayaga kaldirildi ve test edildi.
+### Production (16.06.2026) — Vercel + Neon CANLI
+- [x] **Neon PostgreSQL** acildi (proje: `rugvision`, Postgres 16, AWS US East 1).
+- [x] `npm run db:deploy` ile sema Neon'a uygulandi (migration basarili).
+- [x] **Vercel production deploy** tamamlandi: `https://rugvision-o54d.vercel.app`
+- [x] GitHub `main` guncellendi (commit `fae8c2c`: guvenlik + production hazirligi).
+- [x] `/api/v1/health` production'da `{"status":"ok","db":"up"}` donuyor.
+- [x] Ilk production merchant olusturuldu: **Demo Magaza** (`demo@ornek.com`).
+- [x] Ilk production hali eklendi: **Modern Hali** (SKU: `HALI-001`).
+- [x] **iPhone 12** uzerinde production HTTPS ile Quick Look AR dogrulandi (sorunsuz).
+- [x] SKU widget eslemesi production'da calisiyor (`data-merchant-id` + `data-sku`).
+- [x] `DATABASE_URL` format hatasi cozuldu: Vercel'e sadece `postgresql://...` (psql/tirnak/channel_binding OLMAMALI).
+
+### Onceki asama (lokal + tunnel)
 - [x] `odamda-gor/:id` demo sayfasi ile 3D model goruntuleme aktif edildi.
 - [x] `model3dUrl` alanindan urune dinamik model baglama tamamlandi.
 - [x] iOS Quick Look icin ozel USDZ endpointi eklendi: `/api/v1/ar/usdz/:filename`
@@ -108,15 +120,20 @@ yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7)
 
 ### ADIM 1 - Production yayini (siteyi internete tasi)  [~2 gun]
 > Amac: `localhost`/tunnel yerine gercek, kalici HTTPS adres.
-> KOD HAZIRLIGI TAMAM: build `prisma generate && next build`, `npm run db:deploy`,
-> ana sayfa `force-dynamic` (build DB istemez), `/api/v1/health` DB readiness doner.
-> Adim adim runbook: **`docs/DEPLOY.md`**. Kalan kismi hesap/DNS islemleri (manuel).
-- [ ] 1.1 Yonetilen veritabani ac (Docker'siz): Neon (onerilen) / Supabase / Vercel Postgres
-- [ ] 1.2 Vercel env: `DATABASE_URL` + `JWT_SECRET` (>=32) + `STORAGE_DRIVER=local`
-- [ ] 1.3 `npm run db:deploy` ile tablolari bulut DB'ye kur
-- [ ] 1.4 Projeyi Vercel'e deploy et (build komutu hazir)
-- [ ] 1.5 Kalici domain bagla + HTTPS (orn. `app.rugvision.com`)
-- [ ] 1.6 Tunnel ve `baslat.bat` artik gereksiz (sadece lokal gelistirme icin kalir)
+> **DURUM: CANLI** — `https://rugvision-o54d.vercel.app` (Neon DB bagli, health OK, iPhone AR dogrulandi).
+> Runbook: **`docs/DEPLOY.md`**
+- [x] 1.1 Yonetilen veritabani acildi: **Neon** (proje `rugvision`, Postgres 16)
+- [x] 1.2 Vercel env: `DATABASE_URL` + `JWT_SECRET` (>=32) + `STORAGE_DRIVER=local`
+- [x] 1.3 `npm run db:deploy` ile tablolar Neon'a kuruldu
+- [x] 1.4 Vercel'e deploy edildi (GitHub `fae8c2c`, build: `prisma generate && next build`)
+- [ ] 1.5 Kalici domain bagla + HTTPS (orn. `app.rugvision.com`) — opsiyonel, Vercel URL calisiyor
+- [x] 1.6 Tunnel artik production icin gereksiz (sadece lokal gelistirme icin kalir)
+
+**Production erisim:**
+- Site: `https://rugvision-o54d.vercel.app`
+- Panel: `https://rugvision-o54d.vercel.app/panel`
+- Health: `https://rugvision-o54d.vercel.app/api/v1/health`
+- Ornek AR: `https://rugvision-o54d.vercel.app/odamda-gor/<RUG_ID>`
 
 ### ADIM 2 - Model dosya altyapisi (bulut depolama + otomatik uretim)  [~3-4 gun]
 > Amac: Modelleri sunucu diski yerine bulutta tut; yuzlerce hali icin uretimi otomatiklestir.
@@ -131,8 +148,10 @@ yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7)
 > Amac: Tek satir kod ile musteri urun sayfasinda buton + AR.
 - [ ] 3.1 Embed kurulum dokumani yaz (tek satir `<script>` + `data-target` kullanimi)
 - [ ] 3.2 Musteri temasinda buton yerlesimini dogrula (orn. tarzhaliconcept.com PHP)
-- [~] 3.3 SKU eslemesi: widget altyapisi HAZIR (`data-merchant-id` + `data-sku` -> `GET /api/v1/widget/rug?merchantId=&sku=`); kalan is musteri urunleriyle eslemenin operasyonu
-- [ ] 3.4 Gercek halilarla 1-2 urunde uctan uca canli test
+- [~] 3.3 SKU eslemesi: widget + production API HAZIR; ilk hali (`HALI-001`) canli; kalan is musteri urunleriyle toplu esleme
+- [~] 3.4 Gercek halilarla uctan uca canli test: demo hali + iPhone 12 AR OK; ilk halici pilotu bekliyor
+
+Faz 3 Durumu: **Adim 1 tamamlandi (domain haric); Adim 2 sirada (R2/S3).**
 
 ### ADIM 4 - Platform eklentileri  [BUYUME]
 > Amac: Kurulumu "tek tik" yapan resmi eklentiler.
@@ -141,7 +160,7 @@ yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7)
 
 ### ADIM 5 - AR kalite ve cihaz testleri  [BUYUME]
 - [ ] 5.1 iOS Quick Look + Android Scene Viewer coklu cihazda dogrulama (genis matris)
-- [ ] 5.2 Production (HTTPS) uzerinde mobil AR acceptance testi
+- [~] 5.2 Production (HTTPS) uzerinde mobil AR acceptance testi (iPhone 12 Quick Look OK; genis matris bekliyor)
 - [ ] 5.3 En az 10 urunde AR gecis raporu
 
 ### ADIM 6 - AI ozellikleri  [BUYUME]
@@ -153,24 +172,24 @@ yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7)
 - [ ] 7.2 Otomatik test paketi (E2E runner) + CI
 - [ ] 7.3 (Opsiyonel) Abonelik/plan limitleri
 
-Faz 3 Durumu: **Planlandi (Adim 1'den baslanacak)**.
+Faz 3 Durumu: **Adim 1 CANLI (domain haric); Adim 2 sirada (R2/S3).**
 
 ---
 
 ## Hemen Sonraki Is (Oncelik) + Faz 3 Gun Plani
 
-Faz 1 ve Faz 2 cekirdek isleri tamamlandi. Faz 3 iki kademede planlandi:
+Faz 1 ve Faz 2 cekirdek isleri tamamlandi. **Adim 1 (production) CANLI.** Siradaki oncelikler:
 
 ### A) Tek gercek musteriyi (orn. tarzhaliconcept.com) canliya alma - TEMEL
-| Is | Tahmini gun |
-|----|-------------|
-| Production deploy (Vercel + Neon/Supabase DB) | 1-2 |
-| Kalici domain + HTTPS | 0.5 |
-| Bulut depolama (R2/S3) | 1-2 |
-| Otomatik foto+olcu -> GLB/USDZ uretimi (ilk surum) | 2-3 |
-| Musteri temasina embed + buton yerlesimi + SKU eslemesi | 1-2 |
-| Gercek halilarla test (birkac urun) | 1 |
-| **Toplam** | **~6-10 is gunu** |
+| Is | Durum | Tahmini gun |
+|----|-------|-------------|
+| Production deploy (Vercel + Neon DB) | **TAMAM** | — |
+| Kalici domain + HTTPS | opsiyonel | 0.5 |
+| Bulut depolama (R2/S3) | **SIRADA** | 1-2 |
+| Otomatik foto+olcu -> GLB/USDZ uretimi (ilk surum) | bekliyor | 2-3 |
+| Musteri temasina embed + buton yerlesimi + SKU eslemesi | bekliyor | 1-2 |
+| Gercek halilarla test (birkac urun) | demo OK, pilot bekliyor | 1 |
+| **Kalan toplam** | | **~5-8 is gunu** |
 
 ### B) Tam urunlesme (her e-ticarete dagitilabilir) - BUYUME
 - Shopify + WooCommerce resmi eklentileri
@@ -179,7 +198,7 @@ Faz 1 ve Faz 2 cekirdek isleri tamamlandi. Faz 3 iki kademede planlandi:
 - Oto donusum hattinin olgunlasmasi + otomatik test runner + CI
 - **Ek sure:** ~12-18 is gunu
 
-**Ozet:** Tek musteride canli, satisa donuk kurulum ~2 hafta; tam urunlesmis hal ~4-6 hafta.
+**Ozet:** Production CANLI; tek musteride canli pilot ~1 hafta; tam urunlesmis hal ~4-6 hafta.
 
 ---
 
@@ -203,7 +222,7 @@ Calisma modeli:
 
 - Musterinin PHP koduna dokunulmaz; veritabanlari birlestirilmez.
 - Tek satir kod urun sayfasi sablonuna yapistirilir:
-  `<script src="https://app.rugvision.com/widget.js" data-rug-id="SKU" data-target=".sepete-ekle" defer></script>`
+  `<script src="https://rugvision-o54d.vercel.app/widget.js" data-merchant-id="MERCHANT_ID" data-sku="SKU" data-target=".add-to-cart" defer></script>`
 - `data-target` ile sitedeki "Sepete Ekle" butonu hedeflenir; widget butonu yanina koyar.
 - Bu yuzden PHP/Laravel site ile "birlestirme" derdi YOKTUR; sadece bir HTML satiri.
 
@@ -258,7 +277,15 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
 
 ## Son Durum (Gun Sonu Ozeti)
 
-- [x] Faz 1 cekirdek API ve AR demo altyapisi calisiyor.
+### Production (16.06.2026)
+- [x] **Vercel + Neon production CANLI:** `https://rugvision-o54d.vercel.app`
+- [x] Health: `db: "up"` — Neon baglantisi calisiyor.
+- [x] GitHub guncel (commit `fae8c2c`): guvenlik sertlestirme + Faz 3 hazirligi.
+- [x] Ilk merchant + hali production'da olusturuldu (Demo Magaza / HALI-001).
+- [x] iPhone 12 production HTTPS uzerinde Quick Look AR dogrulandi.
+- [x] Panel girisi production'da calisiyor.
+
+### Onceki tamamlananlar
 - [x] Postman testleriyle auth + rugs + widget akislari dogrulandi.
 - [x] iPhone Quick Look AR canli cihazda dogrulandi (hali gercek boyutta yere oturuyor).
 - [x] USDZ modelinin zemine dogru oturmasi cozuldu (Y-up + ASCII usdz, Blender headless pipeline).
@@ -274,29 +301,22 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
 - [x] Faz 3 gun plani 2 kademeye ayrildi: tek musteri canliya alma ~6-10 gun, tam urunlesme +12-18 gun.
 - [x] Otomatik model uretimi (foto+olcu -> GLB/USDZ) Faz 3 onceligi olarak eklendi (yuzlerce hali icin olceklenme).
 - [x] Docker'siz DB secenekleri belirlendi: Neon / Supabase / Vercel Postgres (sema ayni, sadece `DATABASE_URL`).
-- [ ] Faz 3: production yayini, bulut depolama, oto GLB->USDZ, Shopify/WooCommerce, AI floor detection.
+- [ ] Faz 3 kalan: kalici domain, bulut depolama (R2/S3), ilk halici embed, oto GLB->USDZ, Shopify/WooCommerce, AI floor detection.
 
 ---
 
 ## Timeline (Tahmini)
 
-- **Faz 1:** %100 tamamlandi (iPhone'da AR canli test edildi)
-  - Model olcek/pivot/yatay yerlesim Blender headless script ile cozuldu (2.30 x 1.60 x 0.02 m)
-  - iPhone Quick Look uyumlulugu: Y-up + ASCII usdz (`scripts/export_quicklook_usdz.py`)
-  - Android: Scene Viewer intent fallback + `model/gltf-binary` GLB servisi
-- **Faz 2:** cekirdek %100 tamamlandi (embed widget + buton + analytics + panel + upload + domain + hata standardi; panel tarayicida canli dogrulandi)
-  - Faz 3'e tasinan kalemler: bulut depolama (R2/S3) + otomatik test runner + oto GLB->USDZ pipeline
-- **Faz 3:** 12-18 is gunu
-  - (mobil AR stabilizasyonu coklu cihaz, GLB->USDZ pipeline standardi, Shopify/WooCommerce
-    entegrasyonu, AI floor/room detection, production acceptance)
+- **Faz 1:** %100 tamamlandi
+- **Faz 2:** %100 tamamlandi (guvenlik sertlestirme dahil)
+- **Faz 3 Adim 1:** %90 tamamlandi (production CANLI; kalici domain opsiyonel kaldi)
+- **Faz 3 Adim 2-7:** devam ediyor
 
-**Toplam kalan sure:** ~18-27 is gunu (yaklasik 3.5 - 5.5 hafta)
+**Tum projenin tamamlanma orani:** ~%75-78
 
-**Bugune kadar tamamlanan (kabaca):** Tum projenin ~%70'i
-(Faz 1 bitti, Faz 2 %100 tamamlandi + guvenlik sertlestirme + Faz 3 icin depolama/SKU temelleri atildi).
+**Canli production adresi:** `https://rugvision-o54d.vercel.app`
 
-Not: Dar kapsamli "hiz modu" (tek halici + temel embed + mobil AR) ile ilk canli satis demosu
-bugun itibariyle HAZIR. Geri kalan sure panel/otomasyon/entegrasyon/AI icin.
+Not: Ilk halici ile canli satis demosu **production uzerinde HAZIR**. Sira: bulut depolama + ilk musteri embed.
 
 ---
 
@@ -347,6 +367,5 @@ Halicilara aylik abonelik karsiliginda urun/model/widget yonetimi, AR deneyimi v
 analitik panel sunan bir SaaS hizmeti. (Abonelik modulu su an kapsam disi, gelistirme
 onceligi "hali gosterimi" uzerinedir.)
 
-**Mevcut olgunluk:** Faz 1 (%100) ve Faz 2 cekirdegi tamamlandi; tek halici ile canli
-satis demosu hazir. Faz 3 (production yayini, bulut depolama, e-ticaret entegrasyonlari,
-AI zemin tespiti) planlanmis durumda.
+**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), Faz 3 Adim 1 (%90 — production CANLI).
+Sira: bulut depolama (R2/S3), ilk halici embed, e-ticaret entegrasyonlari, AI zemin tespiti.

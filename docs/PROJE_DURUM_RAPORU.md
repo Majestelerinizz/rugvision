@@ -1,10 +1,10 @@
 # RugVision — Resmi Proje Durum Raporu
 
 > Belge turu: Proje Durum / Kabul Raporu
-> Surum: 1.1
+> Surum: 1.2
 > Tarih: 16.06.2026
 > Hazirlayan: RugVision Gelistirme
-> Durum ozeti: **Faz 1 + Faz 2 %100 TAMAMLANDI; guvenlik sertlestirildi; Faz 3 temelleri atildi.**
+> Durum ozeti: **Faz 1 + Faz 2 %100; Faz 3 Adim 1 CANLI (Vercel + Neon).**
 
 ---
 
@@ -13,12 +13,13 @@
 RugVision, halici ve ev dekorasyon markalarinin urun sayfalarina **tek satir kod** ile
 "Odamda Gor" (artirilmis gerceklik) ozelligi ekleyebilmesini saglayan SaaS platformudur.
 
-Bugun itibariyle platform, bir halicinin urununu kendi web sitesinde **"Sepete Ekle"
-butonunun yaninda "Odamda Gor" butonu** ile gosterebilecek ve musterinin telefonuyla
-haliyi kendi odasinin zemininde **gercek boyutta** gorebilecegi seviyede **calisir
-durumdadir**.
+**16 Haziran 2026 itibariyle platform production'da CANLI:**
+- Adres: **https://rugvision-o54d.vercel.app**
+- Neon PostgreSQL baglantisi aktif (`db: "up"`)
+- iPhone 12 uzerinde production HTTPS ile Quick Look AR dogrulandi
+- Ilk merchant (Demo Magaza) ve demo hali (HALI-001) olusturuldu
 
-**Satisa hazir demo bugun itibariyle mevcuttur.**
+**Satisa hazir demo production uzerinde mevcuttur.**
 
 ---
 
@@ -26,51 +27,33 @@ durumdadir**.
 
 ### Faz 1 — AR Cekirdegi (%100)
 - 3D/AR goruntuleyici sayfasi (`/odamda-gor/:id`) — `model-viewer` tabanli.
-- iPhone **Quick Look** AR: gercek cihazda (iPhone 12) test edildi; hali zemine
-  gercek boyutta (2.30 x 1.60 x 0.02 m) oturuyor, tasima/dondurme/olcek calisiyor.
+- iPhone **Quick Look** AR: lokal + **production** (iPhone 12) test edildi; hali zemine
+  gercek boyutta oturuyor.
 - Android **Scene Viewer** akisi (intent fallback) + WebXR.
 - USDZ dogru `Content-Type` (`model/vnd.usdz+zip`) ile servis ediliyor.
-- Model uretim hattinin otomasyonu (Blender headless scriptleri):
-  - `scripts/fix_rug_model.py` (olcek/pivot/yatay yerlesim)
-  - `scripts/export_quicklook_usdz.py` (iOS uyumlu Y-up + ASCII USDZ)
+- Blender headless model pipeline (`fix_rug_model.py`, `export_quicklook_usdz.py`).
 
 ### Faz 2 — Islevsel Urunlesme (%100)
-- **Tek satir embed widget** (`public/widget.js`): "Sepete Ekle" yanina otomatik
-  "Odamda Gor" butonu enjekte eder; mobilde dogrudan AR tetikler.
-- **Tema uyumu**: yaygin "sepete ekle" selector listesi + `data-target` override.
-- **Analytics**: `WIDGET_OPENED`, `AR_STARTED`, `VIEW_3D`, `PRODUCT_VIEWED` eventleri
-  `analytics_events` tablosuna yaziliyor (CORS + `sendBeacon`).
-- **Merchant paneli** (`/panel`): giris, analitik kartlari, hali listesi, model
-  yukleme, embed kodu ureteci; refresh token ile otomatik oturum yenileme.
-- **Dosya yukleme** (`POST /api/v1/uploads/model`): GLB/USDZ/GLTF.
-- **Domain dogrulama** (`POST /api/v1/domains` + `/verify`).
-- **Abonelik plan limiti**: urun ekleme `productLimit`'e gore sinirlanir.
-- **Depolama soyutlamasi** (`lib/storage.ts`): yerel driver aktif; R2/S3 driver Faz 3'te.
-- **Otomatik test paketi**: `npm test` (`node:test` + `tsx`, 13 test).
-- **Standart API hata kodlari** (`lib/api.ts` + `lib/errors.ts`) + zod dogrulama.
-- **JWT auth guard** + merchant izolasyonu (`lib/auth-guard.ts`).
+- Tek satir embed widget (`public/widget.js`) + SKU eslemesi (`data-merchant-id` + `data-sku`).
+- Analytics, merchant paneli, domain dogrulama, upload, abonelik plan limiti.
+- Depolama soyutlamasi (`lib/storage.ts`), otomatik testler (`npm test`, 13 test).
+- Guvenlik sertlestirme: auth guard, rate limit, JWT issuer/audience, HTTP headers, SSRF.
 
-### Guvenlik Sertlestirme (Yeni)
-- Rugs CRUD + widget/settings artik **auth + merchant izolasyonu** zorunlu (eskiden acikti);
-  `:id` islemlerinde sahiplik dogrulamasi.
-- **Rate limiting** (`lib/rate-limit.ts`): login/register/refresh/analytics/widget/domain-verify;
-  brute-force + kullanici-sayimi (enumeration) onleme (sabit-zaman parola karsilastirma).
-- **JWT**: issuer/audience + HS256 sabit; `JWT_SECRET < 32` ise uygulama baslamaz.
-- **HTTP guvenlik basliklari** (`next.config.ts`): HSTS, nosniff, Referrer-Policy,
-  Permissions-Policy, clickjacking korumasi (embed icin `/odamda-gor` haric).
-- **SSRF korumasi**: domain dogrulamada ozel-ic IP reddi + redirect takibi kapali.
-- Tum yanitlarda ham hata mesaji sizdirilmiyor; tekrar eden kayit -> 409 CONFLICT.
+### Faz 3 Adim 1 — Production (%90)
+- [x] Neon PostgreSQL (proje `rugvision`, Postgres 16, AWS US East 1)
+- [x] `npm run db:deploy` — sema Neon'a uygulandi
+- [x] Vercel deploy (GitHub `fae8c2c`, build: `prisma generate && next build`)
+- [x] Environment variables: `DATABASE_URL`, `JWT_SECRET`, `STORAGE_DRIVER=local`
+- [x] Health endpoint: `{"status":"ok","db":"up"}`
+- [x] Ilk production merchant + hali olusturuldu
+- [x] iPhone 12 production AR dogrulandi
+- [ ] Kalici domain (`app.rugvision.com`) — opsiyonel, Vercel URL calisiyor
 
 ### Altyapi
-- Next.js 16 (App Router) + Prisma 7 (PostgreSQL, pg adapter).
-- Auth: register / login / refresh / logout (JWT, bcrypt).
-- Rugs CRUD + Widget ayarlari endpointleri.
-- Postman koleksiyonu (Auth + Rugs + Widget).
-- Sabit, **kendi kendini iyilestiren** tunnel (`scripts/tunnel.mjs`): kopma/timeout/
-  rate-limit (429) durumlarini ayirt eder, gercek kopmada ayni adrese (`rugvision-demo`)
-  otomatik geri baglanir; URL hic degismez.
-- Kesintisiz calisma icin otomatik yeniden baslatan baslatici: `baslat.bat`
-  (cokerse 3 sn'de tekrar ayaga kalkar) + `npm run dev:all`.
+- **Production:** Vercel + Neon PostgreSQL
+- **Gelistirme:** localtunnel (`rugvision-demo.loca.lt`) + `baslat.bat`
+- Next.js 16 + Prisma 7 + PostgreSQL (pg adapter)
+- GitHub: https://github.com/Majestelerinizz/rugvision
 
 ---
 
@@ -78,53 +61,67 @@ durumdadir**.
 
 | Test | Sonuc |
 |------|-------|
-| `GET /api/v1/health` | 200 OK |
-| Auth register/login/refresh/logout | Calisiyor (Postman) |
-| Rugs CRUD | Calisiyor (404/422 standart hatalar dahil) |
-| iPhone Quick Look AR (gercek cihaz) | Hali yere oturuyor, olcek dogru |
+| `GET /api/v1/health` (production) | **200 OK, db: "up"** |
+| Production site acilisi | **https://rugvision-o54d.vercel.app** calisiyor |
+| Auth register/login (production) | Calisiyor |
+| Rugs CRUD (production, auth korumali) | Calisiyor |
+| iPhone Quick Look AR (production, iPhone 12) | **Hali yere oturuyor, olcek dogru** |
 | Android Scene Viewer | Intent akisi hazir |
-| Embed widget buton enjeksiyonu | `widget-demo.html` uzerinde calisiyor |
-| Analytics overview | Dogru sayimlar donuyor (auth korumali) |
-| Domain create + verify | 201 / 422 (dogru davranis) |
-| Model upload | 201 + URL donuyor |
-| Yetkisiz erisim | 401/403 (auth guard calisiyor) |
-| **Merchant panel (tarayici)** | **Canli giris dogrulandi: analytics kartlari (1 hali / 7 widget / 4 AR / 9 3D), hali listesi, embed kodu ureteci calisiyor** |
-| Embed kodu ureteci | Panelden tek satir `<script ... widget.js ...>` uretiliyor |
+| SKU widget (`data-merchant-id` + `data-sku`) | Production API calisiyor |
+| Merchant panel (production) | Giris + analytics + embed kodu calisiyor |
+| Guvenlik: yetkisiz erisim | 401/403 |
+| Otomatik testler (`npm test`) | 13/13 gecti |
 
 ---
 
-## 4. Canli Demo Erisimi
+## 4. Canli Erisim
 
-- Merchant panel: `https://rugvision-demo.loca.lt/panel`
-  - Giris: `demo@rugvision.test` / `Test12345!`
-- Embed demo (halici sitesi simulasyonu): `https://rugvision-demo.loca.lt/widget-demo.html`
-- Not: `loca.lt` gelistirme tuneli; ilk acilista IP sifre sayfasi gosterebilir.
-  Kalici musteri teslimi gercek domain + production yayini ile yapilir.
+### Production (ana)
+- **Site:** https://rugvision-o54d.vercel.app
+- **Panel:** https://rugvision-o54d.vercel.app/panel
+- **Health:** https://rugvision-o54d.vercel.app/api/v1/health
+- **Demo giris:** `demo@ornek.com` / `Test12345!`
+- **Demo halı AR:** `/odamda-gor/cmqgnzmh8000404l70apwfjat`
 
-Embed kodu (panelden uretilir, ornek):
-```
-<script src="https://rugvision-demo.loca.lt/widget.js" data-rug-id="<RUG_ID>" data-target=".add-to-cart" defer></script>
-```
+### Gelistirme (lokal/tunnel)
+- Tunnel: `https://rugvision-demo.loca.lt` (sadece gelistirme icin)
+- `npm run dev:all` veya `baslat.bat`
 
-Calistirma (yerel):
-```
-npm run dev:all     # site + sabit tunnel birlikte (gelistirme)
-baslat.bat          # kesintisiz mod: cokerse otomatik yeniden baslar
+### Embed kodu (production)
+
+```html
+<script
+  src="https://rugvision-o54d.vercel.app/widget.js"
+  data-merchant-id="cmqgnzgta000004l771zd8kb5"
+  data-sku="HALI-001"
+  data-target=".add-to-cart"
+  defer
+></script>
 ```
 
 ---
 
-## 5. Kalan Isler (Faz 3 — Production & Buyume)
+## 5. Kalan Isler (Faz 3)
 
-- [ ] Production yayini (Vercel/sunucu) + kalici domain + HTTPS (tunnel'siz).
-- [ ] Bulut depolama (R2/S3/B2) driver'i ekle (soyutlama HAZIR: `lib/storage.ts`).
-- [ ] Otomatik GLB -> USDZ donusum hatti (sunucu tarafi).
-- [ ] SKU eslemesi operasyonu (widget altyapisi HAZIR: `data-merchant-id` + `data-sku`).
-- [ ] Shopify ve WooCommerce resmi entegrasyon/eklenti.
-- [ ] Coklu cihazda AR kabul testleri (genis cihaz matrisi).
-- [ ] AI floor/room detection ilk surum.
-- [ ] Rate limiter'i dagitik store'a (Upstash/Redis) tasi (cok-instance icin).
-- [ ] E2E test runner + CI (birim test temeli atildi: `npm test`).
+### Adim 1 (kalan)
+- [ ] Kalici domain baglama (`app.rugvision.com`)
+
+### Adim 2 — Bulut depolama
+- [ ] R2/S3 driver (`lib/storage.ts` soyutlamasi HAZIR)
+- [ ] Otomatik GLB → USDZ donusum hatti
+- [ ] Otomatik model uretimi (foto + olcu → GLB)
+
+### Adim 3 — E-ticaret entegrasyonu
+- [ ] Ilk gercek halici embed (orn. tarzhaliconcept.com)
+- [ ] SKU toplu esleme operasyonu
+- [ ] 2-3 urunde uctan uca canli test
+
+### Buyume (Adim 4-7)
+- [ ] Shopify / WooCommerce eklentileri
+- [ ] Coklu cihaz AR test matrisi
+- [ ] AI floor/room detection
+- [ ] E2E test + CI
+- [ ] Rate limiter → Upstash/Redis
 
 ---
 
@@ -133,17 +130,18 @@ baslat.bat          # kesintisiz mod: cokerse otomatik yeniden baslar
 | Asama | Durum | Kalan sure |
 |-------|-------|------------|
 | Faz 1 (AR cekirdegi) | %100 | — |
-| Faz 2 (islevsel urunlesme) | %100 | — (plan limiti + depolama soyutlamasi + otomatik test + guvenlik dahil) |
-| Faz 3 (production + entegrasyon + AI) | basliyor | ~12-18 is gunu |
+| Faz 2 (islevsel urunlesme) | %100 | — |
+| Faz 3 Adim 1 (production) | %90 | domain opsiyonel |
+| Faz 3 Adim 2-7 | devam ediyor | ~10-15 is gunu |
 
-- **Tum projenin tamamlanma orani:** ~%70.
-- **Production'a tam hazir (Faz 3 dahil):** ~3.5 - 5.5 hafta.
-- **Tek halici ile canli satis demosu:** BUGUN HAZIR.
+- **Tum projenin tamamlanma orani:** ~%75-78
+- **Production CANLI:** https://rugvision-o54d.vercel.app
+- **Ilk halici pilotu:** hazir (embed + AR calisiyor)
 
 ---
 
 ## 7. Sonuc
 
-Platformun **temel deger onerisi calisir durumdadir**: bir halicinin urununu, musterinin
-telefonunda kendi odasinda gercek boyutta gosterme akisi uctan uca tamamlanmistir.
-Geri kalan calismalar olceklenme, entegrasyon ve production sertlestirme odaklidir.
+Platform **production'da canli ve calisir durumdadir**. Temel deger onerisi (AR ile
+haliyi odada gosterme) iPhone 12 uzerinde production HTTPS ile dogrulandi.
+Geri kalan calismalar: bulut depolama, ilk gercek halici embed, olceklenme ve AI.
