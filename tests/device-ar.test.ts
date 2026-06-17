@@ -5,6 +5,8 @@ import {
   likelyHasGooglePlayServices,
   buildSceneViewerHttpsUrl,
   buildSceneViewerIntentUrl,
+  buildSceneViewerGenericIntentUrl,
+  resolveSceneViewerLaunchUrl,
 } from "../lib/device-ar";
 
 describe("device-ar", () => {
@@ -58,6 +60,18 @@ describe("device-ar", () => {
     const fb = "https://app.example.com/odamda-gor/abc";
     assert.match(buildSceneViewerHttpsUrl(glb), /^https:\/\/arvr\.google\.com\//);
     assert.match(buildSceneViewerIntentUrl(glb, fb), /^intent:\/\//);
+    assert.match(buildSceneViewerGenericIntentUrl(glb, fb), /^intent:\/\//);
+  });
+
+  it("Samsung uses generic intent (not direct HTTPS 404)", () => {
+    const glb = "https://cdn.example.com/models/RV-LUNA-001.glb";
+    const fb = "https://app.example.com/odamda-gor/abc";
+    const samsungUa =
+      "Mozilla/5.0 (Linux; Android 14; SM-S918B) AppleWebKit/537.36 SamsungBrowser/24.0";
+    const url = resolveSceneViewerLaunchUrl(samsungUa, glb, fb);
+    assert.match(url, /^intent:\/\//);
+    assert.doesNotMatch(url, /^https:\/\/arvr\.google\.com\//);
+    assert.equal(url, buildSceneViewerGenericIntentUrl(glb, fb));
   });
 
   it("likelyHasGooglePlayServices false for Huawei brand", () => {

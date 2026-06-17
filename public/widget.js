@@ -144,14 +144,6 @@
     return base + "/odamda-gor/" + encodeURIComponent(rugId) + "?mobile=1";
   }
 
-  function sceneViewerHttpsUrl(url) {
-    return (
-      "https://arvr.google.com/scene-viewer/1.0?file=" +
-      encodeURIComponent(url) +
-      "&mode=ar_preferred&resizable=false&disable_occlusion=true"
-    );
-  }
-
   function sceneViewerIntentUrl(url, fallback) {
     return (
       "intent://arvr.google.com/scene-viewer/1.0?file=" +
@@ -163,6 +155,27 @@
       encodeURIComponent(fallback) +
       ";end;"
     );
+  }
+
+  function sceneViewerGenericIntentUrl(url, fallback) {
+    return (
+      "intent://arvr.google.com/scene-viewer/1.0?file=" +
+      encodeURIComponent(url) +
+      "&mode=ar_preferred&resizable=false&disable_occlusion=true" +
+      "#Intent;scheme=https;action=android.intent.action.VIEW;" +
+      "S.browser_fallback_url=" +
+      encodeURIComponent(fallback) +
+      ";end;"
+    );
+  }
+
+  function sceneViewerLaunchUrl(url, fallback) {
+    var ua = navigator.userAgent;
+    var vendor = detectVendor();
+    if (vendor === "samsung" || /SamsungBrowser/i.test(ua)) {
+      return sceneViewerGenericIntentUrl(url, fallback);
+    }
+    return sceneViewerIntentUrl(url, fallback);
   }
 
   function findTarget() {
@@ -274,16 +287,11 @@
     return true;
   }
 
-  // Android Scene Viewer: Samsung/Chrome HTTPS, digerleri intent; fallback mobil AR sayfasi.
+  // Android Scene Viewer: intent zorunlu (https://arvr.google.com tarayicida 404 verir).
   function openSceneViewer() {
     if (!glbUrl) return false;
     var fallback = mobileViewerUrl();
-    var vendor = detectVendor();
-    if (vendor === "samsung" || /Chrome\//i.test(navigator.userAgent)) {
-      window.location.href = sceneViewerHttpsUrl(glbUrl);
-      return true;
-    }
-    window.location.href = sceneViewerIntentUrl(glbUrl, fallback);
+    window.location.href = sceneViewerLaunchUrl(glbUrl, fallback);
     return true;
   }
 

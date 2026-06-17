@@ -153,12 +153,28 @@ export function buildSceneViewerGenericIntentUrl(glbUrl: string, fallbackUrl: st
   return (
     "intent://arvr.google.com/scene-viewer/1.0?file=" +
     file +
-    "&mode=ar_preferred" +
+    "&mode=ar_preferred&resizable=false&disable_occlusion=true" +
     "#Intent;scheme=https;action=android.intent.action.VIEW;" +
     "S.browser_fallback_url=" +
     fallback +
     ";end;"
   );
+}
+
+/**
+ * Samsung Internet ve diger Android tarayicilarda https://arvr.google.com dogrudan
+ * acilirsa 404 verir; intent zorunlu. Chrome Android icin de intent daha guvenilir.
+ */
+export function resolveSceneViewerLaunchUrl(
+  ua: string,
+  glbUrl: string,
+  fallbackUrl: string
+): string {
+  const vendor = detectVendor(ua);
+  if (vendor === "samsung" || /SamsungBrowser/i.test(ua)) {
+    return buildSceneViewerGenericIntentUrl(glbUrl, fallbackUrl);
+  }
+  return buildSceneViewerIntentUrl(glbUrl, fallbackUrl);
 }
 
 /** Chrome / Samsung Internet icin dogrudan HTTPS Scene Viewer linki. */

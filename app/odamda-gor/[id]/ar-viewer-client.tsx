@@ -4,9 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Script from "next/script";
 import {
   parseUserAgent,
-  buildSceneViewerGenericIntentUrl,
-  buildSceneViewerHttpsUrl,
-  buildSceneViewerIntentUrl,
+  resolveSceneViewerLaunchUrl,
   arModesForProfile,
 } from "@/lib/device-ar";
 
@@ -31,20 +29,10 @@ type ModelViewerElement = HTMLElement & {
   activateAR?: () => Promise<void> | void;
 };
 
-function openAndroidSceneViewer(modelUrl: string, fallbackUrl: string, vendor: string | null) {
+function openAndroidSceneViewer(modelUrl: string, fallbackUrl: string, ua: string) {
   const absoluteUrl = new URL(modelUrl, window.location.href).toString();
   const absoluteFallback = new URL(fallbackUrl, window.location.href).toString();
-
-  if (vendor === "samsung") {
-    window.location.href = buildSceneViewerHttpsUrl(absoluteUrl);
-    return;
-  }
-
-  try {
-    window.location.href = buildSceneViewerIntentUrl(absoluteUrl, absoluteFallback);
-  } catch {
-    window.location.href = buildSceneViewerGenericIntentUrl(absoluteUrl, absoluteFallback);
-  }
+  window.location.href = resolveSceneViewerLaunchUrl(ua, absoluteUrl, absoluteFallback);
 }
 
 function openIosQuickLook(iosSrc: string) {
@@ -180,7 +168,11 @@ export default function ArViewerClient({
     }
 
     if (profile.platform === "android" && profile.likelyHasGms) {
-      openAndroidSceneViewer(modelUrl, window.location.href, profile.vendor);
+      openAndroidSceneViewer(
+        modelUrl,
+        window.location.href,
+        typeof navigator !== "undefined" ? navigator.userAgent : ""
+      );
       return;
     }
 
