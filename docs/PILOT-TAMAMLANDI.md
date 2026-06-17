@@ -23,7 +23,7 @@ Paylaşımlı cPanel hosting için 71 performans kabul edilebilir hedef. AR ve e
 | Widget SKU (10/10) | `RV-LUNA-001` … `RV-NARIN-010` → 200 |
 | GLB proxy | `/api/v1/ar/glb/*.glb` → 200 |
 | USDZ proxy (iOS) | `/api/v1/ar/usdz/*.usdz` → 200 |
-| `widget.js` deploy | USDZ API + Türkçe hata mesajları |
+| `widget.js` deploy | USDZ API + Türkçe hata mesajları + Samsung intent (404 fix) |
 | LCP görsel | `hali123-640.webp` → 149 KB |
 | Ürün detay embed | `data-merchant-id` + `data-sku` + `defer` |
 

@@ -333,4 +333,8 @@ Pilot: `savas@rugvision.com` / `Savas2026!`
 
 ## Lisans
 
-Özel Proje. Tüm hakları saklı (c) Yusuf KARAGUZEL.
+**RugVision** — özel mülkiyet yazılımı.
+
+© 2026 **Yusuf Karagüzel** · Tüm hakları saklıdır.
+
+İzinsiz kullanım, kopyalama veya dağıtım yasaktır.
