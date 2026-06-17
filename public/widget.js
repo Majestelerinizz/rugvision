@@ -302,7 +302,7 @@
 
     var closeBtn = document.createElement("button");
     closeBtn.type = "button";
-    closeBtn.setAttribute("aria-label", "Kapat");
+    closeBtn.setAttribute("aria-label", "3D onizlemeyi kapat");
     closeBtn.innerHTML = "&times;";
     closeBtn.style.cssText =
       "position:absolute;top:10px;right:10px;z-index:2;width:36px;height:36px;" +
@@ -377,6 +377,7 @@
     var btn = document.createElement("button");
     btn.type = "button";
     btn.setAttribute("data-rugvision-button", "");
+    btn.setAttribute("aria-label", text + " — artirilmis gerceklik ile odada gor");
     btn.textContent = text;
     btn.style.cssText =
       "display:inline-flex;align-items:center;justify-content:center;gap:8px;" +

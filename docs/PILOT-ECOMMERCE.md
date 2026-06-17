@@ -153,7 +153,4 @@ Yeni halı ekleme: `docs/MODEL-PIPELINE.md` (`npm run models:batch` + `models:at
 - [x] Widget + ürün detay AR ✅
 - [x] 10 SKU ürün bazlı model ✅
 - [x] 10 SKU ürün bazlı site görselleri ✅
-- [ ] Cloudflare R2 production (100+ halı ölçeği)
-- [ ] Slider/footer köprü linkleri
-- [ ] Domain doğrulama panelde
-- [ ] Fotoğraf inset temizleme (AR kalite iyileştirme)
+- [ ] PageSpeed / erişilebilirlik optimizasyonu → **`docs/PILOT-PAGESPEED.md`**
