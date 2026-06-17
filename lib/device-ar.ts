@@ -222,6 +222,9 @@ export function arModesForProfile(profile: ArDeviceProfile) {
   if (profile.platform === "ios") {
     return "quick-look webxr scene-viewer";
   }
+  if (profile.platform === "android" && profile.primaryExperience === "webxr") {
+    return "webxr";
+  }
   if (profile.platform === "android" && profile.likelyHasGms) {
     return "webxr scene-viewer quick-look";
   }

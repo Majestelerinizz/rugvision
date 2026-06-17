@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Script from "next/script";
 import {
   parseUserAgent,
+  prefersMobileWebAr,
   resolveSceneViewerLaunchUrl,
   arModesForProfile,
 } from "@/lib/device-ar";
@@ -148,6 +149,8 @@ export default function ArViewerClient({
 
   const handleActivateAr = async () => {
     const viewer = viewerRef.current;
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const useWebXrOnly = prefersMobileWebAr(ua);
 
     trackEvent("AR_STARTED", merchantId, rugId);
     trackAiScan(merchantId, rugId, "FLOOR_DETECTION", profile.vendor);
@@ -167,12 +170,12 @@ export default function ArViewerClient({
       }
     }
 
+    if (useWebXrOnly) {
+      return;
+    }
+
     if (profile.platform === "android" && profile.likelyHasGms) {
-      openAndroidSceneViewer(
-        modelUrl,
-        window.location.href,
-        typeof navigator !== "undefined" ? navigator.userAgent : ""
-      );
+      openAndroidSceneViewer(modelUrl, window.location.href, ua);
       return;
     }
 
@@ -244,7 +247,14 @@ export default function ArViewerClient({
           </button>
         </div>
         {mobile && (
-          <p className="px-3 pb-3 text-center text-xs text-zinc-500">{profile.hint}</p>
+          <p className="px-3 pb-3 text-center text-xs text-zinc-500">
+            {profile.hint}
+            {prefersMobileWebAr(
+              typeof navigator !== "undefined" ? navigator.userAgent : ""
+            )
+              ? " AR acilmazsa Google Chrome ile deneyin."
+              : ""}
+          </p>
         )}
       </>
     );

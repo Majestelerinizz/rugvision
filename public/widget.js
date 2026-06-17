@@ -305,16 +305,36 @@
     return true;
   }
 
-  // Android Scene Viewer: intent zorunlu (https://arvr.google.com tarayicida 404 verir).
+  function navigateTo(url, newTab) {
+    if (newTab) {
+      var a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.style.display = "none";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      return;
+    }
+    window.location.href = url;
+  }
+
   function openSceneViewer() {
     if (!glbUrl) return false;
     var fallback = mobileViewerUrl();
-    window.location.href = sceneViewerLaunchUrl(glbUrl, fallback);
+    var intentUrl = sceneViewerLaunchUrl(glbUrl, fallback);
+    var a = document.createElement("a");
+    a.href = intentUrl;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
     return true;
   }
 
   function openMobileViewer() {
-    window.location.href = mobileViewerUrl();
+    navigateTo(mobileViewerUrl(), prefersMobileWebAr());
   }
 
   function openModal() {
@@ -374,6 +394,12 @@
     if (profile.primary === "quick-look" && usdzUrl) {
       track("AR_STARTED", merchantId);
       if (openQuickLook()) return;
+    }
+
+    if (profile.primary === "webxr") {
+      track("AR_STARTED", merchantId);
+      openMobileViewer();
+      return;
     }
 
     if (profile.primary === "scene-viewer" && glbUrl) {

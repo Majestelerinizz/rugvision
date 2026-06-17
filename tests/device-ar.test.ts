@@ -8,6 +8,7 @@ import {
   buildSceneViewerIntentUrl,
   buildSceneViewerGenericIntentUrl,
   resolveSceneViewerLaunchUrl,
+  arModesForProfile,
 } from "../lib/device-ar";
 
 describe("device-ar", () => {
@@ -71,6 +72,7 @@ describe("device-ar", () => {
     assert.equal(p.vendor, "xiaomi");
     assert.equal(p.primaryExperience, "webxr");
     assert.equal(prefersMobileWebAr(ua), true);
+    assert.equal(arModesForProfile(p), "webxr");
   });
 
   it("Samsung uses generic intent (not direct HTTPS 404)", () => {
