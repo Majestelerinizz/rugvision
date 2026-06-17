@@ -19,8 +19,8 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const merchantId = request.nextUrl.searchParams.get("merchantId");
-  const sku = request.nextUrl.searchParams.get("sku");
+  const merchantId = request.nextUrl.searchParams.get("merchantId")?.trim() ?? "";
+  const sku = request.nextUrl.searchParams.get("sku")?.trim() ?? "";
 
   if (!merchantId || !sku) {
     return withCorsCached(

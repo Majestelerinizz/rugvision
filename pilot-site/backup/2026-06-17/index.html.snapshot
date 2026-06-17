@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RugVision Halı Concept - Premium halı koleksiyonu. Doğal dokular, modern çizgiler.">
+    <base href="/rugvision/">
+    <title>RugVision Halı Concept - Premium Halı Koleksiyonu</title>
+    <link rel="stylesheet" href="/rugvision/assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="topbar">
+    <div class="container topbar-inner">
+        <div class="topbar-left">
+            <span class="topbar-item">Tüm Türkiye&#039;ye ücretsiz kargo</span>
+            <a href="/rugvision/order-tracking.php" class="topbar-item">Sipariş Takibi</a>
+        </div>
+        <div class="topbar-right">
+            <a href="tel:+90 212 000 00 00" class="topbar-item">&#9742; +90 212 000 00 00</a>
+            <a href="https://wa.me/902120000000" target="_blank" rel="noopener" class="topbar-item">WhatsApp</a>
+            <span class="lang-switch">
+                <a href="?lang=tr" class="active">TR</a>
+                <span>/</span>
+                <a href="?lang=en" class="">EN</a>
+            </span>
+        </div>
+    </div>
+</div>
+
+<header class="header">
+    <div class="container header-inner">
+        <a href="/rugvision/index.php" class="logo">
+            <span class="logo-main">RugVision</span>
+            <span class="logo-sub">Halı Concept</span>
+        </a>
+
+        <form class="search-box" action="/rugvision/products.php" method="get">
+            <input type="text" name="q" placeholder="Ürün, kategori veya renk ara..."
+                   value="">
+            <button type="submit" aria-label="Ara">&#128269;</button>
+        </form>
+
+        <div class="header-actions">
+                            <a href="/rugvision/login.php" class="header-action">
+                    <span class="ha-icon">&#128100;</span>
+                    <span class="ha-text">Giriş Yap</span>
+                </a>
+                <a href="/rugvision/register.php" class="header-action">
+                    <span class="ha-icon">&#10133;</span>
+                    <span class="ha-text">Kayıt Ol</span>
+                </a>
+                        <a href="/rugvision/cart.php" class="header-action cart-action">
+                <span class="ha-icon">&#128722;</span>
+                <span class="ha-text">Sepetim</span>
+                <span class="cart-badge">0</span>
+            </a>
+        </div>
+    </div>
+</header>
+
+<nav class="navbar">
+    <div class="container navbar-inner">
+        <button class="nav-toggle" id="navToggle" aria-label="Menü">
+            <span></span><span></span><span></span>
+        </button>
+
+        <ul class="nav-menu" id="navMenu">
+            <li><a href="/rugvision/index.php" class="active">Anasayfa</a></li>
+            <li><a href="/rugvision/products.php" class="">Ürünler</a></li>
+            <li><a href="/rugvision/products.php#categories" class="">Kategoriler</a></li>
+            <li><a href="/rugvision/products.php?filter=bestseller" class="">En Çok Satanlar</a></li>
+            <li><a href="/rugvision/products.php?filter=new" class="">Yeni Ürünler</a></li>
+            <li><a href="/rugvision/campaigns.php" class="">Kampanyalar</a></li>
+            <li><a href="/rugvision/stores.php" class="">Satış Noktaları</a></li>
+            <li><a href="/rugvision/blog.php" class="">Blog</a></li>
+            <li><a href="/rugvision/sustainability.php" class="">Sürdürülebilirlik</a></li>
+            <li><a href="/rugvision/contact.php" class="">İletişim</a></li>
+        </ul>
+    </div>
+</nav>
+
+
+<main class="main-content">
+
+<!-- ======================= HERO SLIDER ======================= -->
+<section class="hero">
+    <div class="hero-slides">
+                    <div class="hero-slide active">
+                <img src="/rugvision/assets/images/hali123.jpg" alt="Evinizin Ruhunu Tamamlayan Halılar">
+                <div class="hero-overlay">
+                    <div class="container">
+                        <div class="hero-content">
+                            <h1>Evinizin Ruhunu Tamamlayan Halılar</h1>
+                            <p>Doğal dokular, modern çizgiler ve zamansız renklerle yaşam alanınıza özel bir atmosfer kazandırın.</p>
+                            <div class="hero-buttons">
+                                <a href="/rugvision/products.php" class="btn btn-accent">Ürünleri İncele</a>
+                                <a href="/rugvision/rugvision/index.php" class="btn btn-light">Odanda Gör</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    <div class="hero-slide ">
+                <img src="/rugvision/assets/images/hali123.jpg" alt="Doğal Dokulu Halıların Sıcaklığı">
+                <div class="hero-overlay">
+                    <div class="container">
+                        <div class="hero-content">
+                            <h1>Doğal Dokulu Halıların Sıcaklığı</h1>
+                            <p>Sürdürülebilir malzemeler ve organik dokularla evinize doğanın huzurunu taşıyın.</p>
+                            <div class="hero-buttons">
+                                <a href="/rugvision/products.php" class="btn btn-accent">Ürünleri İncele</a>
+                                <a href="/rugvision/rugvision/index.php" class="btn btn-light">Odanda Gör</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                    <div class="hero-slide ">
+                <img src="/rugvision/assets/images/hali123.jpg" alt="Halınızı Odanızda Görün">
+                <div class="hero-overlay">
+                    <div class="container">
+                        <div class="hero-content">
+                            <h1>Halınızı Odanızda Görün</h1>
+                            <p>RugVision teknolojisiyle seçtiğiniz halıyı satın almadan önce kendi yaşam alanınızda deneyimleyin.</p>
+                            <div class="hero-buttons">
+                                <a href="/rugvision/products.php" class="btn btn-accent">Ürünleri İncele</a>
+                                <a href="/rugvision/rugvision/index.php" class="btn btn-light">Odanda Gör</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            <div class="hero-nav">
+                            <button class="hero-dot active" aria-label="Slide 1"></button>
+                            <button class="hero-dot " aria-label="Slide 2"></button>
+                            <button class="hero-dot " aria-label="Slide 3"></button>
+                    </div>
+    </section>
+
+<!-- ======================= KATEGORİLER ======================= -->
+<section class="section" id="categories">
+    <div class="container">
+        <div class="section-head">
+            <h2>Kategoriler</h2>
+            <div class="line"></div>
+        </div>
+        <div class="category-grid">
+                            <a href="/rugvision/products.php?category=salon-halilari" class="category-card">
+                    <img src="/rugvision/assets/images/hali123.jpg" alt="Salon Halıları">
+                    <div class="category-card-overlay">
+                        <h3>Salon Halıları</h3>
+                    </div>
+                </a>
+                            <a href="/rugvision/products.php?category=yatak-odasi-halilari" class="category-card">
+                    <img src="/rugvision/assets/images/hali123.jpg" alt="Yatak Odası Halıları">
+                    <div class="category-card-overlay">
+                        <h3>Yatak Odası Halıları</h3>
+                    </div>
+                </a>
+                            <a href="/rugvision/products.php?category=koridor-halilari" class="category-card">
+                    <img src="/rugvision/assets/images/hali123.jpg" alt="Koridor Halıları">
+                    <div class="category-card-overlay">
+                        <h3>Koridor Halıları</h3>
+                    </div>
+                </a>
+                            <a href="/rugvision/products.php?category=modern-halilar" class="category-card">
+                    <img src="/rugvision/assets/images/hali123.jpg" alt="Modern Halılar">
+                    <div class="category-card-overlay">
+                        <h3>Modern Halılar</h3>
+                    </div>
+                </a>
+                            <a href="/rugvision/products.php?category=klasik-halilar" class="category-card">
+                    <img src="/rugvision/assets/images/hali123.jpg" alt="Klasik Halılar">
+                    <div class="category-card-overlay">
+                        <h3>Klasik Halılar</h3>
+                    </div>
+                </a>
+                            <a href="/rugvision/products.php?category=dogal-dokulu-halilar" class="category-card">
+                    <img src="/rugvision/assets/images/hali123.jpg" alt="Doğal Dokulu Halılar">
+                    <div class="category-card-overlay">
+                        <h3>Doğal Dokulu Halılar</h3>
+                    </div>
+                </a>
+                            <a href="/rugvision/products.php?category=cocuk-odasi-halilari" class="category-card">
+                    <img src="/rugvision/assets/images/hali123.jpg" alt="Çocuk Odası Halıları">
+                    <div class="category-card-overlay">
+                        <h3>Çocuk Odası Halıları</h3>
+                    </div>
+                </a>
+                            <a href="/rugvision/products.php?category=yolluklar" class="category-card">
+                    <img src="/rugvision/assets/images/hali123.jpg" alt="Yolluklar">
+                    <div class="category-card-overlay">
+                        <h3>Yolluklar</h3>
+                    </div>
+                </a>
+                    </div>
+    </div>
+</section>
+
+<!-- ======================= ÖNE ÇIKAN ÜRÜNLER ======================= -->
+<section class="section section-cream">
+    <div class="container">
+        <div class="section-head">
+            <h2>Öne Çıkan Ürünler</h2>
+            <div class="line"></div>
+        </div>
+        <div class="product-grid cols-4">
+                <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=10">
+                <img src="/rugvision/assets/images/products/RV-NARIN-010.png" alt="Narin Natural Koridor Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Yolluklar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=10">Narin Natural Koridor Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">1.499,00 ₺</span>
+                    <span class="price-old">1.899,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="10">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=10" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=10" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                                            </div>
+            <a href="/rugvision/product-detail.php?id=9">
+                <img src="/rugvision/assets/images/products/RV-LIVA-009.png" alt="Liva Bej Siyah Çerçeveli Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Koridor Halıları</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=9">Liva Bej Siyah Çerçeveli Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">2.599,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="9">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=9" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=9" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=8">
+                <img src="/rugvision/assets/images/products/RV-VERONA-008.png" alt="Verona Klasik Modern Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Klasik Halılar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=8">Verona Klasik Modern Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">3.999,00 ₺</span>
+                    <span class="price-old">4.799,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="8">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=8" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=8" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                                            </div>
+            <a href="/rugvision/product-detail.php?id=7">
+                <img src="/rugvision/assets/images/products/RV-ELARA-007.png" alt="Elara Doğal Dokulu Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Doğal Dokulu Halılar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=7">Elara Doğal Dokulu Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">4.199,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="7">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=7" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=7" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=6">
+                <img src="/rugvision/assets/images/products/RV-SAFIR-006.png" alt="Safir Premium Salon Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Salon Halıları</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=6">Safir Premium Salon Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">5.999,00 ₺</span>
+                    <span class="price-old">6.999,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="6">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=6" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=6" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                <span class="badge badge-campaign">İndirim</span>                            </div>
+            <a href="/rugvision/product-detail.php?id=5">
+                <img src="/rugvision/assets/images/products/RV-MIRA-005.png" alt="Mira Soft Yatak Odası Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Yatak Odası Halıları</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=5">Mira Soft Yatak Odası Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">2.899,00 ₺</span>
+                    <span class="price-old">3.499,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="5">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=5" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=5" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                                            </div>
+            <a href="/rugvision/product-detail.php?id=4">
+                <img src="/rugvision/assets/images/products/RV-NOVA-004.png" alt="Nova Minimal Desenli Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Modern Halılar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=4">Nova Minimal Desenli Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">2.999,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="4">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=4" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=4" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=3">
+                <img src="/rugvision/assets/images/products/RV-ARYA-003.png" alt="Arya Modern Naturel Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Modern Halılar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=3">Arya Modern Naturel Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">3.299,00 ₺</span>
+                    <span class="price-old">3.899,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="3">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=3" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=3" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+            </div>
+    </div>
+</section>
+
+<!-- ======================= EN ÇOK SATANLAR ======================= -->
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <h2>En Çok Satanlar</h2>
+            <div class="line"></div>
+        </div>
+        <div class="product-grid cols-4">
+                <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=10">
+                <img src="/rugvision/assets/images/products/RV-NARIN-010.png" alt="Narin Natural Koridor Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Yolluklar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=10">Narin Natural Koridor Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">1.499,00 ₺</span>
+                    <span class="price-old">1.899,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="10">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=10" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=10" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=8">
+                <img src="/rugvision/assets/images/products/RV-VERONA-008.png" alt="Verona Klasik Modern Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Klasik Halılar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=8">Verona Klasik Modern Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">3.999,00 ₺</span>
+                    <span class="price-old">4.799,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="8">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=8" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=8" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=6">
+                <img src="/rugvision/assets/images/products/RV-SAFIR-006.png" alt="Safir Premium Salon Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Salon Halıları</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=6">Safir Premium Salon Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">5.999,00 ₺</span>
+                    <span class="price-old">6.999,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="6">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=6" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=6" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=3">
+                <img src="/rugvision/assets/images/products/RV-ARYA-003.png" alt="Arya Modern Naturel Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Modern Halılar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=3">Arya Modern Naturel Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">3.299,00 ₺</span>
+                    <span class="price-old">3.899,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="3">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=3" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=3" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+            </div>
+    </div>
+</section>
+
+<!-- ======================= YENİ ÜRÜNLER ======================= -->
+<section class="section section-cream">
+    <div class="container">
+        <div class="section-head">
+            <h2>Yeni Ürünler</h2>
+            <div class="line"></div>
+        </div>
+        <div class="product-grid cols-4">
+                <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=10">
+                <img src="/rugvision/assets/images/products/RV-NARIN-010.png" alt="Narin Natural Koridor Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Yolluklar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=10">Narin Natural Koridor Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">1.499,00 ₺</span>
+                    <span class="price-old">1.899,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="10">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=10" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=10" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                                            </div>
+            <a href="/rugvision/product-detail.php?id=9">
+                <img src="/rugvision/assets/images/products/RV-LIVA-009.png" alt="Liva Bej Siyah Çerçeveli Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Koridor Halıları</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=9">Liva Bej Siyah Çerçeveli Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">2.599,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="9">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=9" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=9" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                                            </div>
+            <a href="/rugvision/product-detail.php?id=7">
+                <img src="/rugvision/assets/images/products/RV-ELARA-007.png" alt="Elara Doğal Dokulu Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Doğal Dokulu Halılar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=7">Elara Doğal Dokulu Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">4.199,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="7">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=7" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=7" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                <span class="badge badge-campaign">İndirim</span>                            </div>
+            <a href="/rugvision/product-detail.php?id=5">
+                <img src="/rugvision/assets/images/products/RV-MIRA-005.png" alt="Mira Soft Yatak Odası Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Yatak Odası Halıları</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=5">Mira Soft Yatak Odası Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">2.899,00 ₺</span>
+                    <span class="price-old">3.499,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="5">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=5" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=5" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+            </div>
+    </div>
+</section>
+
+<!-- ======================= KAMPANYALI ÜRÜNLER ======================= -->
+<section class="section">
+    <div class="container">
+        <div class="section-head">
+            <h2>Kampanyalı Ürünler</h2>
+            <div class="line"></div>
+        </div>
+        <div class="product-grid cols-4">
+                <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=10">
+                <img src="/rugvision/assets/images/products/RV-NARIN-010.png" alt="Narin Natural Koridor Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Yolluklar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=10">Narin Natural Koridor Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">1.499,00 ₺</span>
+                    <span class="price-old">1.899,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="10">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=10" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=10" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=8">
+                <img src="/rugvision/assets/images/products/RV-VERONA-008.png" alt="Verona Klasik Modern Halı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Klasik Halılar</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=8">Verona Klasik Modern Halı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">3.999,00 ₺</span>
+                    <span class="price-old">4.799,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="8">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=8" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=8" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                                <span class="badge badge-campaign">İndirim</span>                <span class="badge badge-bestseller">Çok Satan</span>            </div>
+            <a href="/rugvision/product-detail.php?id=6">
+                <img src="/rugvision/assets/images/products/RV-SAFIR-006.png" alt="Safir Premium Salon Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Salon Halıları</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=6">Safir Premium Salon Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">5.999,00 ₺</span>
+                    <span class="price-old">6.999,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="6">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=6" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=6" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+        <div class="product-card">
+        <div class="product-thumb">
+            <div class="product-badges">
+                <span class="badge badge-new">Yeni</span>                <span class="badge badge-campaign">İndirim</span>                            </div>
+            <a href="/rugvision/product-detail.php?id=5">
+                <img src="/rugvision/assets/images/products/RV-MIRA-005.png" alt="Mira Soft Yatak Odası Halısı">
+            </a>
+        </div>
+        <div class="product-info">
+            <span class="product-cat">Yatak Odası Halıları</span>            <h3 class="product-name"><a href="/rugvision/product-detail.php?id=5">Mira Soft Yatak Odası Halısı</a></h3>
+            <div class="product-price">
+                                    <span class="price-current">2.899,00 ₺</span>
+                    <span class="price-old">3.499,00 ₺</span>
+                            </div>
+            <div class="product-actions">
+                <button class="btn btn-primary btn-sm js-add-cart" data-id="5">Sepete Ekle</button>
+                <a href="/rugvision/product-detail.php?id=5" class="btn btn-outline btn-sm">Detayları Gör</a>
+            </div>
+            <a href="/rugvision/product-detail.php?id=5" class="rv-btn">Odanda Gör</a>
+        </div>
+    </div>
+            </div>
+    </div>
+</section>
+
+<!-- ======================= BLOG ======================= -->
+<section class="section section-cream">
+    <div class="container">
+        <div class="section-head">
+            <h2>Blogdan Öneriler</h2>
+            <div class="line"></div>
+        </div>
+        <div class="blog-grid">
+                            <article class="blog-card">
+                    <a href="blog-detail.php?id=5">
+                        <img src="assets/images/hali123.jpg" alt="Modern Evlerde Siyah Bordürlü Halı Kullanımı">
+                    </a>
+                    <div class="blog-card-body">
+                        <span class="blog-card-date">28.04.2024</span>
+                        <h3><a href="blog-detail.php?id=5">Modern Evlerde Siyah Bordürlü Halı Kullanımı</a></h3>
+                        <p>Siyah bordürlü halılar, modern evlerin vazgeçilmez dekorasyon unsurlarından biri haline gelmiştir. Sade zemin üzerine ye...</p>
+                        <a href="blog-detail.php?id=5" class="link-arrow">Devamını Oku &rarr;</a>
+                    </div>
+                </article>
+                            <article class="blog-card">
+                    <a href="blog-detail.php?id=4">
+                        <img src="assets/images/hali123.jpg" alt="Küçük Alanlar İçin Halı Seçimi">
+                    </a>
+                    <div class="blog-card-body">
+                        <span class="blog-card-date">25.04.2024</span>
+                        <h3><a href="blog-detail.php?id=4">Küçük Alanlar İçin Halı Seçimi</a></h3>
+                        <p>Küçük alanlarda doğru halı seçimi, mekanı daha geniş ve ferah göstermenin etkili bir yoludur. Açık renkli ve sade desenl...</p>
+                        <a href="blog-detail.php?id=4" class="link-arrow">Devamını Oku &rarr;</a>
+                    </div>
+                </article>
+                            <article class="blog-card">
+                    <a href="blog-detail.php?id=3">
+                        <img src="assets/images/hali123.jpg" alt="Doğal Dokulu Halılar Neden Tercih Ediliyor?">
+                    </a>
+                    <div class="blog-card-body">
+                        <span class="blog-card-date">22.04.2024</span>
+                        <h3><a href="blog-detail.php?id=3">Doğal Dokulu Halılar Neden Tercih Ediliyor?</a></h3>
+                        <p>Doğal dokulu halılar, sürdürülebilir yaşam anlayışının yükselişiyle birlikte giderek daha fazla tercih edilmektedir. Jüt...</p>
+                        <a href="blog-detail.php?id=3" class="link-arrow">Devamını Oku &rarr;</a>
+                    </div>
+                </article>
+                    </div>
+    </div>
+</section>
+
+</main>
+
+<section class="rugvision-strip">
+    <div class="container rugvision-strip-inner">
+        <div class="rv-text">
+            <h2>Halınızı Satın Almadan Önce Odanızda Görün</h2>
+            <p>RugVision teknolojisiyle seçtiğiniz halıyı kendi yaşam alanınızda deneyimleyin. Halının odanıza, mobilyalarınıza ve renk düzeninize uyumunu satın almadan önce test edin.</p>
+            <a href="/rugvision/rugvision/index.php" class="btn btn-light">Hemen Odanda Gör</a>
+        </div>
+        <div class="rv-image">
+            <img src="/rugvision/assets/images/hali123.jpg" alt="RugVision Odanda Gör">
+        </div>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container footer-grid">
+        <div class="footer-brand">
+            <div class="logo">
+                <span class="logo-main">RugVision</span>
+                <span class="logo-sub">Halı Concept</span>
+            </div>
+            <p class="footer-about">
+                Doğal dokular, modern çizgiler ve zamansız renklerle yaşam alanlarınıza değer katan premium halı koleksiyonu.            </p>
+            <div class="footer-social">
+                <span>Bizi Takip Edin:</span>
+                <a href="https://instagram.com/rugvision" target="_blank" rel="noopener">Instagram</a>
+                <a href="https://facebook.com/rugvision" target="_blank" rel="noopener">Facebook</a>
+                <a href="https://youtube.com/rugvision" target="_blank" rel="noopener">YouTube</a>
+            </div>
+        </div>
+
+        <div class="footer-col">
+            <h4>Kurumsal</h4>
+            <ul>
+                <li><a href="/rugvision/about.php">Hakkımızda</a></li>
+                <li><a href="/rugvision/sustainability.php">Sürdürülebilirlik</a></li>
+                <li><a href="/rugvision/stores.php">Satış Noktaları</a></li>
+                <li><a href="/rugvision/blog.php">Blog</a></li>
+                <li><a href="/rugvision/contact.php">İletişim</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h4>Müşteri Hizmetleri</h4>
+            <ul>
+                <li><a href="/rugvision/order-tracking.php">Sipariş Takibi</a></li>
+                <li><a href="/rugvision/privacy-policy.php">Teslimat ve İade</a></li>
+                <li><a href="/rugvision/privacy-policy.php">Mesafeli Satış Sözleşmesi</a></li>
+                <li><a href="/rugvision/privacy-policy.php">Gizlilik Politikası</a></li>
+                <li><a href="/rugvision/contact.php">Yardım</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h4>Kategoriler</h4>
+            <ul>
+                <li><a href="/rugvision/products.php?category=salon-halilari">Salon Halıları</a></li>
+                <li><a href="/rugvision/products.php?category=modern-halilar">Modern Halılar</a></li>
+                <li><a href="/rugvision/products.php?category=klasik-halilar">Klasik Halılar</a></li>
+                <li><a href="/rugvision/products.php?category=yolluklar">Yolluklar</a></li>
+                <li><a href="/rugvision/products.php?filter=new">Yeni Ürünler</a></li>
+                <li><a href="/rugvision/products.php?filter=bestseller">En Çok Satanlar</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-col">
+            <h4>Yasal</h4>
+            <ul>
+                <li><a href="/rugvision/information-society.php">Bilgi Toplumu Hizmetleri</a></li>
+                <li><a href="/rugvision/bgys-policy.php">BGYS Politikası</a></li>
+                <li><a href="/rugvision/cookie-policy.php">Çerez Politikası</a></li>
+                <li><a href="/rugvision/kvkk.php">KVKK Aydınlatma Metni</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        <div class="container">
+            <p>Her hakkı saklıdır. © 2024 RugVision Halı Concept.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="/rugvision/assets/js/main.js"></script>
+</body>
+</html>

@@ -1,7 +1,8 @@
 # Pilot Site — PageSpeed & Eksiksiz Optimizasyon
 
 > Hedef: `https://savasdogantekstil.com/rugvision/`  
-> PageSpeed (mobil): Performans 93 · Erişilebilirlik 87 · SEO 100 · PWA 57
+> Başlangıç (mobil): Performans 93 · Erişilebilirlik 87 · SEO 100 · PWA 57  
+> **Durum: FTP optimizasyonu tamamlandı** (Haziran 2026) — bkz. `pilot-site/README.md`
 
 ---
 
@@ -21,13 +22,12 @@
 
 **Sorun:** Google Fonts ve `style.css` sayfa açılışını blokluyor.
 
-**Çözüm:** `includes/head.php` veya tüm sayfalardaki `<head>`:
+**Çözüm:** `includes/header.php` içindeki `<head>` (ayrı `head.php` yok):
 
 ```html
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" href="/rugvision/assets/css/style.css" as="style">
-<link rel="stylesheet" href="/rugvision/assets/css/style.css">
+<link rel="stylesheet" href="<?= asset('assets/css/style.min.css') ?>">
 
 <!-- Font: render-blocking olmasin -->
 <link rel="preload" as="style"
@@ -41,7 +41,7 @@
 **JS (footer):**
 
 ```html
-<script src="/rugvision/assets/js/main.js" defer></script>
+<script src="<?= asset('assets/js/main.min.js') ?>" defer></script>
 <!-- RugVision widget zaten defer ile -->
 ```
 
@@ -190,14 +190,14 @@ Ana sayfaya widget koymayın (gereksiz JS + API çağrısı).
 ## Kontrol listesi (eksik kalmasın)
 
 ### Halıcı sitesi (FTP)
-- [ ] Font async yükleme
-- [ ] `main.js` → `defer`
-- [ ] CSS/JS minify
-- [ ] Arama formu `label` + `aria-label`
-- [ ] Tüm butonlarda `aria-label`
-- [ ] Görseller: alt + width/height + lazy
-- [ ] WebP ürün görselleri
-- [ ] Ana sayfa DOM sadeleştirme
+- [x] Font async yükleme (`includes/header.php`)
+- [x] `main.min.js` → `defer` (`includes/footer.php`)
+- [x] CSS/JS minify (`pilot-site/snippets/cssvejs/`)
+- [x] Arama formu `label` + `aria-label`
+- [x] Görseller: `img_tag` + width/height + lazy (`includes/functions.php`)
+- [x] WebP `hali123.webp` (+ otomatik `<picture>`)
+- [x] Ana sayfa DOM sadeleştirme (`index.php`)
+- [x] Widget sadece `product-detail.php`
 - [ ] (Opsiyonel) manifest + apple-touch-icon
 
 ### RugVision (repo — otomatik deploy)
@@ -228,4 +228,4 @@ Ana sayfaya widget koymayın (gereksiz JS + API çağrısı).
 
 İkisi ayrı; ikisini de tamamlayınca hem hızlı hem AR’lı tam paket olur.
 
-FTP erişiminiz varsa `pilot-site/` snippet’lerini `includes/head.php` ve `index.php`’ye uygulayın; RugVision tarafı zaten güncel.
+Referans: `pilot-site/README.md` ve `pilot-site/snippets/`. RugVision tarafı zaten güncel.

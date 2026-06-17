@@ -1,449 +1,340 @@
-# VR Odamda Gör - Proje Takip Dokümani
+# VR Odamda Gor - Proje Takip Dokumani
 
-Bu dosya, RugVision "Odamda Gör" geliştirmesini 3 fazda takip etmek için hazırlandi.  
-Tamamlananlar işaretlendi, kalanlar bos birakildi.
+Bu dosya, RugVision "Odamda Gor" gelistirmesini 3 fazda takip etmek icin hazirlandi.  
+Tamamlananlar isaretlendi, kalanlar bos birakildi.
 
-## Projenin Genel Tanımı
+## Projenin Genel Tanimi
 
-RugVision; halıcı ve ev dekorasyon markalarının ürün sayfalarına tek satır kod ile
-"Odamda Gör" özelliği ekleyebilmesini hedefleyen SaaS AR platformudur.
+RugVision; halici ve ev dekorasyon markalarinin urun sayfalarina tek satir kod ile
+"Odamda Gor" ozelligi ekleyebilmesini hedefleyen SaaS AR platformudur.
 
-Ürün hedef davranışı:
+Urun hedef davranisi:
 
-- E-ticaret ürün detay sayfasında `Sepete Ekle` butonu yanında `Odamda Gör` butonu gosterilir.
-- Kullanıcı butona bastığında telefonunda AR deneyimi açılır.
-- iPhone tarafında Quick Look (`USDZ`), Android tarafında Scene Viewer/WebXR (`GLB`) akışı kullanılır.
-- Kullanıcı halıyı kendi odasının zemininde görerek satın alma kararını daha doğru verir.
+- E-ticaret urun detay sayfasinda `Sepete Ekle` butonu yaninda `Odamda Gor` butonu gosterilir.
+- Kullanici butona bastiginda telefonunda AR deneyimi acilir.
+- iPhone tarafinda Quick Look (`USDZ`), Android tarafinda Scene Viewer/WebXR (`GLB`) akisi kullanilir.
+- Kullanici haliyi kendi odasinin zemininde gorerek satin alma kararini daha dogru verir.
 
 Desteklenecek cihaz hedefi:
 
 - iPhone (Safari/Quick Look)
-- Android ekosistemi (Samsung, Xiaomi, Huawei dahil, cihaz destegine göre Scene Viewer/WebXR)
+- Android ekosistemi (Samsung, Xiaomi, Huawei dahil, cihaz destegine gore Scene Viewer/WebXR)
 
-## Son Güncellemeler (Bu Aşamaya Kadar)
+## Son Guncellemeler (Bu Asamaya Kadar)
 
-### Pilot entegrasyon (16–17.06.2026) — savasdogantekstil.com/rugvision CANLI AR ✅
-- [x] İlk gerçek e-ticaret pilot sitesi: **https://savasdogantekstil.com/rugvision/** (PHP, 10 ürün, SKU'lu).
-- [x] Pilot merchant oluşturuldu: **Savas Dogan Tekstil** (`savas@rugvision.com`).
-- [x] Merchant ID: `cmqgswc5a000004lanqoxc666`.
-- [x] `products.sql` ile birebir **10 SKU** RugVision paneline eklendi (`RV-LUNA-001` … `RV-NARIN-010`).
-- [x] **Ürün bazlı GLB/USDZ:** her SKU için ayrı model (`/models/RV-*.glb`) — commit `29a31d3`, Vercel'de CANLI.
-- [x] **Ürün bazlı kapak görselleri:** `public/rug-covers/RV-*.png` + Neon `coverImage` güncellendi.
-- [x] Halı sitesinde **10 ayrı ürün fotoğrafı:** `assets/images/products/RV-*.png` (FTP + SQL).
-- [x] `npm run models:batch` + `npm run models:attach` ile 10 pilot SKU üretildi ve DB'ye bağlandı.
-- [x] `config/rugvision.php` hosting'e yüklendi (widget base + merchant ID).
-- [x] `product-detail.php` widget entegrasyonu tamamlandı (eski koprü butonu kaldirildi).
-- [x] **iPhone'da canlı AR doğrulandi** — ürün detay sayfasından Quick Look acildi, halı görüldü.
-- [x] `includes/functions.php` — ana sayfa ürün kartlarındaki "Odanda Gör" linki ürün detaya yönlendirildi.
-- [x] Model format notu: AR için **GLB + USDZ zorunlu**; JPG/PNG/WebP sadece ürün fotoğrafı (`coverImage`).
-
-**Pilot embed örneği (`product-detail.php`):**
-```html
-<script src="https://rugvision-o54d.vercel.app/widget.js"
-  data-merchant-id="cmqgswc5a000004lanqoxc666"
-  data-sku="<?= e($product['sku']) ?>"
-  data-target="[data-rugvision]"
-  defer></script>
-```
-
-**Pilot test URL:** `https://savasdogantekstil.com/rugvision/product-detail.php?id=3` (Arya, SKU: `RV-ARYA-003`, model: `/models/RV-ARYA-003.glb`)
-
-**Ürün listesi (farklı görseller):** `https://savasdogantekstil.com/rugvision/products.php`
-
-Detaylı kurulum: **`docs/PILOT-ECOMMERCE.md`** · Model pipeline: **`docs/MODEL-PIPELINE.md`**
-
-### Production (16.06.2026) — Vercel + Neon CANLI
-- [x] **Neon PostgreSQL** acildi (proje: `rugvision`, Postgres 16, AWS US East 1).
-- [x] `npm run db:deploy` ile şema Neon'a uygulandi (migration başarılı).
-- [x] **Vercel production deploy** tamamlandı: `https://rugvision-o54d.vercel.app`
-- [x] GitHub `main` güncellendi (commit `fae8c2c`: güvenlik + production hazırligi).
-- [x] `/api/v1/health` production'da `{"status":"ok","db":"up"}` donuyor.
-- [x] İlk production merchant oluşturuldu: **Demo Mağaza** (`demo@ornek.com`).
-- [x] İlk production halı eklendi: **Modern Halı** (SKU: `HALI-001`).
-- [x] **iPhone 12** üzerinde production HTTPS ile Quick Look AR doğrulandi (sorunsuz).
-- [x] SKU widget eşlemesi production'da çalışıyor (`data-merchant-id` + `data-sku`).
-- [x] `DATABASE_URL` format hatası çözüldü: Vercel'e sadece `postgresql://...` (psql/tirnak/channel_binding OLMAMALI).
-
-### Onceki aşama (lokal + tunnel)
-- [x] `odamda-gor/:id` demo sayfası ile 3D model görüntüleme aktif edildi.
-- [x] `model3dUrl` alanindan ürüne dinamik model bağlama tamamlandı.
-- [x] iOS Quick Look için özel USDZ endpoint'i eklendi: `/api/v1/ar/usdz/:filename`
-- [x] USDZ dosyası doğru `Content-Type` (`model/vnd.usdz+zip`) ile servis edilir hale getirildi.
-- [x] Postman koleksiyonu genisletildi (Auth + Rugs + Widget test adımlari).
-- [x] Localtunnel üzerinden iPhone HTTPS test akışı kuruldu.
-- [x] USDZ/GLB model kalitesi/pivot/ölçek Blender ile otomatik (headless script) duzeltildi: 2.30 x 1.60 x 0.02 m, yere yatik, pivot ortalanmis.
-- [x] Tekrarlanabilir model düzeltme scripti eklendi: `scripts/fix_rug_model.py`.
-- [x] iPhone Quick Look "nesne acilamadi" hatası çözüldü: USDZ Y-up + ASCII (.usda) içerikli, STORED + 64-byte hizali Apple-spec paket olarak yeniden üretildi (`scripts/export_quicklook_usdz.py`).
-- [x] iPhone'da AR doğrulandi: halı gerçek boyutta yere otürüyor, tasima/dondurme/ölçeklendirme çalışıyor.
-- [x] Android için Scene Viewer intent fallback eklendi (`ar-viewer-client.tsx`); GLB `model/gltf-binary` ile servis ediliyor.
-- [x] Tek satır embed widget yazildi (`public/widget.js`): "Sepete Ekle" yanına otomatik "Odamda Gör" butonu enjekte ediyor.
-- [x] Analytics endpoint'i eklendi (`/api/v1/analytics/events`) + CORS; WIDGET_OPENED/AR_STARTED/VIEW_3D/PRODUCT_VIEWED kaydediliyor.
-- [x] Mobil AR kritik düzeltmesi: iframe içinden mobil AR engellendigi için widget mobilde doğrudan AR tetikliyor (iOS Quick Look / Android Scene Viewer), masaüstünde 3D modal kaliyor.
-- [x] Embed test sayfası (`public/widget-demo.html`): otomatik buton + her zaman çalışan doğrudan AR (`rel="ar"`) bağlantısi.
+- [x] Auth + Rugs + Widget temel API akislari ayaga kaldirildi ve test edildi.
+- [x] `odamda-gor/:id` demo sayfasi ile 3D model goruntuleme aktif edildi.
+- [x] `model3dUrl` alanindan urune dinamik model baglama tamamlandi.
+- [x] iOS Quick Look icin ozel USDZ endpointi eklendi: `/api/v1/ar/usdz/:filename`
+- [x] USDZ dosyasi dogru `Content-Type` (`model/vnd.usdz+zip`) ile servis edilir hale getirildi.
+- [x] Postman koleksiyonu genisletildi (Auth + Rugs + Widget test adimlari).
+- [x] Localtunnel uzerinden iPhone HTTPS test akisi kuruldu.
+- [x] USDZ/GLB model kalitesi/pivot/olcek Blender ile otomatik (headless script) duzeltildi: 2.30 x 1.60 x 0.02 m, yere yatik, pivot ortalanmis.
+- [x] Tekrarlanabilir model duzeltme scripti eklendi: `scripts/fix_rug_model.py`.
+- [x] iPhone Quick Look "nesne acilamadi" hatasi cozuldu: USDZ Y-up + ASCII (.usda) icerikli, STORED + 64-byte hizali Apple-spec paket olarak yeniden uretildi (`scripts/export_quicklook_usdz.py`).
+- [x] iPhone'da AR dogrulandi: hali gercek boyutta yere oturuyor, tasima/dondurme/olceklendirme calisiyor.
+- [x] Android icin Scene Viewer intent fallback eklendi (`ar-viewer-client.tsx`); GLB `model/gltf-binary` ile servis ediliyor.
+- [x] Tek satir embed widget yazildi (`public/widget.js`): "Sepete Ekle" yanina otomatik "Odamda Gor" butonu enjekte ediyor.
+- [x] Analytics endpointi eklendi (`/api/v1/analytics/events`) + CORS; WIDGET_OPENED/AR_STARTED/VIEW_3D/PRODUCT_VIEWED kaydediliyor.
+- [x] Mobil AR kritik duzeltmesi: iframe icinden mobil AR engellendigi icin widget mobilde dogrudan AR tetikliyor (iOS Quick Look / Android Scene Viewer), masaustunde 3D modal kaliyor.
+- [x] Embed test sayfasi (`public/widget-demo.html`): otomatik buton + her zaman calisan dogrudan AR (`rel="ar"`) baglantisi.
 - [x] Sabit demo adresi: `https://rugvision-demo.loca.lt` (localtunnel `--subdomain rugvision-demo`).
-- [x] Otomatik yeniden bağlanan sabit tunnel scripti eklendi: `scripts/tunnel.mjs` + `npm run tunnel` / `npm run dev:all` (koparsa aynı adrese tekrar bağlanır).
-- [x] Tunnel "kendi kendini iyileştirme" iyileştirildi: süreç artık kendiliğinden kapanmıyor (keepalive), sağlık kontrolü 429/4xx'i "canlı" sayıyor (yanlış-pozitif reconnect yok), sadece gerçek gateway/timeout hatalarında yeniden bağlanıyor. Böylece "Tunnel is busy" churn'ü giderildi.
-- [x] Kesintisiz çalışma için `baslat.bat` eklendi: tüm süreç çökerse 3 sn'de otomatik yeniden başlar; Cursor kapalı olsa da çalışmaya devam eder.
-- [x] Merchant paneli tarayıcıda canlı doğrulandi: giriş + analytics kartları (1 halı / 7 widget açılış / 4 AR başlatma / 9 3D görüntüleme) + halı listesi + embed kodu üreteci çalışıyor.
+- [x] Otomatik yeniden baglanan sabit tunnel scripti eklendi: `scripts/tunnel.mjs` + `npm run tunnel` / `npm run dev:all` (koparsa ayni adrese tekrar baglanir).
+- [x] Tunnel "kendi kendini iyilestirme" iyilestirildi: surec artik kendiliginden kapanmiyor (keepalive), saglik kontrolu 429/4xx'i "canli" sayiyor (yanlis-pozitif reconnect yok), sadece gercek gateway/timeout hatalarinda yeniden baglaniyor. Boylece "Tunnel is busy" churn'i giderildi.
+- [x] Kesintisiz calisma icin `baslat.bat` eklendi: tum surec cokerse 3 sn'de otomatik yeniden baslar; Cursor kapali olsa da calismaya devam eder.
+- [x] Merchant paneli tarayicida canli dogrulandi: giris + analytics kartlari (1 hali / 7 widget acilis / 4 AR baslatma / 9 3D goruntuleme) + hali listesi + embed kodu ureteci calisiyor.
 
 ## Faz 1 - MVP Temel Altyapi
 
 - [x] Prisma veri modeli kuruldu (users, merchants, rugs, widget_settings, analytics_events vb.)
-- [x] Veritabanı migration çalıştı
-- [x] Prisma client üretildi ve adapter ile çalışır hale getirildi
-- [x] `GET /api/v1/health` endpoint'i aktif
-- [x] Auth endpoint'leri aktif (`register`, `login`, `refresh`, `logout`)
-- [x] `forgot-password` ve `reset-password` MVP placeholder endpoint'leri eklendi
-- [x] Rugs CRUD endpoint'leri aktif (`GET/POST`, `GET/PUT/DELETE :id`)
-- [x] Widget endpoint'leri aktif (`/api/v1/widget/rug/:id`, `/api/v1/widget/settings`)
-- [x] Postman koleksiyonu oluşturuldu ve test edildi (Auth + Rugs)
-- [x] `model3dUrl` ile ürüne 3D model bağlama tamamlandı
-- [x] `odamda-gor/:id` sayfası oluşturuldu (model-viewer ile 3D/AR demo)
-- [x] iOS Quick Look için `usdz` servis endpoint'i eklendi (`/api/v1/ar/usdz/:filename`)
-- [x] iPhone Safari üzerinden AR akışına giriş doğrulandi (kamera/Quick Look aciliyor)
-- [x] iOS buton fallback'i iyileştirildi (Quick Look tetikleme akışı)
-- [x] USDZ model kalite-optimizasyonu (zemine doğru ölçek ve pivot) tamamlandı (Blender headless script ile)
-- [x] iPhone Quick Look uyumluluğu çözüldü (Y-up + ASCII usdz) ve gerçek cihazda AR test edildi
-- [x] Android Scene Viewer fallback eklendi (GLB tabanlı AR akışı hazır)
+- [x] Veritabani migration calisti
+- [x] Prisma client uretildi ve adapter ile calisir hale getirildi
+- [x] `GET /api/v1/health` endpointi aktif
+- [x] Auth endpointleri aktif (`register`, `login`, `refresh`, `logout`)
+- [x] `forgot-password` ve `reset-password` MVP placeholder endpointleri eklendi
+- [x] Rugs CRUD endpointleri aktif (`GET/POST`, `GET/PUT/DELETE :id`)
+- [x] Widget endpointleri aktif (`/api/v1/widget/rug/:id`, `/api/v1/widget/settings`)
+- [x] Postman koleksiyonu olusturuldu ve test edildi (Auth + Rugs)
+- [x] `model3dUrl` ile urune 3D model baglama tamamlandi
+- [x] `odamda-gor/:id` sayfasi olusturuldu (model-viewer ile 3D/AR demo)
+- [x] iOS Quick Look icin `usdz` servis endpointi eklendi (`/api/v1/ar/usdz/:filename`)
+- [x] iPhone Safari uzerinden AR akisina giris dogrulandi (kamera/Quick Look aciliyor)
+- [x] iOS buton fallback'i iyilestirildi (Quick Look tetikleme akisi)
+- [x] USDZ model kalite-optimizasyonu (zemine dogru olcek ve pivot) tamamlandi (Blender headless script ile)
+- [x] iPhone Quick Look uyumlulugu cozuldu (Y-up + ASCII usdz) ve gercek cihazda AR test edildi
+- [x] Android Scene Viewer fallback eklendi (GLB tabanli AR akisi hazir)
 
-Faz 1 Durumu: **Tamamlandı (iPhone'da AR canlı test edildi)**.
-
----
-
-## Faz 2 - İşlevsel Ürünlesme
-
-- [x] Abonelik plan limiti uygulandı: `POST /api/v1/rugs` aktif abonelikteki `productLimit`'i kontrol eder (abonelik yoksa engellemez); iptal/ödeme gecikmesi durumunda ürün eklenemez
-- [x] JWT tabanlı auth guard eklendi (`lib/auth-guard.ts`); korumali endpoint'ler merchant'a göre izole (`requireAuth` + `resolveMerchantId`)
-- [x] GÜVENLİK SERTLEŞTİRME: Rugs CRUD + widget/settings artık auth + merchant izolasyonu zorunlu (eskiden açıktı); `:id` işlemlerinde sahiplik doğrulamasi
-- [x] GÜVENLİK: tüm endpoint'lerde standart hata (`lib/api.ts` + `lib/errors.ts`) + zod doğrulama (`lib/validation.ts`); ham hata mesajı sızdırılmıyor; P2002 -> 409 CONFLICT
-- [x] GÜVENLİK: rate limiting (`lib/rate-limit.ts`) login/register/refresh/analytics/widget/domain-verify; brute-force + kullanıcı-sayimi (enumeration) önleme
-- [x] GÜVENLİK: JWT issuer/audience + HS256 sabit + JWT_SECRET < 32 karakter ise uygulama başlamaz; güçlü parola politikası (harf+rakam)
-- [x] GÜVENLİK: HTTP güvenlik başlıkları (`next.config.ts`): HSTS, nosniff, Referrer-Policy, Permissions-Policy, clickjacking'e karşı X-Frame-Options/CSP (embed için `/odamda-gor` hariç)
-- [x] GÜVENLİK: domain doğrulamada SSRF koruması (özel-iç IP reddi + redirect takibi kapalı)
-- [x] Panel otürüm dayanikliligi: refresh token saklanir, access token dolunca 401'de otomatik yenilenir
-- [x] Gerçek widget embed scripti (`public/widget.js`) üretildi ve test edildi (tek satır kod)
-- [x] Ürün sayfasında `Sepete Ekle` yanına otomatik `Odamda Gör` butonu enjekte ediliyor
-- [x] Farklı tema yapılarında buton selector fallback mekanizması eklendi (common add-to-cart selector listesi + `data-target`)
-- [x] Widget açılış/AR/3D/ürün görüntüleme eventleri `analytics_events` tablosuna yazılıyor (WIDGET_OPENED, AR_STARTED, VIEW_3D, PRODUCT_VIEWED)
-- [x] Widget-facing endpoint'lere CORS eklendi (`/api/v1/widget/rug/:id`, `/api/v1/analytics/events`)
-- [x] Iframe modal embed görünümü eklendi (`/odamda-gor/:id?embed=1`)
-- [x] Embed test ortami: `public/widget-demo.html` (sahte ürün sayfası)
-- [x] Mobil AR düzeltmesi: iframe içinden mobil AR engellendigi için widget mobilde doğrudan AR tetikliyor (iOS Quick Look anchor / Android Scene Viewer intent), masaüstünde 3D modal kaliyor
-- [x] Dashboard özet endpoint'i tamamlandı: `GET /api/v1/analytics/overview` (toplamlar + tipe göre + en çok AR alan halılar)
-- [x] Merchant paneli eklendi: `/panel` (giriş, analytics, halı listesi, model yükleme, embed kodu üreteci)
-- [x] Domain doğrulama akışı tamamlandı: `POST /api/v1/domains` (kayıt) + `POST /api/v1/domains/verify` (.well-known dosya kontrolü) + `GET` liste
-- [x] Dosya yönetimi akışı tamamlandı: `POST /api/v1/uploads/model` (GLB/USDZ/GLTF upload + URL doner)
-- [x] API hata kodlari standardıze edildi (`lib/api.ts`: BAD_REQUEST/UNAUTHORIZED/FORBIDDEN/NOT_FOUND/CONFLICT/UNPROCESSABLE/INTERNAL)
-- [x] Yeni endpoint'ler uctan uca test edildi (register -> token -> overview/domains/verify/upload)
-- [x] Depolama soyutlaması eklendi (`lib/storage.ts`): upload artık driver üzerinden çalışır; şu an `local` driver aktif, R2/S3 driver Faz 3 Adım 2'de tek noktadan eklenecek (kod değişmeden `STORAGE_DRIVER` ile seçilir)
-- [x] Otomatik test paketi eklendi: `node:test` + `tsx`, `npm test` (13 test) - slug, SSRF host kontrolü, rate limit, JWT imzala/doğrula güvenlik-kritik saf mantık kapsandı
-- [x] (Faz 3 hazırligi) Widget SKU eşlemesi: `data-rug-id` yerine `data-merchant-id` + `data-sku` ile çözümleme (`GET /api/v1/widget/rug?merchantId=&sku=`)
-
-Faz 2 Durumu: **%100 Tamamlandı** - embed widget + buton enjeksiyonu + analytics + panel + upload + domain doğrulama + hata standardı + abonelik plan limiti + depolama soyutlaması + otomatik test + güvenlik sertleştirme çalışır durumda.
+Faz 1 Durumu: **Tamamlandi (iPhone'da AR canli test edildi)**.
 
 ---
 
-## Faz 3 - Adım Adım Plan (Karışıklık Olmasin)
+## Faz 2 - Islevsel Urunlesme
 
-Faz 3, sırayla yapılacak 7 adımdan oluşur. Her adımin bağımlılığı bir öncekidir;
-yukaridan aşağıya gidilir. Toplam: TEMEL (Adım 1-3) ~6-10 gün, BUYUME (Adım 4-7) +12-18 gün.
+- [~] Abonelik kurallari ve plan limitleri (su an kapsam disi - "hali gosterimi" oncelikli)
+- [x] JWT tabanli auth guard eklendi (`lib/auth-guard.ts`); korumali endpointler merchant'a gore izole (`requireAuth` + `resolveMerchantId`)
+- [x] Gercek widget embed scripti (`public/widget.js`) uretildi ve test edildi (tek satir kod)
+- [x] Urun sayfasinda `Sepete Ekle` yanina otomatik `Odamda Gor` butonu enjekte ediliyor
+- [x] Farkli tema yapilarinda buton selector fallback mekanizmasi eklendi (common add-to-cart selector listesi + `data-target`)
+- [x] Widget acilis/AR/3D/urun goruntuleme eventleri `analytics_events` tablosuna yaziliyor (WIDGET_OPENED, AR_STARTED, VIEW_3D, PRODUCT_VIEWED)
+- [x] Widget-facing endpointlere CORS eklendi (`/api/v1/widget/rug/:id`, `/api/v1/analytics/events`)
+- [x] Iframe modal embed gorunumu eklendi (`/odamda-gor/:id?embed=1`)
+- [x] Embed test ortami: `public/widget-demo.html` (sahte urun sayfasi)
+- [x] Mobil AR duzeltmesi: iframe icinden mobil AR engellendigi icin widget mobilde dogrudan AR tetikliyor (iOS Quick Look anchor / Android Scene Viewer intent), masaustunde 3D modal kaliyor
+- [x] Dashboard ozet endpointi tamamlandi: `GET /api/v1/analytics/overview` (toplamlar + tipe gore + en cok AR alan halilar)
+- [x] Merchant paneli eklendi: `/panel` (giris, analytics, hali listesi, model yukleme, embed kodu ureteci)
+- [x] Domain dogrulama akisi tamamlandi: `POST /api/v1/domains` (kayit) + `POST /api/v1/domains/verify` (.well-known dosya kontrolu) + `GET` liste
+- [x] Dosya yonetimi akisi tamamlandi: `POST /api/v1/uploads/model` (GLB/USDZ/GLTF upload + URL doner)
+- [x] API hata kodlari standardize edildi (`lib/api.ts`: BAD_REQUEST/UNAUTHORIZED/FORBIDDEN/NOT_FOUND/CONFLICT/UNPROCESSABLE/INTERNAL)
+- [x] Yeni endpointler uctan uca test edildi (register -> token -> overview/domains/verify/upload)
+- [~] R2/S3/B2 bulut depolama: MVP'de yerel `public/models` kullaniliyor; bulut entegrasyonu Faz 3'e birakildi
+- [~] Otomatik test paketi: manuel/script E2E yapildi; otomatik test runner Faz 3'e birakildi
 
-### ADIM 1 - Production yayını (siteyi internete tasi)  [~2 gün]
-> Amaç: `localhost`/tunnel yerine gerçek, kalıcı HTTPS adres.
-> **DURUM: %100 TAMAMLANDI** — `https://rugvision-o54d.vercel.app` (Neon DB, health OK, HTTPS, panel, AR).
-> Runbook: **`docs/DEPLOY.md`**
-- [x] 1.1 Yönetilen veritabanı acildi: **Neon** (proje `rugvision`, Postgres 16)
-- [x] 1.2 Vercel env: `DATABASE_URL` + `JWT_SECRET` (>=32) + `STORAGE_DRIVER=local`
-- [x] 1.3 `npm run db:deploy` ile tablolar Neon'a kuruldu
-- [x] 1.4 Vercel'e deploy edildi (GitHub `edc8f3e`, build: `prisma generate && next build`)
-- [x] 1.5 HTTPS production adresi aktif (Vercel otomatik SSL) — **TAMAM**
-- [x] 1.6 Tunnel artık production için gereksiz (sadece lokal geliştirme için kalır)
+Faz 2 Durumu: **Tamamlandi (cekirdek urunlesme)** - embed widget + buton enjeksiyonu + analytics + panel + upload + domain dogrulama + hata standardi calisir durumda. (Bulut depolama ve otomatik test runner Faz 3'e tasindi.)
 
-> **Not:** Özel alan adi (`app.rugvision.com`) Adım 1 kapsami dışında birakildi; Büyüme fazında opsiyonel.
+---
 
-**Production erisim:**
-- Site: `https://rugvision-o54d.vercel.app`
-- Panel: `https://rugvision-o54d.vercel.app/panel`
-- Health: `https://rugvision-o54d.vercel.app/api/v1/health`
-- Örnek AR: `https://rugvision-o54d.vercel.app/odamda-gor/<RUG_ID>`
+## Faz 3 - Adim Adim Plan (Karisiklik Olmasin)
 
-### ADIM 2 - Model dosya altyapısı (bulut depolama + otomatik üretim)  [~3-4 gün]
-> Amaç: Modelleri sunucu diski yerine bulutta tut; yüzlerce halı için üretimi otomatikleştir.
-> **DURUM: %100 TAMAMLANDI** — R2 production canlı, 26 model CDN'de, Neon + Vercel `STORAGE_DRIVER=r2`, iPhone 12 AR doğrulandı (17.06.2026).
-> Runbook: **`docs/MODEL-PIPELINE.md`** · R2: **`docs/R2-SETUP.md`**
-- [x] 2.0 Depolama soyutlaması genişletildi: `readModel` + S3/R2 driver (`lib/storage.ts`)
-- [x] 2.0 USDZ endpoint storage üzerinden okur (local + R2)
-- [x] 2.3 **Otomatik model üretimi (v1):** `scripts/generate_rug_model.py` — foto + en/boy → GLB/USDZ
-- [x] 2.3 **Batch runner:** `npm run models:batch` + `data/rugs-batch.csv` (10 pilot SKU)
-- [x] 2.3 **DB bağlama:** `npm run models:attach` → `model3dUrl` + `coverImage` güncelleme
-- [x] 2.4 Pilot 10 SKU için gerçek fotoğraflarla batch üretim + **canlı iPhone AR doğrulama** (commit `29a31d3`)
-- [x] 2.4b **Fotoğraf inset temizleme:** `npm run photos:clean` (`scripts/clean_rug_photo.py`) — 2/10 pilot fotoğrafta inset kaldırıldı, kapaklar `rug-covers` ile senkron
-- [x] 2.1 R2 upload script + runbook: `npm run models:upload-r2` + `docs/R2-SETUP.md` + `.env.example`
-- [x] 2.1b Cloudflare R2 bucket `rugvision-models` + API token + public URL (`pub-692fed61add14fdca565fa5967c47df1.r2.dev`)
-- [x] 2.2 `STORAGE_DRIVER=r2` production'da etkin — Vercel env + `models:upload-r2` + attach `--base-url` + redeploy
-- [x] 2.2b iPhone 12 Quick Look (R2 CDN + savasdogantekstil.com pilot) — 17.06.2026
-- [ ] 2.5 Model pipeline standardı: toplu QA raporu (100+ halı ölçeği için)
+Faz 3, sirayla yapilacak 7 adimdan olusur. Her adimin bagimliligi bir oncekidir;
+yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7) +12-18 gun.
 
-### ADIM 3 - E-ticaret entegrasyonu (müşteri sitesine ekleme)  [~1-2 gün]
-> Amaç: Tek satır kod ile müşteri ürün sayfasında buton + AR.
-> **DURUM: %100 TAMAMLANDI** — `savasdogantekstil.com/rugvision` pilot CANLI (ürün detay AR + kart linkleri).
-- [x] 3.1 Embed kurulum dokümani: `docs/PILOT-ECOMMERCE.md` (PHP alt klasör `/rugvision`)
-- [x] 3.2 İlk pilot müşteri sitesi: **savasdogantekstil.com/rugvision** — `product-detail.php` widget
-- [x] 3.3 SKU eşlemesi: 10 ürün (`RV-LUNA-001` … `RV-NARIN-010`) merchant `cmqgswc5a000004lanqoxc666`
-- [x] 3.4 Canlı AR testi: iPhone Quick Look, ürün detay sayfasından **BAŞARILI**
-- [x] 3.5 Ana sayfa ürün kartları: `functions.php` — "Odanda Gör" artık ürün detaya yönlendiriyor
+### ADIM 1 - Production yayini (siteyi internete tasi)  [~2 gun]
+> Amac: `localhost`/tunnel yerine gercek, kalici HTTPS adres.
+- [ ] 1.1 Yonetilen veritabani ac (Docker'siz): Neon (onerilen) / Supabase / Vercel Postgres
+- [ ] 1.2 `.env` -> `DATABASE_URL`'i yeni DB'ye cevir (sema ayni, kod degismez)
+- [ ] 1.3 `npx prisma migrate deploy` ile tablolari bulut DB'ye kur
+- [ ] 1.4 Projeyi Vercel'e deploy et
+- [ ] 1.5 Kalici domain bagla + HTTPS (orn. `app.rugvision.com`)
+- [ ] 1.6 Tunnel ve `baslat.bat` artik gereksiz (sadece lokal gelistirme icin kalir)
 
-> **Not:** Slider/footer köprü linkleri ve panel domain doğrulama Adım 3 kapsamı dışında bırakıldı (Büyüme fazı / opsiyonel cila).
+### ADIM 2 - Model dosya altyapisi (bulut depolama + otomatik uretim)  [~3-4 gun]
+> Amac: Modelleri sunucu diski yerine bulutta tut; yuzlerce hali icin uretimi otomatiklestir.
+- [ ] 2.1 Bulut depolama bagla (Cloudflare R2 / AWS S3 / Backblaze B2)
+- [ ] 2.2 `uploads/model` endpointini bulut depolamaya yonlendir
+- [ ] 2.3 **Otomatik model uretimi**: urun fotografi (ustten) + en/boy olcusu -> gercek boyutlu dokulu GLB
+- [ ] 2.4 Otomatik GLB -> USDZ donusum hatti (sunucu tarafi, iOS uyumlu)
+- [ ] 2.5 Model pipeline standardi: olcek, pivot, axis, texture sabitlensin
 
-Faz 3 Durumu: **Adım 1 + Adım 2 + Adım 3 %100 (TEMEL paket tamam).**
+### ADIM 3 - E-ticaret entegrasyonu (musteri sitesine ekleme)  [~1-2 gun]
+> Amac: Tek satir kod ile musteri urun sayfasinda buton + AR.
+- [ ] 3.1 Embed kurulum dokumani yaz (tek satir `<script>` + `data-target` kullanimi)
+- [ ] 3.2 Musteri temasinda buton yerlesimini dogrula (orn. tarzhaliconcept.com PHP)
+- [ ] 3.3 SKU eslemesi: musteri urunu -> RugVision hali/model baglantisi
+- [ ] 3.4 Gercek halilarla 1-2 urunde uctan uca canli test
 
 ### ADIM 4 - Platform eklentileri  [BUYUME]
-> Amaç: Kurulumu "tek tik" yapan resmi eklentiler.
-- [ ] 4.1 Shopify uygulaması/eklentisi MVP
+> Amac: Kurulumu "tek tik" yapan resmi eklentiler.
+- [ ] 4.1 Shopify uygulamasi/eklentisi MVP
 - [ ] 4.2 WooCommerce eklentisi MVP
 
-### ADIM 4b - Buyume ozellikleri (Shopify haric) [%100]
-> Runbook: **`docs/GROWTH-FEATURES.md`**
-- [x] 4b.1 AR kabul raporu (10 SKU CSV/HTML + API)
-- [x] 4b.2 AI zemin/oda tespiti v1 (`/api/v1/ai/scans`)
-- [x] 4b.3 Analitik dashboard raporlari (report API + panel CSV)
-- [x] 4b.4 100+ hali QA pipeline (`npm run models:qa`)
-- [x] 4b.5 Abonelik/plan limitleri (subscription API + panel)
-
 ### ADIM 5 - AR kalite ve cihaz testleri  [BUYUME]
-- [ ] 5.1 iOS Quick Look + Android Scene Viewer çoklu cihazda doğrulama (geniş matris)
-- [x] 5.2 Production (HTTPS) üzerinde mobil AR acceptance testi (iPhone 12 Quick Look OK)
-- [x] 5.3 En az 10 üründe AR kabul raporu (`npm run reports:ar-acceptance`)
+- [ ] 5.1 iOS Quick Look + Android Scene Viewer coklu cihazda dogrulama (genis matris)
+- [ ] 5.2 Production (HTTPS) uzerinde mobil AR acceptance testi
+- [ ] 5.3 En az 10 urunde AR gecis raporu
 
-### ADIM 6 - AI özellikleri  [BUYUME]
-- [x] 6.1 AI floor (zemin) detection ilk sürüm (heuristic v1 + AiScan kaydi)
-- [x] 6.2 AI room (oda) detection ilk sürüm (heuristic v1)
+### ADIM 6 - AI ozellikleri  [BUYUME]
+- [ ] 6.1 AI floor (zemin) detection ilk surum
+- [ ] 6.2 AI room (oda) detection ilk surum
 
 ### ADIM 7 - Izleme, raporlama ve otomasyon  [BUYUME]
-- [x] 7.1 Dönüşüm + AR kullanım analitikleri dashboard'da raporlansin
+- [ ] 7.1 Donusum + AR kullanim analitikleri dashboard'da raporlansin
 - [ ] 7.2 Otomatik test paketi (E2E runner) + CI
-- [x] 7.3 Abonelik/plan limitleri (panel + API)
+- [ ] 7.3 (Opsiyonel) Abonelik/plan limitleri
+
+Faz 3 Durumu: **Planlandi (Adim 1'den baslanacak)**.
 
 ---
 
-## Model formatları (AR için onemli)
+## Hemen Sonraki Is (Oncelik) + Faz 3 Gun Plani
 
-| Format | Rol | AR'de kullanılır mi? |
-|--------|-----|----------------------|
-| **GLB** | Android Scene Viewer, masaüstü 3D | ✅ Evet |
-| **USDZ** | iPhone Quick Look | ✅ Evet |
-| JPG / PNG / WebP | Ürün fotoğrafı, kapak görseli | ❌ AR modeli değil |
+Faz 1 ve Faz 2 cekirdek isleri tamamlandi. Faz 3 iki kademede planlandi:
 
-Halıcı fotoğraf verir; sistem batch pipeline ile GLB/USDZ üretir (`npm run models:batch`). Pilot'te **10 SKU için ayrı model** canlıda (`RV-LUNA-001` … `RV-NARIN-010`).
+### A) Tek gercek musteriyi (orn. tarzhaliconcept.com) canliya alma - TEMEL
+| Is | Tahmini gun |
+|----|-------------|
+| Production deploy (Vercel + Neon/Supabase DB) | 1-2 |
+| Kalici domain + HTTPS | 0.5 |
+| Bulut depolama (R2/S3) | 1-2 |
+| Otomatik foto+olcu -> GLB/USDZ uretimi (ilk surum) | 2-3 |
+| Musteri temasina embed + buton yerlesimi + SKU eslemesi | 1-2 |
+| Gercek halilarla test (birkac urun) | 1 |
+| **Toplam** | **~6-10 is gunu** |
 
----
-
-## Hemen Sonraki İş (Öncelik) + Faz 3 Gun Plani
-
-Faz 1 ve Faz 2 cekirdek isleri tamamlandı. **Adım 1 (production) CANLI.** Sıradaki öncelikler:
-
-### A) Tek gerçek müşteriyi (örn. tarzhalıconcept.com) canlıya alma - TEMEL
-| İş | Durum | Tahmini gün |
-|----|-------|-------------|
-| Production deploy (Vercel + Neon DB) | **TAMAM** | — |
-| Kalıcı domain + HTTPS | opsiyonel | 0.5 |
-| Bulut depolama (R2/S3) | **SIRADA** | 1-2 |
-| Otomatik foto+ölçü -> GLB/USDZ üretimi (ilk sürüm) | **TAMAM** (10 SKU) | — |
-| Müşteri temasina embed + buton yerleşimi + SKU eşlemesi | **PILOT TAMAM** | — |
-| Gerçek halılarla test (10 ürün) | **iPhone AR OK** (ürün bazlı model) | — |
-| Halı sitesi ürün fotoğrafları (SKU bazlı) | **TAMAM** (FTP + SQL) | — |
-| Bulut depolama (R2/S3) — 100+ halı ölçeği | **SIRADA** | 1-2 |
-| **Kalan toplam (TEMEL)** | | **~1-2 iş günü** (R2) |
-
-### B) Tam ürünlesme (her e-ticarete dagitilabilir) - BUYUME
+### B) Tam urunlesme (her e-ticarete dagitilabilir) - BUYUME
 - Shopify + WooCommerce resmi eklentileri
-- AI floor/room detection ilk sürüm
-- Çoklu cihaz AR kabul testleri (geniş matris)
-- Oto dönüşüm hattınin olgunlasmasi + otomatik test runner + CI
-- **Ek sure:** ~12-18 iş günü
+- AI floor/room detection ilk surum
+- Coklu cihaz AR kabul testleri (genis matris)
+- Oto donusum hattinin olgunlasmasi + otomatik test runner + CI
+- **Ek sure:** ~12-18 is gunu
 
-**Ozet:** Production CANLI; tek müşteride canlı pilot ~1 hafta; tam ürünlesmis hal ~4-6 hafta.
+**Ozet:** Tek musteride canli, satisa donuk kurulum ~2 hafta; tam urunlesmis hal ~4-6 hafta.
 
 ---
 
 ## E-Ticaret Entegrasyon Modeli (Onemli)
 
-RugVision widget'ı **backend-bağımsızdir**. Müşteri sitesinin arka planı PHP, Laravel,
-WordPress/WooCommerce, OpenCart, Shopify veya düz HTML olabilir; fark etmez. Cunku
-`widget.js` tamamen tarayıcıda (client-side) çalışır.
+RugVision widget'i **backend-bagimsizdir**. Musteri sitesinin arka plani PHP, Laravel,
+WordPress/WooCommerce, OpenCart, Shopify veya duz HTML olabilir; fark etmez. Cunku
+`widget.js` tamamen tarayicida (client-side) calisir.
 
 Calisma modeli:
 
 ```
-[Müşteri sitesi - örn. PHP]              [RugVision - bizim sunucu]
-   ürün detay sayfası                       Next.js + DB + 3D modeller
+[Musteri sitesi - orn. PHP]              [RugVision - bizim sunucu]
+   urun detay sayfasi                       Next.js + DB + 3D modeller
         |                                            ^
         |  <script src=".../widget.js" ...>  ------> |
         |                                            |
-        +-- "Odamda Gör" butonu otomatik <-- AR <----+
-            "Sepete Ekle" yanına eklenir
+        +-- "Odamda Gor" butonu otomatik <-- AR <----+
+            "Sepete Ekle" yanina eklenir
 ```
 
-- Müşterinin PHP koduna dokunulmaz; veritabanları birleştirilmez.
-- Tek satır kod ürün sayfası şablonuna yapıştırılır (örnek pilot):
-  `<script src="https://rugvision-o54d.vercel.app/widget.js" data-merchant-id="cmqgswc5a000004lanqoxc666" data-sku="RV-ARYA-003" data-target="[data-rugvision]" defer></script>`
-- `data-target` ile sitedeki hedef alan seçilir (pilot: `[data-rugvision]` veya `.js-add-cart`).
-- Bu yüzden PHP/Laravel site ile "birleştirme" derdi YOKTUR; sadece bir HTML satırı.
+- Musterinin PHP koduna dokunulmaz; veritabanlari birlestirilmez.
+- Tek satir kod urun sayfasi sablonuna yapistirilir:
+  `<script src="https://app.rugvision.com/widget.js" data-rug-id="SKU" data-target=".sepete-ekle" defer></script>`
+- `data-target` ile sitedeki "Sepete Ekle" butonu hedeflenir; widget butonu yanina koyar.
+- Bu yuzden PHP/Laravel site ile "birlestirme" derdi YOKTUR; sadece bir HTML satiri.
 
 ---
 
-## Pazar / Rakip Analizi (Doğrulama)
+## Pazar / Rakip Analizi (Dogrulama)
 
-Aynı isi yapan referans siteler (hedef davranış doğrulandi):
+Ayni isi yapan referans siteler (hedef davranis dogrulandi):
 
-- Sultan Halı - "Halıyı Odanda Gor" (oda fotoğrafı yükle + halıcı yerleştir + renk/desen dene)
-- Pera Halı - "Odalara Göre Halılar"
-- Evinde Gor (Gumussuyu Halı)
+- Sultan Hali - "Haliyi Odanda Gor" (oda fotografi yukle + halici yerlestir + renk/desen dene)
+- Pera Hali - "Odalara Gore Halilar"
+- Evinde Gor (Gumussuyu Hali)
 
-Fark: Bu örnekler çoğunlukla **fotoğraf üzerine 2D yerleştirme** kullanır; RugVision **canlı
-kamera AR** (Quick Look / Scene Viewer) ile gerçek zemine gerçek boyutta yerleştirir -
-yani daha modern bir yöntem. İstenirse ileride "oda fotoğrafı yukle" modu da eklenebilir.
+Fark: Bu ornekler cogunlukla **foto uzerine 2D yerlestirme** kullanir; RugVision **canli
+kamera AR** (Quick Look / Scene Viewer) ile gercek zemine gercek boyutta yerlestirir -
+yani daha modern bir yontem. Istenirse ileride "oda fotografi yukle" modu da eklenebilir.
 
 ---
 
-## Satışa Çıkış Paketi (Faz 3 Sonrasi)
+## Satisa Cikis Paketi (Faz 3 Sonrasi)
 
-Bu bölüm, Faz 3 tamamlandığında halıcı firmalara sunulacak operasyon modelini özetler.
+Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini ozetler.
 
-### Halıcıdan İstenenler
+### Halicidan Istenenler
 
-- [ ] Ürün verisi: SKU, ürün adi, ölçü, fiyat
-- [ ] Ürün görselleri
-- [ ] 3D model dosyalari (`GLB` ve iOS için `USDZ`) veya GLB verip dönüşümu bize birakma onayi
-- [ ] Site entegrasyon yetkisi (Shopify admin / özel tema script erisimi)
-- [ ] Marka özellestirme bilgileri (buton metni, renk, logo)
-- [ ] Domain doğrulama için gerekli DNS/teknik onay
+- [ ] Urun verisi: SKU, urun adi, olcu, fiyat
+- [ ] Urun gorselleri
+- [ ] 3D model dosyalari (`GLB` ve iOS icin `USDZ`) veya GLB verip donusumu bize birakma onayi
+- [ ] Site entegrasyon yetkisi (Shopify admin / ozel tema script erisimi)
+- [ ] Marka ozellestirme bilgileri (buton metni, renk, logo)
+- [ ] Domain dogrulama icin gerekli DNS/teknik onay
 
 ### RugVision Tarafindan Verilecekler
 
-- [ ] `Sepete Ekle` yanında çalışan `Odamda Gör` butonu
+- [ ] `Sepete Ekle` yaninda calisan `Odamda Gor` butonu
 - [ ] iPhone (Quick Look) + Android (Scene Viewer/WebXR) AR deneyimi
-- [ ] Merchant paneli (ürün/model/widget yönetimi)
-- [ ] Analitik paneli (tıklama, AR açılış, dönüşüm metrikleri)
-- [ ] Entegrasyon dokümani + canlıya alim destegi
-- [ ] Teknik destek ve model kalite kontrol süreçi
+- [ ] Merchant paneli (urun/model/widget yonetimi)
+- [ ] Analitik paneli (tiklama, AR acilis, donusum metrikleri)
+- [ ] Entegrasyon dokumani + canliya alim destegi
+- [ ] Teknik destek ve model kalite kontrol sureci
 
-### Canlıya Gecis Kontrol Listesi
+### Canliya Gecis Kontrol Listesi
 
-- [ ] En az 10 üründe AR test gecis raporu
-- [ ] iPhone ve Android cihaz testleri tamamlandı
-- [ ] Tüm kritik ürün sayfalarinda buton gorunurlugu doğrulandi
-- [ ] Analytics eventleri doğru sekilde kaydoluyor
-- [ ] Domain doğrulama ve HTTPS production yayını tamam
-- [ ] Destek/SLA ve iletisim kanali netleştirildi
+- [ ] En az 10 urunde AR test gecis raporu
+- [ ] iPhone ve Android cihaz testleri tamamlandi
+- [ ] Tum kritik urun sayfalarinda buton gorunurlugu dogrulandi
+- [ ] Analytics eventleri dogru sekilde kaydoluyor
+- [ ] Domain dogrulama ve HTTPS production yayini tamam
+- [ ] Destek/SLA ve iletisim kanali netlestirildi
 
 ---
 
-## Son Durum (Gun Sonu Özeti)
+## Son Durum (Gun Sonu Ozeti)
 
-### Pilot + Production (17.06.2026 — güncel)
-- [x] **10 SKU ürün bazlı AR CANLI:** her halı kendi GLB/USDZ + kendi site fotoğrafı.
-- [x] GitHub `29a31d3`: modeller, rug-covers, batch manifest push edildi; Vercel deploy OK.
-- [x] iPhone Quick Look: ürün detaydan **ürün bazlı halı** zeminde görüldü (kullanıcı onayı).
-- [x] `products.php`: 10 farklı ürün görseli (`assets/images/products/RV-*.png`).
-
-### Production (16.06.2026)
-- [x] **Vercel + Neon production CANLI:** `https://rugvision-o54d.vercel.app`
-- [x] Health: `db: "up"` — Neon bağlantısi çalışıyor.
-- [x] GitHub güncel (commit `7513861`): 10 SKU model + pilot dokümantasyon.
-- [x] İlk merchant + halı production'da oluşturuldu (Demo Mağaza / HALI-001).
-- [x] iPhone 12 production HTTPS üzerinde Quick Look AR doğrulandi.
-- [x] Panel girişi production'da çalışıyor.
-
-### Onceki tamamlananlar
-- [x] Postman testleriyle auth + rugs + widget akislari doğrulandi.
-- [x] iPhone Quick Look AR canlı cihazda doğrulandi (halı gerçek boyutta yere otürüyor).
-- [x] USDZ modelinin zemine doğru oturmasi çözüldü (Y-up + ASCII usdz, Blender headless pipeline).
-- [x] Android Scene Viewer fallback eklendi; GLB doğru `model/gltf-binary` ile servis ediliyor.
-- [x] Faz 2 çekirdeği tamamlandı: embed widget + sepete ekle yanına buton + analytics + panel + upload + domain doğrulama + hata standardı.
-- [x] Sabit, kendi kendini iyileştiren demo adresi çalışır durumda: `https://rugvision-demo.loca.lt` (churn/`Tunnel is busy` sorunu giderildi).
-- [x] Kesintisiz çalışma için `baslat.bat` (otomatik yeniden başlatma) eklendi.
-- [x] Merchant paneli tarayıcıda canlı doğrulandi (giriş + analytics + halı listesi + embed kodu üreteci).
-- [x] Tunnel üzerinden uctan uca doğrulama: health/panel/login/usdz hepsi 200.
-- [x] Resmi durum/kabul raporu güncellendi: `docs/PROJE_DURUM_RAPORU.md`.
-- [x] E-ticaret entegrasyon modeli netleştirildi: widget backend-bağımsız (PHP/Laravel/WooCommerce/düz HTML fark etmez), tek satır script.
-- [x] Pazar/rakip analizi yapıldı (Sultan Halı / Pera Halı / Evinde Gor) - hedef davranış doğrulandi; RugVision canlı kamera AR ile daha modern.
-- [x] Faz 3 gün plani 2 kademeye ayrıldı: tek müşteri canlıya alma ~6-10 gün, tam ürünlesme +12-18 gün.
-- [x] Otomatik model üretimi (foto+ölçü -> GLB/USDZ) Faz 3 önceliği olarak eklendi (yuzlerce halı için ölçeklenme).
-- [x] Docker'siz DB seçenekleri belirlendi: Neon / Supabase / Vercel Postgres (şema ayni, sadece `DATABASE_URL`).
-- [ ] Faz 3 kalan: Cloudflare R2 production, Shopify/WooCommerce, AI floor detection.
-- [x] İlk halıcı embed CANLI: savasdogantekstil.com/rugvision (pilot).
+- [x] Faz 1 cekirdek API ve AR demo altyapisi calisiyor.
+- [x] Postman testleriyle auth + rugs + widget akislari dogrulandi.
+- [x] iPhone Quick Look AR canli cihazda dogrulandi (hali gercek boyutta yere oturuyor).
+- [x] USDZ modelinin zemine dogru oturmasi cozuldu (Y-up + ASCII usdz, Blender headless pipeline).
+- [x] Android Scene Viewer fallback eklendi; GLB dogru `model/gltf-binary` ile servis ediliyor.
+- [x] Faz 2 cekirdegi tamamlandi: embed widget + sepete ekle yanina buton + analytics + panel + upload + domain dogrulama + hata standardi.
+- [x] Sabit, kendi kendini iyilestiren demo adresi calisir durumda: `https://rugvision-demo.loca.lt` (churn/`Tunnel is busy` sorunu giderildi).
+- [x] Kesintisiz calisma icin `baslat.bat` (otomatik yeniden baslatma) eklendi.
+- [x] Merchant paneli tarayicida canli dogrulandi (giris + analytics + hali listesi + embed kodu ureteci).
+- [x] Tunnel uzerinden uctan uca dogrulama: health/panel/login/usdz hepsi 200.
+- [x] Resmi durum/kabul raporu guncellendi: `docs/PROJE_DURUM_RAPORU.md`.
+- [x] E-ticaret entegrasyon modeli netlestirildi: widget backend-bagimsiz (PHP/Laravel/WooCommerce/duz HTML fark etmez), tek satir script.
+- [x] Pazar/rakip analizi yapildi (Sultan Hali / Pera Hali / Evinde Gor) - hedef davranis dogrulandi; RugVision canli kamera AR ile daha modern.
+- [x] Faz 3 gun plani 2 kademeye ayrildi: tek musteri canliya alma ~6-10 gun, tam urunlesme +12-18 gun.
+- [x] Otomatik model uretimi (foto+olcu -> GLB/USDZ) Faz 3 onceligi olarak eklendi (yuzlerce hali icin olceklenme).
+- [x] Docker'siz DB secenekleri belirlendi: Neon / Supabase / Vercel Postgres (sema ayni, sadece `DATABASE_URL`).
+- [ ] Faz 3: production yayini, bulut depolama, oto GLB->USDZ, Shopify/WooCommerce, AI floor detection.
 
 ---
 
 ## Timeline (Tahmini)
 
-- **Faz 1:** %100 tamamlandı
-- **Faz 2:** %100 tamamlandı (güvenlik sertleştirme dahil)
-- **Faz 3 Adım 1:** %100 tamamlandı (production CANLI, HTTPS, Neon, panel)
-- **Faz 3 Adım 3:** %100 tamamlandı (pilot entegrasyon + canlı AR + kart linkleri)
-- **Faz 3 Adım 2:** **%85** (10 SKU batch + canlı AR tamam; R2 production sırada)
+- **Faz 1:** %100 tamamlandi (iPhone'da AR canli test edildi)
+  - Model olcek/pivot/yatay yerlesim Blender headless script ile cozuldu (2.30 x 1.60 x 0.02 m)
+  - iPhone Quick Look uyumlulugu: Y-up + ASCII usdz (`scripts/export_quicklook_usdz.py`)
+  - Android: Scene Viewer intent fallback + `model/gltf-binary` GLB servisi
+- **Faz 2:** cekirdek %100 tamamlandi (embed widget + buton + analytics + panel + upload + domain + hata standardi; panel tarayicida canli dogrulandi)
+  - Faz 3'e tasinan kalemler: bulut depolama (R2/S3) + otomatik test runner + oto GLB->USDZ pipeline
+- **Faz 3:** 12-18 is gunu
+  - (mobil AR stabilizasyonu coklu cihaz, GLB->USDZ pipeline standardi, Shopify/WooCommerce
+    entegrasyonu, AI floor/room detection, production acceptance)
 
-**Tüm projenin tamamlanma orani:** ~%88-90 (tam ürün vizyonu)
+**Toplam kalan sure:** ~18-27 is gunu (yaklasik 3.5 - 5.5 hafta)
 
-**TEMEL paket (canlı satış demosu):** ~%98 — **yalnızca R2 production kaldı**
+**Bugune kadar tamamlanan (kabaca):** Tum projenin ~%60-65'i
+(Faz 1 bitti, Faz 2 cekirdek urunlesme tamamlandi).
 
-**Canlı production adresi:** `https://rugvision-o54d.vercel.app`  
-**Canlı pilot müşteri sitesi:** `https://savasdogantekstil.com/rugvision/`
-
-**Kalan iş günü (tahmini):**
-- TEMEL bitirmek için: **~1-2 iş günü** (R2/S3)
-- Tam ürünlesme (Shopify, AI, CI vb.): **+10-14 iş günü**
+Not: Dar kapsamli "hiz modu" (tek halici + temel embed + mobil AR) ile ilk canli satis demosu
+bugun itibariyle HAZIR. Geri kalan sure panel/otomasyon/entegrasyon/AI icin.
 
 ---
 
 ## RESMI PROJE TANIMI
 
-> Bu bölüm, RugVision projesinin ne oldugünü resmi ve nihai olarak tanımlar.
+> Bu bolum, RugVision projesinin ne oldugunu resmi ve nihai olarak tanimlar.
 
 **Proje adi:** RugVision
 
-**Tur:** SaaS tabanlı artırılmış gerçeklik (AR) platformu.
+**Tur:** SaaS tabanli artirilmis gerceklik (AR) platformu.
 
 **Ne yapar (tek cumle):**
-RugVision, halıcı ve ev dekorasyon markalarının web sitelerine **tek satır kod** ile
-"Odamda Gör" özelliği ekleyerek, müşterilerin bir halıyı satın almadan önce kendi
-odalarinin zemininde **telefon kameralariyla gerçek boyutta** görmesini sağlar.
+RugVision, halici ve ev dekorasyon markalarinin web sitelerine **tek satir kod** ile
+"Odamda Gor" ozelligi ekleyerek, musterilerin bir haliyi satin almadan once kendi
+odalarinin zemininde **telefon kameralariyla gercek boyutta** gormesini saglar.
 
-**Çözdüğü problem:**
-Online halı alışverişinde müşteri, halınin odasinda nasıl duracagini, ölçüsunun ve
-renginin mekanina uyup uymadigini göremez. Bu belirsizlik satın almayi zorlastirir ve
-iade oranını artırır. RugVision, halıyı gerçek mekanda AR ile göstererek bu belirsizliği
-ortadan kaldirir; satın alma güvenini ve dönüşüm oranını yükseltir.
+**Cozdugu problem:**
+Online hali alisverisinde musteri, halinin odasinda nasil duracagini, olcusunun ve
+renginin mekanina uyup uymadigini goremez. Bu belirsizlik satin almayi zorlastirir ve
+iade oranini artirir. RugVision, haliyi gercek mekanda AR ile gostererek bu belirsizligi
+ortadan kaldirir; satin alma guvenini ve donusum oranini yukseltir.
 
-**Nasıl çalışır:**
-1. Halıcı, RugVision panelinden ürünunu ve 3D modelini (GLB/USDZ) ekler.
-2. RugVision, halıcı sitesindeki ürün sayfasına "Sepete Ekle" yanında otomatik bir
-   "Odamda Gör" butonu yerleştirir (tek satır embed script).
-3. Müşteri butona basar; iPhone'da Quick Look, Android'de Scene Viewer ile AR açılır.
-4. Halı, müşterinin odasinin zeminine gerçek ölçekte yerleşir.
-5. Tüm etkileşimler (açılış, AR başlatma, 3D görüntüleme) analitik olarak toplanır.
+**Nasil calisir:**
+1. Halici, RugVision panelinden urununu ve 3D modelini (GLB/USDZ) ekler.
+2. RugVision, halici sitesindeki urun sayfasina "Sepete Ekle" yaninda otomatik bir
+   "Odamda Gor" butonu yerlestirir (tek satir embed script).
+3. Musteri butona basar; iPhone'da Quick Look, Android'de Scene Viewer ile AR acilir.
+4. Hali, musterinin odasinin zeminine gercek olcekte yerlesir.
+5. Tum etkilesimler (acilis, AR baslatma, 3D goruntuleme) analitik olarak toplanir.
 
-**Hedef kullanıcılar:**
-- Halıcı ve ev tekstili / dekorasyon markaları (e-ticaret).
-- Son tüketici (ürün sayfasıni ziyaret eden alışveriş yapan kisi).
+**Hedef kullanicilar:**
+- Halici ve ev tekstili / dekorasyon markalari (e-ticaret).
+- Son tuketici (urun sayfasini ziyaret eden alisveris yapan kisi).
 
 **Desteklenen cihazlar:**
-- iPhone / iPad (Safari + AR Quick Look) — tam AR, en stabil
-- Android ARCore uyumlu cihazlar (Samsung, Pixel, cogu Oppo/Vivo global) — Scene Viewer
-- Diger Android / Huawei (GMS yok): 3D görüntüleme fallback (tam zemin AR olmayabilir)
+- iPhone / iPad (Safari + AR Quick Look)
+- Android ekosistemi (Scene Viewer / WebXR; Samsung, Xiaomi, Huawei vb.)
 
-**Teknik özet:**
+**Teknik ozet:**
 - Next.js 16 (App Router) + Prisma 7 + PostgreSQL.
 - 3D/AR: `model-viewer`, GLB (Android/WebXR) ve USDZ (iOS Quick Look).
-- Auth: JWT (access/refresh) + bcrypt; merchant bazlı izolasyon.
-- Embed widget: bağımsız `widget.js` (tek satır kurulum, tema uyumlu buton enjeksiyonu).
-- Analitik: olay tabanlı (`analytics_events`) + merchant paneli özet raporu.
+- Auth: JWT (access/refresh) + bcrypt; merchant bazli izolasyon.
+- Embed widget: bagimsiz `widget.js` (tek satir kurulum, tema uyumlu buton enjeksiyonu).
+- Analitik: olay tabanli (`analytics_events`) + merchant paneli ozet raporu.
 
 **Ticari model (hedef):**
-Halıcılara aylık abonelik karşılığında ürün/model/widget yönetimi, AR deneyimi ve
-analitik panel sunan bir SaaS hizmeti. (Abonelik modülü şu an kapsam dışı, geliştirme
-önceliği "halı gösterimi" üzerinedir.)
+Halicilara aylik abonelik karsiliginda urun/model/widget yonetimi, AR deneyimi ve
+analitik panel sunan bir SaaS hizmeti. (Abonelik modulu su an kapsam disi, gelistirme
+onceligi "hali gosterimi" uzerinedir.)
 
-**Mevcut olgunluk:** Faz 1 (%100), Faz 2 (%100), **Faz 3 Adım 1 (%100)**, **Adım 3 (%100)**, **Adım 2 (%85)**.
-**Toplam:** ~%88-90 | **TEMEL demo paketi:** ~%98 | **Kalan TEMEL:** ~1-2 iş günü (R2 production).
+**Mevcut olgunluk:** Faz 1 (%100) ve Faz 2 cekirdegi tamamlandi; tek halici ile canli
+satis demosu hazir. Faz 3 (production yayini, bulut depolama, e-ticaret entegrasyonlari,
+AI zemin tespiti) planlanmis durumda.

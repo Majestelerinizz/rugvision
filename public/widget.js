@@ -203,18 +203,21 @@
 
   function computeModelUrls(model3dUrl) {
     if (!model3dUrl) return;
-    try {
-      glbUrl = new URL(model3dUrl, base + "/").toString();
-    } catch {
-      glbUrl = null;
-    }
     var lower = model3dUrl.toLowerCase();
-    if (model3dUrl.indexOf("/models/") === 0 && lower.indexOf(".glb") !== -1) {
-      var file = model3dUrl.split("/").pop().replace(/\.glb$/i, ".usdz");
-      usdzUrl = base + "/api/v1/ar/usdz/" + file;
-    } else if (lower.indexOf(".glb") !== -1 && glbUrl) {
-      usdzUrl = glbUrl.replace(/\.glb$/i, ".usdz");
+    if (lower.indexOf(".glb") === -1) {
+      try {
+        glbUrl = new URL(model3dUrl, base + "/").toString();
+      } catch {
+        glbUrl = null;
+      }
+      return;
     }
+    var file = model3dUrl.split("/").pop();
+    if (!file) return;
+    // GLB/USDZ: ayni origin API (R2 cross-origin + iOS Quick Look uyumlulugu).
+    glbUrl = base + "/api/v1/ar/glb/" + encodeURIComponent(file);
+    usdzUrl =
+      base + "/api/v1/ar/usdz/" + encodeURIComponent(file.replace(/\.glb$/i, ".usdz"));
     warmModelCdn();
   }
 
@@ -426,16 +429,52 @@
     );
   }
 
+  function showWidgetError(message) {
+    var note = document.createElement("p");
+    note.setAttribute("data-rugvision-error", "");
+    note.setAttribute("role", "status");
+    note.textContent = message;
+    note.style.cssText =
+      "margin-top:10px;padding:10px 12px;font-size:13px;line-height:1.4;" +
+      "color:#7f1d1d;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;";
+    var target = findTarget();
+    if (target && target.hasAttribute("data-rugvision")) {
+      target.appendChild(note);
+    } else if (target && target.parentNode) {
+      target.parentNode.insertBefore(note, target.nextSibling);
+    } else {
+      document.body.appendChild(note);
+    }
+  }
+
   function init() {
     fetch(buildRugUrl())
       .then(function (r) {
-        if (!r.ok) throw new Error("rug fetch failed: " + r.status);
-        return r.json();
+        return r.json().then(function (json) {
+          if (!r.ok) {
+            var apiMsg = json && json.error ? json.error : "";
+            if (r.status === 404) {
+              throw new Error(
+                apiMsg ||
+                  "Urun bulunamadi. SKU (" +
+                    (skuAttr || "?") +
+                    ") RugVision panelinde kayitli mi kontrol edin."
+              );
+            }
+            throw new Error(apiMsg || "RugVision baglantisi kurulamadi (" + r.status + ")");
+          }
+          return json;
+        });
       })
       .then(function (json) {
         var data = json && json.data ? json.data : {};
-        // SKU ile cozumlendiyse, sonraki adimlar icin gercek hali kimligini al.
         if (!rugId && data.id) rugId = data.id;
+        if (!data.model3dUrl) {
+          showWidgetError(
+            "Bu urun icin 3D model henuz yuklenmemis. Panelden GLB dosyasi ekleyin."
+          );
+          return;
+        }
         var merchant = data.merchant || {};
         var settings = merchant.widgetSettings || null;
         var merchantId = merchant.id || null;
@@ -446,6 +485,10 @@
       })
       .catch(function (err) {
         console.warn("[RugVision] widget yuklenemedi:", err);
+        showWidgetError(
+          (err && err.message) ||
+            "Odamda Gor su an kullanilamiyor. Sayfayi yenileyin veya magazaya bildirin."
+        );
       });
   }
 
