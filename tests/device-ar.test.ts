@@ -4,6 +4,10 @@ import {
   parseUserAgent,
   likelyHasGooglePlayServices,
   prefersMobileWebAr,
+  isAndroidChrome,
+  isStockMiuiBrowser,
+  shouldBlockNativeAr,
+  shouldUseSceneViewerIntent,
   buildSceneViewerHttpsUrl,
   buildSceneViewerIntentUrl,
   buildSceneViewerGenericIntentUrl,
@@ -66,24 +70,34 @@ describe("device-ar", () => {
     assert.match(buildSceneViewerGenericIntentUrl(glb, fb), /^intent:\/\//);
   });
 
-  it("HyperOS MiuiBrowser prefers mobile WebXR", () => {
+  it("HyperOS MiuiBrowser blocks native AR, opens Chrome", () => {
     const ua =
-      "Mozilla/5.0 (Linux; Android 14; 2312DRAABC Build/UP1A.231005.007) AppleWebKit/537.36 Chrome/122.0 Mobile Safari/537.36 XiaoMi/MiuiBrowser/20.0.20728";
+      "Mozilla/5.0 (Linux; Android 14; 2312DRAABC Build/UP1A) AppleWebKit/537.36 XiaoMi/MiuiBrowser/20.0";
+    const p = parseUserAgent(ua);
+    assert.equal(p.vendor, "xiaomi");
+    assert.equal(p.primaryExperience, "preview-3d");
+    assert.equal(shouldBlockNativeAr(ua), true);
+    assert.equal(shouldUseSceneViewerIntent(ua), false);
+  });
+
+  it("Xiaomi Chrome uses WebXR not Scene Viewer", () => {
+    const ua =
+      "Mozilla/5.0 (Linux; Android 14; Redmi Note 12 Build/TKQ1) AppleWebKit/537.36 Chrome/124.0 Mobile Safari/537.36";
     const p = parseUserAgent(ua);
     assert.equal(p.vendor, "xiaomi");
     assert.equal(p.primaryExperience, "webxr");
-    assert.equal(prefersMobileWebAr(ua), true);
-    assert.equal(arModesForProfile(p), "");
+    assert.equal(shouldBlockNativeAr(ua), false);
+    assert.equal(shouldUseSceneViewerIntent(ua), false);
+    assert.equal(arModesForProfile(p), "webxr");
   });
 
-  it("Redmi/Xiaomi prefers mobile WebXR over Scene Viewer intent", () => {
+  it("Redmi MiuiBrowser prefers Chrome handoff", () => {
     const ua =
       "Mozilla/5.0 (Linux; Android 13; Redmi Note 12 Build/TKQ1) AppleWebKit/537.36 MiuiBrowser/13.0";
     const p = parseUserAgent(ua);
     assert.equal(p.vendor, "xiaomi");
-    assert.equal(p.primaryExperience, "webxr");
-    assert.equal(prefersMobileWebAr(ua), true);
-    assert.equal(arModesForProfile(p), "");
+    assert.equal(p.primaryExperience, "preview-3d");
+    assert.equal(isStockMiuiBrowser(ua), true);
   });
 
   it("builds Chrome intent for HyperOS fallback", () => {

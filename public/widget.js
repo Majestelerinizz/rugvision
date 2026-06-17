@@ -108,14 +108,28 @@
     return /MiuiBrowser|XiaoMi\/MiuiBrowser|HyperOS|Hyper OS/i.test(ua);
   }
 
-  function prefersMobileWebAr() {
+  function isAndroidChrome() {
+    var ua = navigator.userAgent;
+    return (
+      isAndroid() &&
+      /Chrome\//i.test(ua) &&
+      !/MiuiBrowser|SamsungBrowser|OPPOBrowser|VivoBrowser/i.test(ua)
+    );
+  }
+
+  function isStockMiuiBrowser() {
     var ua = navigator.userAgent;
     var vendor = detectVendor();
-    if (vendor === "xiaomi" || vendor === "oppo" || vendor === "vivo" || vendor === "oneplus") {
-      return true;
-    }
-    if (isXiaomiFamilyBrowser()) return true;
-    return /HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
+    if (!isXiaomiFamilyBrowser() && vendor !== "xiaomi") return false;
+    return !isAndroidChrome();
+  }
+
+  function prefersMobileWebAr() {
+    if (isStockMiuiBrowser()) return true;
+    var vendor = detectVendor();
+    if (vendor === "xiaomi" && isAndroidChrome()) return true;
+    if (vendor === "oppo" || vendor === "vivo" || vendor === "oneplus") return true;
+    return /HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(navigator.userAgent);
   }
 
   function detectProfile() {
@@ -136,6 +150,24 @@
           supportsNativeAr: false,
           primary: "preview-3d",
           buttonLabel: "3D Onizleme",
+        };
+      }
+      if (isStockMiuiBrowser()) {
+        return {
+          platform: "android",
+          vendor: "xiaomi",
+          supportsNativeAr: false,
+          primary: "chrome-handoff",
+          buttonLabel: "Chrome'da Ac",
+        };
+      }
+      if (detectVendor() === "xiaomi" && isAndroidChrome()) {
+        return {
+          platform: "android",
+          vendor: "xiaomi",
+          supportsNativeAr: true,
+          primary: "webxr",
+          buttonLabel: overrideText || "Odamda Gor",
         };
       }
       if (prefersMobileWebAr()) {
@@ -196,7 +228,7 @@
   function sceneViewerLaunchUrl(url, fallback) {
     var ua = navigator.userAgent;
     var vendor = detectVendor();
-    if (vendor === "samsung" || vendor === "xiaomi" || /SamsungBrowser|MiuiBrowser|XiaoMi\/MiuiBrowser/i.test(ua)) {
+    if (vendor === "samsung" || /SamsungBrowser|MiuiBrowser|XiaoMi\/MiuiBrowser/i.test(ua)) {
       return sceneViewerGenericIntentUrl(url, fallback);
     }
     return sceneViewerIntentUrl(url, fallback);
@@ -339,8 +371,25 @@
     return true;
   }
 
+  function openInChromeViewer() {
+    var pageUrl = mobileViewerUrl();
+    var path = pageUrl.replace(/^https?:\/\//, "");
+    var intent =
+      "intent://" +
+      path +
+      "#Intent;scheme=https;package=com.android.chrome;action=android.intent.action.VIEW;S.browser_fallback_url=" +
+      encodeURIComponent(pageUrl) +
+      ";end;";
+    var a = document.createElement("a");
+    a.href = intent;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
   function openMobileViewer() {
-    navigateTo(mobileViewerUrl(), prefersMobileWebAr());
+    navigateTo(mobileViewerUrl(), prefersMobileWebAr() && !isStockMiuiBrowser());
   }
 
   function openModal() {
@@ -400,6 +449,12 @@
     if (profile.primary === "quick-look" && usdzUrl) {
       track("AR_STARTED", merchantId);
       if (openQuickLook()) return;
+    }
+
+    if (profile.primary === "chrome-handoff") {
+      track("AR_STARTED", merchantId);
+      openInChromeViewer();
+      return;
     }
 
     if (profile.primary === "webxr") {

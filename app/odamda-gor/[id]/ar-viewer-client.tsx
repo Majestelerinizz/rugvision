@@ -5,7 +5,9 @@ import Script from "next/script";
 import {
   parseUserAgent,
   shouldBlockNativeAr,
+  shouldUseSceneViewerIntent,
   buildChromeIntentUrl,
+  resolveSceneViewerLaunchUrl,
   arModesForProfile,
 } from "@/lib/device-ar";
 
@@ -32,6 +34,16 @@ type ModelViewerElement = HTMLElement & {
 
 function openInChrome(pageUrl: string) {
   const intentUrl = buildChromeIntentUrl(pageUrl);
+  const anchor = document.createElement("a");
+  anchor.href = intentUrl;
+  anchor.style.display = "none";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
+function openSceneViewerIntent(glbUrl: string, fallbackUrl: string, ua: string) {
+  const intentUrl = resolveSceneViewerLaunchUrl(glbUrl, fallbackUrl, ua);
   const anchor = document.createElement("a");
   anchor.href = intentUrl;
   anchor.style.display = "none";
@@ -147,10 +159,12 @@ export default function ArViewerClient({
 
   const displayButtonText =
     blockNativeAr && (mobile || embed)
-      ? "Chrome'da AR Ac"
-      : mobile && !profile.supportsNativeAr
-        ? profile.buttonLabel
-        : buttonText;
+      ? "Chrome'da Ac"
+      : profile.primaryExperience === "webxr" && profile.vendor === "xiaomi"
+        ? "Odamda Gor (AR)"
+        : mobile && !profile.supportsNativeAr
+          ? profile.buttonLabel
+          : buttonText;
   const arModes = arModesForProfile(profile);
   const fullScreen = embed || mobile;
 
@@ -173,6 +187,24 @@ export default function ArViewerClient({
 
     if (shouldBlockNativeAr(ua)) {
       openInChrome(window.location.href);
+      return;
+    }
+
+    if (profile.primaryExperience === "webxr" && profile.vendor === "xiaomi") {
+      if (viewer && typeof viewer.activateAR === "function") {
+        try {
+          await viewer.activateAR();
+          return;
+        } catch {
+          /* WebXR desteklenmiyorsa 3D onizleme kalir */
+        }
+      }
+      return;
+    }
+
+    if (shouldUseSceneViewerIntent(ua)) {
+      const glbAbsolute = new URL(viewerSrc, window.location.href).toString();
+      openSceneViewerIntent(glbAbsolute, window.location.href, ua);
       return;
     }
 

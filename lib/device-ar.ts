@@ -59,17 +59,27 @@ export function isXiaomiFamilyBrowser(ua: string): boolean {
   return /MiuiBrowser|XiaoMi\/MiuiBrowser|HyperOS|Hyper OS/i.test(ua);
 }
 
+export function isAndroidChrome(ua: string): boolean {
+  const n = normalizeUa(ua);
+  return (
+    isAndroidUserAgent(n) &&
+    /Chrome\//i.test(n) &&
+    !/MiuiBrowser|SamsungBrowser|OPPOBrowser|VivoBrowser/i.test(n)
+  );
+}
+
+/** HyperOS / MIUI varsayilan tarayici (Chrome degil). */
+export function isStockMiuiBrowser(ua: string): boolean {
+  const n = normalizeUa(ua);
+  if (!isXiaomiFamilyBrowser(n) && detectVendor(n) !== "xiaomi") return false;
+  return !isAndroidChrome(n);
+}
+
 export function prefersMobileWebAr(ua: string): boolean {
+  if (isStockMiuiBrowser(ua)) return true;
   const vendor = detectVendor(ua);
-  if (
-    vendor === "xiaomi" ||
-    vendor === "oppo" ||
-    vendor === "vivo" ||
-    vendor === "oneplus"
-  ) {
-    return true;
-  }
-  if (isXiaomiFamilyBrowser(ua)) return true;
+  if (vendor === "xiaomi" && isAndroidChrome(ua)) return true;
+  if (vendor === "oppo" || vendor === "vivo" || vendor === "oneplus") return true;
   return /HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
 }
 
@@ -109,17 +119,46 @@ export function parseUserAgent(ua: string): ArDeviceProfile {
       };
     }
 
-    if (prefersMobileWebAr(n)) {
+    if (vendor === "xiaomi") {
+      if (isStockMiuiBrowser(n)) {
+        return {
+          platform: "android",
+          vendor,
+          modelHint,
+          likelyHasGms: hasGms,
+          supportsNativeAr: false,
+          primaryExperience: "preview-3d",
+          fallbackExperience: "webxr",
+          buttonLabel: "Chrome'da Ac",
+          hint: "HyperOS tarayicisi AR acmaz. Once Google Chrome ile acin; AR dugmesi kamerayi kullanir.",
+        };
+      }
+      if (isAndroidChrome(n)) {
+        return {
+          platform: "android",
+          vendor,
+          modelHint,
+          likelyHasGms: hasGms,
+          supportsNativeAr: true,
+          primaryExperience: "webxr",
+          fallbackExperience: "preview-3d",
+          buttonLabel: "Odamda Gor",
+          hint: "Chrome AR: AR dugmesi dogrudan kamerayi acar (Play Hizmetleri APK gerekmez).",
+        };
+      }
+    }
+
+    if (vendor === "oppo" || vendor === "vivo" || vendor === "oneplus") {
       return {
         platform: "android",
         vendor,
         modelHint,
-        likelyHasGms: true,
+        likelyHasGms: hasGms,
         supportsNativeAr: true,
         primaryExperience: "webxr",
         fallbackExperience: "scene-viewer",
         buttonLabel: "Odamda Gor",
-        hint: "HyperOS tarayicisi AR desteklemez. 'Chrome'da AR Ac' dugmesini kullanin; harici AR APK yuklemeyin.",
+        hint: "Bu tarayicida Google Chrome ile AR deneyin.",
       };
     }
 
@@ -206,7 +245,6 @@ export function resolveSceneViewerLaunchUrl(
   const vendor = detectVendor(ua);
   if (
     vendor === "samsung" ||
-    vendor === "xiaomi" ||
     /SamsungBrowser|MiuiBrowser|XiaoMi\/MiuiBrowser/i.test(ua)
   ) {
     return buildSceneViewerGenericIntentUrl(glbUrl, fallbackUrl);
@@ -223,9 +261,17 @@ export function buildSceneViewerHttpsUrl(glbUrl: string) {
   );
 }
 
-/** HyperOS varsayilan tarayicisinda native AR (Scene Viewer / ARCore) tetiklenmesin. */
+/** Sadece HyperOS varsayilan tarayicida native AR engelle (Chrome'da izin ver). */
 export function shouldBlockNativeAr(ua: string): boolean {
-  return prefersMobileWebAr(ua);
+  return isStockMiuiBrowser(ua);
+}
+
+/** Android'de model-viewer activateAR yerine Scene Viewer (Play Hizmetleri dongusu onlenir). */
+export function shouldUseSceneViewerIntent(ua: string): boolean {
+  const vendor = detectVendor(ua);
+  if (vendor === "xiaomi") return false;
+  if (!isAndroidUserAgent(ua)) return false;
+  return !isStockMiuiBrowser(ua);
 }
 
 /** Xiaomi/HyperOS: ayni sayfayi Google Chrome ile ac (AR Core APK yuklemesini onler). */
@@ -244,8 +290,7 @@ export function arModesForProfile(profile: ArDeviceProfile) {
     return "quick-look webxr scene-viewer";
   }
   if (profile.platform === "android" && profile.primaryExperience === "webxr") {
-    // HyperOS: bos — model-viewer ar kapali, Chrome disinda AR tetiklenmez.
-    return "";
+    return "webxr";
   }
   if (profile.platform === "android" && profile.likelyHasGms) {
     return "webxr scene-viewer quick-look";
