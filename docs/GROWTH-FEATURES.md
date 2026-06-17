@@ -78,10 +78,26 @@ Kontroller: foto var mi, GLB/USDZ boyutu, olcu alanlari.
 
 ---
 
+## 6. Genis cihaz matrisi + CI
+
+18 cihaz/tarayici kombinasyonu (iPhone, Samsung, Pixel, Xiaomi, OPPO, vivo, Huawei, masaustu).
+
+| Bilesen | Yol |
+|---------|-----|
+| Matris | `lib/device-matrix.ts` |
+| Test | `tests/device-matrix.test.ts` |
+| Rapor | `npm run reports:device-matrix` |
+| CI | `.github/workflows/ci.yml` (push/PR → lint, test, build) |
+
+**Cikti:** `docs/reports/device-matrix-ar-18-devices-*.csv` + `.html`
+
+---
+
 ## Komut ozeti
 
 | Komut | Is |
 |-------|-----|
 | `npm run reports:ar-acceptance` | 10 SKU AR kabul CSV/HTML |
 | `npm run models:qa` | Model QA raporu |
-| `npm test` | Birim testleri (+ subscription, ai-detection) |
+| `npm run reports:device-matrix` | 18 cihaz AR matris CSV/HTML |
+| `npm test` | Birim testleri (42 test: device-matrix dahil) |

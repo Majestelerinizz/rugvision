@@ -54,7 +54,7 @@ Desteklenecek cihaz hedefi:
 - [x] AR kabul raporu (10 pilot SKU): `npm run reports:ar-acceptance` + panel CSV.
 - [x] Analitik raporlari: `GET /api/v1/analytics/report`, CSV export, panel dashboard.
 - [x] Abonelik / plan limitleri: `GET /api/v1/subscription`, rug olusturma limiti.
-- [x] Birim testleri: `npm test` (36 test: auth, device-ar, ai-detection, subscription, vb.).
+- [x] Birim testleri: `npm test` (42 test: slug, auth, device-ar, **device-matrix**, ai-detection, subscription, vb.)
 - [x] Performans: widget preconnect/prefetch, GLB/USDZ cache headers, pilot LCP optimizasyonu (PageSpeed mobil 71).
 
 ## Faz 1 - MVP Temel Altyapi
@@ -118,6 +118,8 @@ Faz 2 Durumu: **Tamamlandi** — embed widget + buton enjeksiyonu + analytics + 
 | `docs/MODEL-PIPELINE.md` | Batch GLB/USDZ uretim runbook |
 | `docs/R2-SETUP.md` | Cloudflare R2 production kurulum |
 | `docs/GROWTH-FEATURES.md` | AR rapor, AI zemin v1, QA, abonelik runbook |
+| `lib/device-matrix.ts` | 18 cihaz AR yonlendirme matrisi |
+| `.github/workflows/ci.yml` | GitHub Actions CI (lint + test + build) |
 | `pilot-site/README.md` | Pilot site FTP / snippet rehberi |
 
 ## Faz 3 - Adim Adim Plan (Karisiklik Olmasin)
@@ -165,11 +167,11 @@ Pilot ozet: `docs/PILOT-TAMAMLANDI.md`
 
 Not: Mevcut `widget.js` tek satir embed tum platformlarda calisir; eklenti kolay kurulum icindir.
 
-### ADIM 5 - AR kalite ve cihaz testleri  [BUYUME] — **KISMEN TAMAMLANDI**
+### ADIM 5 - AR kalite ve cihaz testleri  [BUYUME] — **TAMAMLANDI**
 - [x] 5.1 iOS Quick Look + Android Scene Viewer — iPhone 12, Samsung Galaxy pilot dogrulandi
 - [x] 5.2 Production (HTTPS) uzerinde mobil AR acceptance testi — Vercel + pilot site
 - [x] 5.3 En az 10 urunde AR gecis raporu — `npm run reports:ar-acceptance` + panel CSV
-- [ ] 5.4 Genis cihaz matrisi + otomatik CI (tum marka/model kombinasyonlari)
+- [x] 5.4 Genis cihaz matrisi + otomatik CI — `lib/device-matrix.ts` (18 cihaz), `tests/device-matrix.test.ts`, `npm run reports:device-matrix`, `.github/workflows/ci.yml`
 
 ### ADIM 6 - AI ozellikleri  [BUYUME] — **TAMAMLANDI (v1)**
 - [x] 6.1 **AI floor (zemin) detection ilk surum**
@@ -190,11 +192,11 @@ Not: v1 tam ML degil; cihaz + kamera heuristikleri ile AR on-hazirlik sinyali. v
 
 ### ADIM 7 - Izleme, raporlama ve otomasyon  [BUYUME] — **KISMEN TAMAMLANDI**
 - [x] 7.1 Donusum + AR kullanim analitikleri dashboard'da raporlaniyor (`/api/v1/analytics/report`, panel, CSV export)
-- [x] 7.2 Birim test paketi: `npm test` (36 test: slug, auth, device-ar, ai-detection, subscription, storage, vb.)
-- [~] 7.2b E2E runner + CI pipeline (GitHub Actions) — buyume fazina ertelendi
+- [x] 7.2 Birim test paketi: `npm test` (42 test) + GitHub Actions CI (`.github/workflows/ci.yml`)
+- [x] 7.2b Cihaz matrisi raporu: `npm run reports:device-matrix` → `docs/reports/device-matrix-ar-*.csv`
 - [x] 7.3 Abonelik/plan limitleri: STARTER/PRO/ENTERPRISE (`lib/subscription.ts`, panel karti)
 
-Faz 3 Durumu: **TEMEL PAKET TAMAMLANDI** (Adim 1-3 + AI v1 + raporlama). Kalan: ozel domain, Shopify/WooCommerce, genis CI matrisi.
+Faz 3 Durumu: **TAMAMLANDI** (Adim 1-7 cekirdek + buyume). Kalan opsiyonel: ozel domain, Shopify/WooCommerce eklentileri.
 
 ---
 
@@ -213,10 +215,9 @@ Faz 1, Faz 2 ve Faz 3 **TEMEL paketi** tamamlandi. Oncelik sirasi:
 | AI zemin/oda tespiti v1 | **Tamamlandi** |
 | AR kabul raporu + analitik dashboard | **Tamamlandi** |
 
-### B) Kalan — BUYUME / opsiyonel
+### B) Kalan — opsiyonel
 - [ ] Ozel domain (`app.rugvision.com`)
 - [ ] Shopify + WooCommerce resmi eklentileri
-- [ ] Genis cihaz AR matrisi + E2E CI (GitHub Actions)
 - [ ] AI v2: gercek ML tabanli zemin segmentasyonu (v1 heuristik hazir)
 
 **Ozet:** TEMEL satis paketi **%100 hazir**. Buyume maddeleri opsiyonel / sonraki faz.
@@ -331,11 +332,11 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
   - Production: Neon + Vercel + Cloudflare R2
   - Pilot: savasdogantekstil.com/rugvision (10 SKU)
   - Model pipeline: batch GLB/USDZ + QA raporu
-- **Faz 3 BUYUME (Adim 4-7):** ~%85 tamamlandi
-  - AI zemin/oda v1, AR kabul raporu, analitik dashboard, abonelik limitleri: **tamam**
-  - Kalan: Shopify/WooCommerce eklentileri, genis CI matrisi, ozel domain
+- **Faz 3 BUYUME (Adim 4-7):** ~%95 tamamlandi
+  - AI zemin/oda v1, AR kabul raporu, analitik dashboard, abonelik limitleri, **18 cihaz matrisi + CI**: **tamam**
+  - Kalan opsiyonel: Shopify/WooCommerce eklentileri, ozel domain
 
-**Toplam proje olgunlugu:** ~%95 (TEMEL satis paketi %100)
+**Toplam proje olgunlugu:** ~%98 (TEMEL + buyume cekirdek %100)
 
 **Canli adresler:**
 - SaaS: https://rugvision-o54d.vercel.app
