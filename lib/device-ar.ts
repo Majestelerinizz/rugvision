@@ -37,7 +37,7 @@ export function detectVendor(ua: string): string | null {
   if (/Samsung|SM-|SAMSUNG/i.test(n)) return "samsung";
   if (/Pixel|Google Pixel/i.test(n)) return "google";
   if (/Huawei|Honor|HMOS|HarmonyOS/i.test(n)) return "huawei";
-  if (/Xiaomi|Redmi|POCO|Mi\s/i.test(n)) return "xiaomi";
+  if (/Xiaomi|XiaoMi|Redmi|POCO|Mi\s/i.test(n)) return "xiaomi";
   if (/OPPO|Realme/i.test(n)) return "oppo";
   if (/vivo/i.test(n)) return "vivo";
   if (/OnePlus/i.test(n)) return "oneplus";
@@ -54,7 +54,11 @@ export function likelyHasGooglePlayServices(ua: string): boolean {
   return true;
 }
 
-/** MIUI / ColorOS vb. tarayicilarda intent sessizce basarisiz olur; WebXR sayfasi daha guvenilir. */
+/** HyperOS / MIUI tarayicilarda Scene Viewer intent sessizce basarisiz olur; WebXR daha guvenilir. */
+export function isXiaomiFamilyBrowser(ua: string): boolean {
+  return /MiuiBrowser|XiaoMi\/MiuiBrowser|HyperOS|Hyper OS/i.test(ua);
+}
+
 export function prefersMobileWebAr(ua: string): boolean {
   const vendor = detectVendor(ua);
   if (
@@ -65,7 +69,8 @@ export function prefersMobileWebAr(ua: string): boolean {
   ) {
     return true;
   }
-  return /MiuiBrowser|HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
+  if (isXiaomiFamilyBrowser(ua)) return true;
+  return /HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
 }
 
 export function parseUserAgent(ua: string): ArDeviceProfile {
@@ -114,7 +119,7 @@ export function parseUserAgent(ua: string): ArDeviceProfile {
         primaryExperience: "webxr",
         fallbackExperience: "scene-viewer",
         buttonLabel: "Odamda Gor",
-        hint: "Redmi/Xiaomi: 3D sayfada AR dugmesine basin. Chrome ile daha iyi calisir.",
+        hint: "Xiaomi/HyperOS: 3D sayfada AR dugmesine basin. Google Chrome onerilir.",
       };
     }
 
@@ -202,7 +207,7 @@ export function resolveSceneViewerLaunchUrl(
   if (
     vendor === "samsung" ||
     vendor === "xiaomi" ||
-    /SamsungBrowser|MiuiBrowser/i.test(ua)
+    /SamsungBrowser|MiuiBrowser|XiaoMi\/MiuiBrowser/i.test(ua)
   ) {
     return buildSceneViewerGenericIntentUrl(glbUrl, fallbackUrl);
   }

@@ -88,7 +88,7 @@
     if (/Samsung|SM-|SAMSUNG/i.test(ua)) return "samsung";
     if (/Pixel|Google Pixel/i.test(ua)) return "google";
     if (/Huawei|Honor|HMOS|HarmonyOS/i.test(ua)) return "huawei";
-    if (/Xiaomi|Redmi|POCO|Mi\s/i.test(ua)) return "xiaomi";
+    if (/Xiaomi|XiaoMi|Redmi|POCO|Mi\s/i.test(ua)) return "xiaomi";
     if (/OPPO|Realme/i.test(ua)) return "oppo";
     if (/vivo/i.test(ua)) return "vivo";
     if (/OnePlus/i.test(ua)) return "oneplus";
@@ -103,13 +103,19 @@
     return true;
   }
 
+  function isXiaomiFamilyBrowser() {
+    var ua = navigator.userAgent;
+    return /MiuiBrowser|XiaoMi\/MiuiBrowser|HyperOS|Hyper OS/i.test(ua);
+  }
+
   function prefersMobileWebAr() {
     var ua = navigator.userAgent;
     var vendor = detectVendor();
     if (vendor === "xiaomi" || vendor === "oppo" || vendor === "vivo" || vendor === "oneplus") {
       return true;
     }
-    return /MiuiBrowser|HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
+    if (isXiaomiFamilyBrowser()) return true;
+    return /HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
   }
 
   function detectProfile() {
@@ -190,7 +196,7 @@
   function sceneViewerLaunchUrl(url, fallback) {
     var ua = navigator.userAgent;
     var vendor = detectVendor();
-    if (vendor === "samsung" || vendor === "xiaomi" || /SamsungBrowser|MiuiBrowser/i.test(ua)) {
+    if (vendor === "samsung" || vendor === "xiaomi" || /SamsungBrowser|MiuiBrowser|XiaoMi\/MiuiBrowser/i.test(ua)) {
       return sceneViewerGenericIntentUrl(url, fallback);
     }
     return sceneViewerIntentUrl(url, fallback);
