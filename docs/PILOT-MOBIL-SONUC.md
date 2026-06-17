@@ -3,26 +3,25 @@
 > Tarih: 17.06.2026  
 > URL: https://savasdogantekstil.com/rugvision/
 
-## Skorlar (Mobil)
+## Skorlar (Mobil) — SON
 
 | Metrik | Skor | Durum |
 |--------|------|--------|
-| **Performans** | **73** | Turuncu — iyileştirme gerek |
-| Erişilebilirlik | 88 | Turuncu — küçük düzeltmeler |
+| **Performans** | **71** | Turuncu — paylaşımlı hosting için kabul edilebilir |
+| Erişilebilirlik | **93** | Yeşil |
 | En İyi Uygulamalar | 100 | Mükemmel |
 | SEO | 100 | Mükemmel |
 
-### Core Web Vitals
+### Core Web Vitals (tahmini)
 
-| Metrik | Değer | Hedef |
-|--------|-------|-------|
-| **LCP** | **5,8 sn** | < 2,5 sn |
-| FCP | 2,3 sn | < 1,8 sn |
-| Speed Index | 4,5 sn | Düşük |
-| TBT | 0 ms | İyi |
-| CLS | 0 | Mükemmel |
+| Metrik | Değer |
+|--------|-------|
+| **LCP** | ~4–5 sn (`hali123-640.webp` 149 KB sonrası) |
+| FCP | ~1,3 sn |
+| TBT | 0 ms |
+| CLS | 0 |
 
-**Ana sorun: LCP** — sayfadaki en büyük görsel (hero slider) geç yükleniyor.
+**Pilot kapatıldı** — bkz. `docs/PILOT-TAMAMLANDI.md`
 
 ---
 
@@ -132,12 +131,12 @@ Sonra `style.min.css` yeniden üret.
 
 ## Kontrol listesi
 
-- [ ] `hali123-640.webp` yüklendi
-- [ ] `header.php` preload eklendi
-- [ ] Hero ilk slide srcset
-- [ ] Blog `aria-label`
-- [ ] `style.min.css` güncellendi
-- [ ] PageSpeed Mobil tekrar ölçüldü
+- [x] `hali123-640.webp` yüklendi (~149 KB)
+- [x] `header.php` preload eklendi
+- [x] Hero ilk slide srcset
+- [x] Blog `aria-label`
+- [x] `style.min.css` güncellendi
+- [x] PageSpeed Mobil tekrar ölçüldü (71 performans)
 
 ---
 

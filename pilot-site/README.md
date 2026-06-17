@@ -1,17 +1,28 @@
 # Pilot Site — savasdogantekstil.com/rugvision
 
-> **Durum: Optimizasyon tamamlandı** (Haziran 2026)  
+> **Durum: Pilot tamamlandı** (17.06.2026)  
 > Canlı site FTP/cPanel üzerinde; bu klasör referans + yedek.
+
+## PageSpeed Mobil (son)
+
+| Metrik | Skor |
+|--------|------|
+| Performans | **71** |
+| Erişilebilirlik | **93** |
+| En İyi Uygulamalar | **100** |
+| SEO | **100** |
+
+LCP hero: `assets/images/hali123-640.webp` (~149 KB) + preload + srcset.
 
 ## Canlıda yapılanlar (FTP)
 
 | Adım | Dosya | Değişiklik |
 |------|-------|------------|
-| 2 | `includes/header.php` | Font async, preconnect, `style.min.css` |
+| 2 | `includes/header.php` | Font async, preconnect, LCP preload, `style.min.css` |
 | 3 | `includes/footer.php` | `main.min.js` + `defer` |
 | 4 | `header.php` + `style.css` | Arama `label`, `.visually-hidden` |
-| 5 | `index.php` | DOM küçültme (4 ürün + keşfet linkleri) |
-| 6 | `functions.php`, `index.php`, `product-detail.php`, `footer.php` | `img_tag`, WebP, lazy |
+| 5–11 | `index.php` | DOM küçültme, hero LCP picture, kategori LIMIT 4, blog aria-label |
+| 6 | `functions.php`, `product-detail.php`, `footer.php` | `img_tag`, WebP, lazy |
 | 7 | `assets/css/`, `assets/js/` | `style.min.css`, `main.min.js` |
 | 9 | `product-detail.php` only | RugVision `widget.js` |
 
@@ -19,11 +30,12 @@
 
 ```
 pilot-site/
-  snippets/cssvejs/     ← Güncel CSS/JS kaynak + min (cPanel yükleme)
-  snippets/index-step6.php
-  snippets/product-detail-step6.php
+  snippets/index.php              ← Tam ana sayfa (FTP kopyala-yapıştır)
+  snippets/cssvejs/               ← Güncel CSS/JS kaynak + min
   snippets/functions-img-helper.php
-  backup/2026-06-17/    ← İlk yedek snapshot
+  snippets/header-lcp-preload.php
+  snippets/index-hero-lcp.php
+  backup/2026-06-17/                ← İlk yedek snapshot
 ```
 
 ## RugVision (ayrı sistem)
