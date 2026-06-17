@@ -6,21 +6,9 @@ import {
   ODAMDA_GOR_REVALIDATE_SEC,
 } from "@/lib/cache-tags";
 import ArViewerClient from "./ar-viewer-client";
+import { buildIosSrc, buildViewerGlbSrc } from "@/lib/model-urls";
 
 const FALLBACK_MODEL_URL = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
-
-function buildIosSrc(modelUrl: string) {
-  const lower = modelUrl.toLowerCase();
-  if (!lower.endsWith(".glb")) return undefined;
-
-  if (modelUrl.startsWith("/models/")) {
-    const fileName = modelUrl.split("/").pop();
-    if (!fileName) return undefined;
-    return `/api/v1/ar/usdz/${fileName.replace(/\.glb$/i, ".usdz")}`;
-  }
-
-  return modelUrl.replace(/\.glb$/i, ".usdz");
-}
 
 async function loadRugForViewer(id: string) {
   return prisma.rug.findUnique({
@@ -73,6 +61,7 @@ export default async function OdamdaGorPage({
   }
 
   const modelUrl = rug.model3dUrl || FALLBACK_MODEL_URL;
+  const viewerSrc = buildViewerGlbSrc(modelUrl);
   const iosSrc = buildIosSrc(modelUrl);
   const isFallbackModel = !rug.model3dUrl;
   const buttonText = rug.merchant.widgetSettings?.buttonText || "Odamda Gor";
@@ -82,6 +71,7 @@ export default async function OdamdaGorPage({
   const viewer = (
     <ArViewerClient
       modelUrl={modelUrl}
+      viewerSrc={viewerSrc}
       iosSrc={iosSrc}
       name={rug.name}
       merchantId={rug.merchant.id}

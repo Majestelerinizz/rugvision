@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
+
 type Props = {
   modelUrl: string;
+  viewerSrc: string;
   iosSrc?: string;
   name: string;
   merchantId: string;
@@ -35,7 +37,6 @@ function openAndroidSceneViewer(modelUrl: string) {
   const absoluteUrl = new URL(modelUrl, window.location.href).toString();
   const fallback = window.location.href;
 
-  // Android Scene Viewer deep link (ARCore). Falls back to the current page.
   const intentUrl =
     "intent://arvr.google.com/scene-viewer/1.0?file=" +
     encodeURIComponent(absoluteUrl) +
@@ -52,7 +53,6 @@ function openAndroidSceneViewer(modelUrl: string) {
 function openIosQuickLook(iosSrc: string) {
   const absoluteUrl = new URL(iosSrc, window.location.href).toString();
 
-  // iOS Quick Look is most reliable when launched via an anchor with rel="ar".
   const anchor = document.createElement("a");
   anchor.setAttribute("rel", "ar");
   anchor.setAttribute("href", absoluteUrl);
@@ -126,8 +126,20 @@ function trackEvent(
   }
 }
 
+function ViewerPlaceholder({ label }: { label: string }) {
+  return (
+    <div
+      className="flex h-full min-h-[320px] w-full items-center justify-center rounded-[14px] bg-zinc-100 text-sm text-zinc-500"
+      aria-live="polite"
+    >
+      {label}
+    </div>
+  );
+}
+
 export default function ArViewerClient({
   modelUrl,
+  viewerSrc,
   iosSrc,
   name,
   merchantId,
@@ -141,32 +153,12 @@ export default function ArViewerClient({
   embed = false,
 }: Props) {
   const viewerRef = useRef<ModelViewerElement | null>(null);
+  const [scriptReady, setScriptReady] = useState(false);
 
   useEffect(() => {
     trackEvent("VIEW_3D", merchantId, rugId);
   }, [merchantId, rugId]);
 
-  useEffect(() => {
-    if (!modelUrl) return;
-    try {
-      const origin = new URL(modelUrl, window.location.href).origin;
-      if (origin === window.location.origin) return;
-      const preconnect = document.createElement("link");
-      preconnect.rel = "preconnect";
-      preconnect.href = origin;
-      preconnect.crossOrigin = "anonymous";
-      document.head.appendChild(preconnect);
-
-      const preload = document.createElement("link");
-      preload.rel = "preload";
-      preload.as = "fetch";
-      preload.href = modelUrl;
-      preload.crossOrigin = "anonymous";
-      document.head.appendChild(preload);
-    } catch {
-      // best-effort
-    }
-  }, [modelUrl]);
   const handleActivateAr = async () => {
     const viewer = viewerRef.current;
     if (!viewer) return;
@@ -194,9 +186,43 @@ export default function ArViewerClient({
       return;
     }
 
-    // Fallback for browsers where no AR path is available.
     window.open(modelUrl, "_blank", "noopener,noreferrer");
   };
+
+  const scriptStrategy = embed ? "afterInteractive" : "lazyOnload";
+
+  const modelViewerStyle = embed
+    ? {
+        width: "100%",
+        height: "100%",
+        borderRadius: "14px",
+        background: "#f4f4f5",
+      }
+    : {
+        width: "100%",
+        height: "65vh",
+        borderRadius: "14px",
+        background: "#f4f4f5",
+      };
+
+  const modelViewer = scriptReady ? (
+    <model-viewer
+      ref={viewerRef}
+      src={viewerSrc}
+      ios-src={iosSrc}
+      alt={name}
+      ar
+      ar-placement="floor"
+      ar-modes="webxr scene-viewer quick-look"
+      camera-controls
+      auto-rotate
+      shadow-intensity="1"
+      exposure="1"
+      style={modelViewerStyle}
+    />
+  ) : (
+    <ViewerPlaceholder label="3D model yukleniyor..." />
+  );
 
   if (embed) {
     return (
@@ -204,30 +230,12 @@ export default function ArViewerClient({
         <Script
           type="module"
           src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
-          strategy="lazyOnload"
+          strategy={scriptStrategy}
+          onLoad={() => setScriptReady(true)}
         />
 
-        <div className="relative h-[calc(100vh-24px)] w-full">
-          <model-viewer
-            ref={viewerRef}
-            src={modelUrl}
-            ios-src={iosSrc}
-            alt={name}
-            ar
-            ar-placement="floor"
-            ar-modes="webxr scene-viewer quick-look"
-            camera-controls
-            auto-rotate
-            shadow-intensity="1"
-            exposure="1"
-            loading="lazy"
-            style={{
-              width: "100%",
-              height: "100%",
-              borderRadius: "14px",
-              background: "#f4f4f5",
-            }}
-          />
+        <div className="relative h-[calc(100vh-24px)] w-full min-h-[360px]">
+          {modelViewer}
 
           <button
             type="button"
@@ -247,31 +255,13 @@ export default function ArViewerClient({
       <Script
         type="module"
         src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
-        strategy="lazyOnload"
+        strategy={scriptStrategy}
+        onLoad={() => setScriptReady(true)}
       />
 
       <div className="grid gap-6 md:grid-cols-3">
-        <section className="md:col-span-2">
-          <model-viewer
-            ref={viewerRef}
-            src={modelUrl}
-            ios-src={iosSrc}
-            alt={name}
-            ar
-            ar-placement="floor"
-            ar-modes="webxr scene-viewer quick-look"
-            camera-controls
-            auto-rotate
-            shadow-intensity="1"
-            exposure="1"
-            loading="lazy"
-            style={{
-              width: "100%",
-              height: "65vh",
-              borderRadius: "14px",
-              background: "#f4f4f5",
-            }}
-          />
+        <section className="md:col-span-2 min-h-[65vh]">
+          {modelViewer}
         </section>
 
         <aside className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
