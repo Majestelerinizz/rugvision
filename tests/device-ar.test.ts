@@ -80,15 +80,15 @@ describe("device-ar", () => {
     assert.equal(shouldUseSceneViewerIntent(ua), false);
   });
 
-  it("Xiaomi Chrome uses WebXR not Scene Viewer", () => {
+  it("Xiaomi Chrome uses Scene Viewer like Samsung", () => {
     const ua =
       "Mozilla/5.0 (Linux; Android 14; Redmi Note 12 Build/TKQ1) AppleWebKit/537.36 Chrome/124.0 Mobile Safari/537.36";
     const p = parseUserAgent(ua);
     assert.equal(p.vendor, "xiaomi");
-    assert.equal(p.primaryExperience, "webxr");
+    assert.equal(p.primaryExperience, "scene-viewer");
     assert.equal(shouldBlockNativeAr(ua), false);
-    assert.equal(shouldUseSceneViewerIntent(ua), false);
-    assert.equal(arModesForProfile(p), "webxr");
+    assert.equal(shouldUseSceneViewerIntent(ua), true);
+    assert.equal(arModesForProfile(p), "scene-viewer");
   });
 
   it("Redmi MiuiBrowser prefers Chrome handoff", () => {

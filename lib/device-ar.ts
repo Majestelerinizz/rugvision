@@ -1,3 +1,6 @@
+export const AR_CORE_PLAY_STORE_URL =
+  "https://play.google.com/store/apps/details?id=com.google.ar.core";
+
 export type ArPlatform = "ios" | "android" | "desktop" | "unknown";
 
 export type ArExperience = "quick-look" | "scene-viewer" | "webxr" | "preview-3d";
@@ -78,7 +81,6 @@ export function isStockMiuiBrowser(ua: string): boolean {
 export function prefersMobileWebAr(ua: string): boolean {
   if (isStockMiuiBrowser(ua)) return true;
   const vendor = detectVendor(ua);
-  if (vendor === "xiaomi" && isAndroidChrome(ua)) return true;
   if (vendor === "oppo" || vendor === "vivo" || vendor === "oneplus") return true;
   return /HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
 }
@@ -140,10 +142,11 @@ export function parseUserAgent(ua: string): ArDeviceProfile {
           modelHint,
           likelyHasGms: hasGms,
           supportsNativeAr: true,
-          primaryExperience: "webxr",
+          primaryExperience: "scene-viewer",
           fallbackExperience: "preview-3d",
           buttonLabel: "Odamda Gor",
-          hint: "Chrome AR: AR dugmesi dogrudan kamerayi acar (Play Hizmetleri APK gerekmez).",
+          hint:
+            "AR icin Play Store'dan ucretsiz 'Google Play Hizmetleri icin AR' kurun, sonra bu dugmeye basin (Samsung gibi).",
         };
       }
     }
@@ -266,12 +269,15 @@ export function shouldBlockNativeAr(ua: string): boolean {
   return isStockMiuiBrowser(ua);
 }
 
-/** Android'de model-viewer activateAR yerine Scene Viewer (Play Hizmetleri dongusu onlenir). */
+/** Android'de model-viewer activateAR yerine Scene Viewer intent (Samsung yolu). */
 export function shouldUseSceneViewerIntent(ua: string): boolean {
-  const vendor = detectVendor(ua);
-  if (vendor === "xiaomi") return false;
   if (!isAndroidUserAgent(ua)) return false;
-  return !isStockMiuiBrowser(ua);
+  if (isStockMiuiBrowser(ua)) return false;
+  return likelyHasGooglePlayServices(ua);
+}
+
+export function shouldShowArCoreInstallHint(ua: string): boolean {
+  return isAndroidUserAgent(ua) && likelyHasGooglePlayServices(ua) && !isStockMiuiBrowser(ua);
 }
 
 /** Xiaomi/HyperOS: ayni sayfayi Google Chrome ile ac (AR Core APK yuklemesini onler). */
@@ -292,8 +298,5 @@ export function arModesForProfile(profile: ArDeviceProfile) {
   if (profile.platform === "android" && profile.primaryExperience === "webxr") {
     return "webxr";
   }
-  if (profile.platform === "android" && profile.likelyHasGms) {
-    return "webxr scene-viewer quick-look";
-  }
-  return "webxr scene-viewer";
+  return "scene-viewer";
 }

@@ -127,7 +127,6 @@
   function prefersMobileWebAr() {
     if (isStockMiuiBrowser()) return true;
     var vendor = detectVendor();
-    if (vendor === "xiaomi" && isAndroidChrome()) return true;
     if (vendor === "oppo" || vendor === "vivo" || vendor === "oneplus") return true;
     return /HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(navigator.userAgent);
   }
@@ -166,7 +165,7 @@
           platform: "android",
           vendor: "xiaomi",
           supportsNativeAr: true,
-          primary: "webxr",
+          primary: "scene-viewer",
           buttonLabel: overrideText || "Odamda Gor",
         };
       }
@@ -268,6 +267,133 @@
     } catch {
       /* best-effort */
     }
+  }
+
+  function sampleBottomRegionStats(pixels, width, height) {
+    var yStart = Math.floor(height * 0.72);
+    var sum = 0;
+    var sumSq = 0;
+    var n = 0;
+    for (var y = yStart; y < height; y++) {
+      for (var x = 0; x < width; x++) {
+        var i = (y * width + x) * 4;
+        var luma = 0.299 * pixels[i] + 0.587 * pixels[i + 1] + 0.114 * pixels[i + 2];
+        sum += luma;
+        sumSq += luma * luma;
+        n++;
+      }
+    }
+    if (!n) return { luma: 0, variance: 0 };
+    var mean = sum / n;
+    var variance = sumSq / n - mean * mean;
+    return { luma: mean, variance: Math.max(0, variance) };
+  }
+
+  function captureFloorFromCamera(timeoutMs) {
+    timeoutMs = timeoutMs || 800;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return Promise.resolve(null);
+    }
+    var stream = null;
+    var timer = null;
+    return Promise.race([
+      navigator.mediaDevices
+        .getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 320 },
+            height: { ideal: 240 },
+          },
+          audio: false,
+        })
+        .then(function (s) {
+          stream = s;
+          var video = document.createElement("video");
+          video.srcObject = stream;
+          video.muted = true;
+          video.playsInline = true;
+          return video.play().then(function () {
+            return new Promise(function (resolve) {
+              if (video.readyState >= 2) resolve();
+              else video.onloadeddata = function () {
+                resolve();
+              };
+              setTimeout(resolve, 200);
+            }).then(function () {
+              var w = video.videoWidth || 320;
+              var h = video.videoHeight || 240;
+              var canvas = document.createElement("canvas");
+              canvas.width = w;
+              canvas.height = h;
+              var ctx = canvas.getContext("2d");
+              if (!ctx) return null;
+              ctx.drawImage(video, 0, 0, w, h);
+              return sampleBottomRegionStats(ctx.getImageData(0, 0, w, h).data, w, h);
+            });
+          });
+        }),
+      new Promise(function (resolve) {
+        timer = setTimeout(function () {
+          resolve(null);
+        }, timeoutMs);
+      }),
+    ])
+      .catch(function () {
+        return null;
+      })
+      .finally(function () {
+        if (timer) clearTimeout(timer);
+        if (stream) {
+          stream.getTracks().forEach(function (t) {
+            t.stop();
+          });
+        }
+      });
+  }
+
+  function submitAiScans(merchantId) {
+    var sw = window.screen && window.screen.width;
+    var sh = window.screen && window.screen.height;
+    return captureFloorFromCamera(700).then(function (stats) {
+      var ctx = {
+        platform: navigator.userAgent,
+        vendor: detectVendor(),
+        hasGyroscope: "DeviceOrientationEvent" in window,
+        screenWidth: sw,
+        screenHeight: sh,
+        portrait: sw && sh ? sh > sw : undefined,
+        aspectRatio: sw && sh ? Number((sw / sh).toFixed(3)) : undefined,
+      };
+      if (stats) {
+        ctx.imageBottomLuma = Number(stats.luma.toFixed(2));
+        ctx.imageBottomVariance = Number(stats.variance.toFixed(2));
+      }
+      ["FLOOR_DETECTION", "ROOM_DETECTION"].forEach(function (scanType) {
+        fetch(base + "/api/v1/ai/scans", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            merchantId: merchantId,
+            rugId: rugId,
+            scanType: scanType,
+            context: ctx,
+          }),
+          keepalive: true,
+        }).catch(function () {});
+      });
+    });
+  }
+
+  function runArWithFloorScan(merchantId, launchAr) {
+    track("AR_STARTED", merchantId);
+    Promise.race([
+      submitAiScans(merchantId),
+      new Promise(function (resolve) {
+        setTimeout(resolve, 750);
+      }),
+    ]).finally(function () {
+      launchAr();
+    });
   }
 
   function computeModelUrls(model3dUrl) {
@@ -447,25 +573,31 @@
     var profile = detectProfile();
 
     if (profile.primary === "quick-look" && usdzUrl) {
-      track("AR_STARTED", merchantId);
-      if (openQuickLook()) return;
+      runArWithFloorScan(merchantId, function () {
+        openQuickLook();
+      });
+      return;
     }
 
     if (profile.primary === "chrome-handoff") {
-      track("AR_STARTED", merchantId);
-      openInChromeViewer();
+      runArWithFloorScan(merchantId, function () {
+        openInChromeViewer();
+      });
       return;
     }
 
     if (profile.primary === "webxr") {
-      track("AR_STARTED", merchantId);
-      openMobileViewer();
+      runArWithFloorScan(merchantId, function () {
+        openMobileViewer();
+      });
       return;
     }
 
     if (profile.primary === "scene-viewer" && glbUrl) {
-      track("AR_STARTED", merchantId);
-      if (openSceneViewer()) return;
+      runArWithFloorScan(merchantId, function () {
+        openSceneViewer();
+      });
+      return;
     }
 
     // Huawei / AR desteklemeyen Android veya model yok: tam sayfa 3D/WebXR.

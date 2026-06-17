@@ -6,10 +6,13 @@ import {
   parseUserAgent,
   shouldBlockNativeAr,
   shouldUseSceneViewerIntent,
+  shouldShowArCoreInstallHint,
+  AR_CORE_PLAY_STORE_URL,
   buildChromeIntentUrl,
   resolveSceneViewerLaunchUrl,
   arModesForProfile,
 } from "@/lib/device-ar";
+import { runPreArFloorScans } from "@/lib/floor-scan-client";
 
 type Props = {
   modelUrl: string;
@@ -43,7 +46,7 @@ function openInChrome(pageUrl: string) {
 }
 
 function openSceneViewerIntent(glbUrl: string, fallbackUrl: string, ua: string) {
-  const intentUrl = resolveSceneViewerLaunchUrl(glbUrl, fallbackUrl, ua);
+  const intentUrl = resolveSceneViewerLaunchUrl(ua, glbUrl, fallbackUrl);
   const anchor = document.createElement("a");
   anchor.href = intentUrl;
   anchor.style.display = "none";
@@ -63,37 +66,6 @@ function openIosQuickLook(iosSrc: string) {
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
-}
-
-function trackAiScan(
-  merchantId: string,
-  rugId: string,
-  scanType: "FLOOR_DETECTION" | "ROOM_DETECTION",
-  profileVendor: string | null
-) {
-  try {
-    const payload = JSON.stringify({
-      merchantId,
-      rugId,
-      scanType,
-      context: {
-        platform: typeof navigator !== "undefined" ? navigator.userAgent : "",
-        vendor: profileVendor,
-        hasGyroscope:
-          typeof window !== "undefined" && "DeviceOrientationEvent" in window,
-        screenWidth: typeof window !== "undefined" ? window.screen?.width : undefined,
-        screenHeight: typeof window !== "undefined" ? window.screen?.height : undefined,
-      },
-    });
-    fetch("/api/v1/ai/scans", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: payload,
-      keepalive: true,
-    }).catch(() => {});
-  } catch {
-    // best-effort
-  }
 }
 
 function trackEvent(
@@ -160,12 +132,14 @@ export default function ArViewerClient({
   const displayButtonText =
     blockNativeAr && (mobile || embed)
       ? "Chrome'da Ac"
-      : profile.primaryExperience === "webxr" && profile.vendor === "xiaomi"
-        ? "Odamda Gor (AR)"
-        : mobile && !profile.supportsNativeAr
-          ? profile.buttonLabel
-          : buttonText;
+      : mobile && !profile.supportsNativeAr
+        ? profile.buttonLabel
+        : buttonText;
+  const showArCoreHint = shouldShowArCoreInstallHint(ua);
   const arModes = arModesForProfile(profile);
+  const enableModelViewerAr =
+    !blockNativeAr &&
+    (profile.platform === "ios" || profile.primaryExperience === "webxr");
   const fullScreen = embed || mobile;
 
   useEffect(() => {
@@ -177,8 +151,12 @@ export default function ArViewerClient({
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
 
     trackEvent("AR_STARTED", merchantId, rugId);
-    trackAiScan(merchantId, rugId, "FLOOR_DETECTION", profile.vendor);
-    trackAiScan(merchantId, rugId, "ROOM_DETECTION", profile.vendor);
+    await runPreArFloorScans({
+      merchantId,
+      rugId,
+      vendor: profile.vendor,
+      maxWaitMs: 750,
+    });
 
     if (profile.primaryExperience === "quick-look" && iosSrc) {
       openIosQuickLook(iosSrc);
@@ -187,18 +165,6 @@ export default function ArViewerClient({
 
     if (shouldBlockNativeAr(ua)) {
       openInChrome(window.location.href);
-      return;
-    }
-
-    if (profile.primaryExperience === "webxr" && profile.vendor === "xiaomi") {
-      if (viewer && typeof viewer.activateAR === "function") {
-        try {
-          await viewer.activateAR();
-          return;
-        } catch {
-          /* WebXR desteklenmiyorsa 3D onizleme kalir */
-        }
-      }
       return;
     }
 
@@ -242,7 +208,7 @@ export default function ArViewerClient({
       src={viewerSrc}
       {...(iosSrc ? { "ios-src": iosSrc } : {})}
       alt={name}
-      {...(!blockNativeAr
+      {...(enableModelViewerAr
         ? {
             ar: true,
             "ar-placement": "floor" as const,
@@ -278,6 +244,21 @@ export default function ArViewerClient({
 
         <div className="relative h-[calc(100vh-24px)] w-full min-h-[360px]">
           {modelViewer}
+
+          {showArCoreHint && (
+            <p className="absolute bottom-20 left-1/2 z-10 w-[min(92%,22rem)] -translate-x-1/2 rounded-lg bg-amber-50 px-3 py-2 text-center text-xs text-amber-900 shadow">
+              AR icin once{" "}
+              <a
+                href={AR_CORE_PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold underline"
+              >
+                Google Play Hizmetleri icin AR
+              </a>{" "}
+              kurun (Play Store, ucretsiz).
+            </p>
+          )}
 
           <button
             type="button"
@@ -326,6 +307,21 @@ export default function ArViewerClient({
           >
             {displayButtonText}
           </button>
+
+          {showArCoreHint && (
+            <p className="mt-3 text-xs text-amber-800">
+              AR icin{" "}
+              <a
+                href={AR_CORE_PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold underline"
+              >
+                Google Play Hizmetleri icin AR
+              </a>{" "}
+              kurulu olmali (Play Store, ucretsiz).
+            </p>
+          )}
 
           {hint}
         </aside>
