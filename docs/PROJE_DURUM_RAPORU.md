@@ -185,11 +185,12 @@ Pilot'te **her SKU için ayrı GLB/USDZ** üretildi ve canlıda kullanılıyor.
 | Platform / marka | Tam AR | Not |
 |------------------|--------|-----|
 | **iPhone / iPad** | Evet | Quick Look — pilot doğrulandı |
-| **Samsung, Pixel** | Evet | ARCore + Scene Viewer |
-| **Oppo / Vivo (global)** | Çoğunlukla evet | GMS + destek listesi |
-| **POCO / Xiaomi** | Kısmen | Modele bağlı |
-| **Huawei (GMS yok)** | Hayır | 3D fallback |
-| **Masaüstü** | Hayır | 3D modal |
+| **Samsung Galaxy** | Evet | Scene Viewer HTTPS + intent |
+| **Google Pixel** | Evet | Scene Viewer + WebXR fallback |
+| **OPPO / vivo / OnePlus (GMS)** | Evet | Scene Viewer + mobil AR sayfasi |
+| **Xiaomi / POCO** | Kısmen | GMS varsa Scene Viewer |
+| **Huawei (GMS yok)** | Hayır | 3D önizleme (AR yok) |
+| **Masaüstü** | 3D modal | GLB proxy doğrulandı |
 
 ---
 

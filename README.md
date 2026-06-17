@@ -198,17 +198,21 @@ Lokal deneme için hazır bir örnek sayfa: `public/widget-demo.html`.
 - Örnek modeller: `public/models/` — pilot 10 SKU: `RV-LUNA-001.glb` … `RV-NARIN-010.glb`
 - Toplu üretim: `npm run models:batch` + `npm run models:attach` (bkz. `docs/MODEL-PIPELINE.md`)
 
-### Cihaz uyumluluğu (özet)
+### Cihaz uyumluluğu (guncel)
 
-| Platform | Tam AR | Not |
-|----------|--------|-----|
-| iPhone / iPad | Evet | Quick Look |
-| Samsung, Pixel, Oppo/Vivo (global) | Evet | ARCore + Scene Viewer |
-| POCO / Xiaomi | Kısmen | Modele bağlı |
-| Huawei (GMS yok) | 3D only | Tam AR desteklenmez |
-| Masaüstü | 3D modal | Tam AR değil |
+| Platform | Tam AR | Akis |
+|----------|--------|------|
+| iPhone / iPad | Evet | Quick Look (USDZ) |
+| Samsung Galaxy | Evet | Scene Viewer HTTPS + intent fallback |
+| Google Pixel | Evet | Scene Viewer intent + WebXR sayfasi |
+| OPPO / vivo / OnePlus (GMS) | Evet | Scene Viewer + `/odamda-gor?mobile=1` |
+| Xiaomi / POCO (GMS) | Cogunlukla | Scene Viewer (modele bagli) |
+| Huawei / Honor (GMS yok) | Hayir | 3D onizleme (buton: "3D Onizleme") |
+| Masaustu | 3D modal | GLB proxy + model-viewer |
 
-Detay: `docs/PROJE_DURUM_RAPORU.md` §7.
+Cihaz algilama: `lib/device-ar.ts` · Widget coklu fallback zinciri: Quick Look → Scene Viewer → mobil AR sayfasi → 3D modal.
+
+Detay: `docs/PROJE_DURUM_RAPORU.md` §8.
 
 ---
 

@@ -35,11 +35,12 @@ export default async function OdamdaGorPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ embed?: string }>;
+  searchParams: Promise<{ embed?: string; mobile?: string }>;
 }) {
   const { id } = await params;
-  const { embed } = await searchParams;
-  const isEmbed = embed === "1" || embed === "true";
+  const { embed, mobile } = await searchParams;
+  const isMobile = mobile === "1" || mobile === "true";
+  const isEmbed = embed === "1" || embed === "true" || isMobile;
 
   const rug = await getRugForViewer(id);
 
@@ -83,6 +84,7 @@ export default async function OdamdaGorPage({
       buttonColor={buttonColor}
       borderRadius={borderRadius}
       embed={isEmbed}
+      mobile={isMobile}
     />
   );
 

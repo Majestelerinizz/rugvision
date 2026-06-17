@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Script from "next/script";
+import {
+  parseUserAgent,
+  buildSceneViewerGenericIntentUrl,
+  buildSceneViewerHttpsUrl,
+  buildSceneViewerIntentUrl,
+  arModesForProfile,
+} from "@/lib/device-ar";
 
 type Props = {
   modelUrl: string;
@@ -17,50 +24,37 @@ type Props = {
   buttonColor: string;
   borderRadius: number;
   embed?: boolean;
+  mobile?: boolean;
 };
 
 type ModelViewerElement = HTMLElement & {
   activateAR?: () => Promise<void> | void;
 };
 
-function isIOSDevice() {
-  if (typeof navigator === "undefined") return false;
-  return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-function isAndroidDevice() {
-  if (typeof navigator === "undefined") return false;
-  return /Android/i.test(navigator.userAgent);
-}
-
-function openAndroidSceneViewer(modelUrl: string) {
+function openAndroidSceneViewer(modelUrl: string, fallbackUrl: string, vendor: string | null) {
   const absoluteUrl = new URL(modelUrl, window.location.href).toString();
-  const fallback = window.location.href;
+  const absoluteFallback = new URL(fallbackUrl, window.location.href).toString();
 
-  const intentUrl =
-    "intent://arvr.google.com/scene-viewer/1.0?file=" +
-    encodeURIComponent(absoluteUrl) +
-    "&mode=ar_preferred" +
-    "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;" +
-    "action=android.intent.action.VIEW;" +
-    "S.browser_fallback_url=" +
-    encodeURIComponent(fallback) +
-    ";end;";
+  if (vendor === "samsung") {
+    window.location.href = buildSceneViewerHttpsUrl(absoluteUrl);
+    return;
+  }
 
-  window.location.href = intentUrl;
+  try {
+    window.location.href = buildSceneViewerIntentUrl(absoluteUrl, absoluteFallback);
+  } catch {
+    window.location.href = buildSceneViewerGenericIntentUrl(absoluteUrl, absoluteFallback);
+  }
 }
 
 function openIosQuickLook(iosSrc: string) {
   const absoluteUrl = new URL(iosSrc, window.location.href).toString();
-
   const anchor = document.createElement("a");
   anchor.setAttribute("rel", "ar");
   anchor.setAttribute("href", absoluteUrl);
-
   const img = document.createElement("img");
   img.setAttribute("alt", "AR");
   anchor.appendChild(img);
-
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
@@ -69,7 +63,8 @@ function openIosQuickLook(iosSrc: string) {
 function trackAiScan(
   merchantId: string,
   rugId: string,
-  scanType: "FLOOR_DETECTION" | "ROOM_DETECTION"
+  scanType: "FLOOR_DETECTION" | "ROOM_DETECTION",
+  profileVendor: string | null
 ) {
   try {
     const payload = JSON.stringify({
@@ -78,18 +73,11 @@ function trackAiScan(
       scanType,
       context: {
         platform: typeof navigator !== "undefined" ? navigator.userAgent : "",
+        vendor: profileVendor,
         hasGyroscope:
           typeof window !== "undefined" && "DeviceOrientationEvent" in window,
         screenWidth: typeof window !== "undefined" ? window.screen?.width : undefined,
         screenHeight: typeof window !== "undefined" ? window.screen?.height : undefined,
-        portrait:
-          typeof window !== "undefined"
-            ? window.matchMedia?.("(orientation: portrait)")?.matches
-            : undefined,
-        aspectRatio:
-          typeof window !== "undefined" && window.screen?.height
-            ? Number((window.screen.width / window.screen.height).toFixed(3))
-            : undefined,
       },
     });
     fetch("/api/v1/ai/scans", {
@@ -122,7 +110,7 @@ function trackEvent(
       keepalive: true,
     }).catch(() => {});
   } catch {
-    // analytics is best-effort; never block the AR experience
+    // analytics is best-effort
   }
 }
 
@@ -151,9 +139,20 @@ export default function ArViewerClient({
   buttonColor,
   borderRadius,
   embed = false,
+  mobile = false,
 }: Props) {
   const viewerRef = useRef<ModelViewerElement | null>(null);
   const [scriptReady, setScriptReady] = useState(false);
+
+  const profile = useMemo(() => {
+    if (typeof navigator === "undefined") return parseUserAgent("");
+    return parseUserAgent(navigator.userAgent);
+  }, []);
+
+  const displayButtonText =
+    mobile && !profile.supportsNativeAr ? profile.buttonLabel : buttonText;
+  const arModes = arModesForProfile(profile);
+  const fullScreen = embed || mobile;
 
   useEffect(() => {
     trackEvent("VIEW_3D", merchantId, rugId);
@@ -161,37 +160,36 @@ export default function ArViewerClient({
 
   const handleActivateAr = async () => {
     const viewer = viewerRef.current;
-    if (!viewer) return;
 
     trackEvent("AR_STARTED", merchantId, rugId);
-    trackAiScan(merchantId, rugId, "FLOOR_DETECTION");
-    trackAiScan(merchantId, rugId, "ROOM_DETECTION");
+    trackAiScan(merchantId, rugId, "FLOOR_DETECTION", profile.vendor);
+    trackAiScan(merchantId, rugId, "ROOM_DETECTION", profile.vendor);
 
-    if (isIOSDevice() && iosSrc) {
+    if (profile.primaryExperience === "quick-look" && iosSrc) {
       openIosQuickLook(iosSrc);
       return;
     }
 
-    if (typeof viewer.activateAR === "function") {
+    if (viewer && typeof viewer.activateAR === "function") {
       try {
         await viewer.activateAR();
         return;
       } catch {
-        // fall through to platform-specific fallback below
+        // platform fallback below
       }
     }
 
-    if (isAndroidDevice()) {
-      openAndroidSceneViewer(modelUrl);
+    if (profile.platform === "android" && profile.likelyHasGms) {
+      openAndroidSceneViewer(modelUrl, window.location.href, profile.vendor);
       return;
     }
 
     window.open(modelUrl, "_blank", "noopener,noreferrer");
   };
 
-  const scriptStrategy = embed ? "afterInteractive" : "lazyOnload";
+  const scriptStrategy = fullScreen ? "afterInteractive" : "lazyOnload";
 
-  const modelViewerStyle = embed
+  const modelViewerStyle = fullScreen
     ? {
         width: "100%",
         height: "100%",
@@ -213,7 +211,7 @@ export default function ArViewerClient({
       alt={name}
       ar
       ar-placement="floor"
-      ar-modes="webxr scene-viewer quick-look"
+      ar-modes={arModes}
       camera-controls
       auto-rotate
       shadow-intensity="1"
@@ -224,7 +222,14 @@ export default function ArViewerClient({
     <ViewerPlaceholder label="3D model yukleniyor..." />
   );
 
-  if (embed) {
+  const hint = (
+    <p className="mt-3 text-xs text-zinc-500">
+      {profile.hint}
+      {profile.modelHint ? ` (${profile.modelHint})` : ""}
+    </p>
+  );
+
+  if (fullScreen) {
     return (
       <>
         <Script
@@ -240,12 +245,15 @@ export default function ArViewerClient({
           <button
             type="button"
             onClick={handleActivateAr}
-            className="absolute bottom-5 left-1/2 -translate-x-1/2 px-6 py-3 text-sm font-medium text-white shadow-lg"
+            className="absolute bottom-5 left-1/2 z-10 -translate-x-1/2 px-6 py-3 text-sm font-medium text-white shadow-lg"
             style={{ backgroundColor: buttonColor, borderRadius }}
           >
-            {buttonText}
+            {displayButtonText}
           </button>
         </div>
+        {mobile && (
+          <p className="px-3 pb-3 text-center text-xs text-zinc-500">{profile.hint}</p>
+        )}
       </>
     );
   }
@@ -260,9 +268,7 @@ export default function ArViewerClient({
       />
 
       <div className="grid gap-6 md:grid-cols-3">
-        <section className="md:col-span-2 min-h-[65vh]">
-          {modelViewer}
-        </section>
+        <section className="md:col-span-2 min-h-[65vh]">{modelViewer}</section>
 
         <aside className="rounded-xl border border-zinc-200 p-5 dark:border-zinc-800">
           <h2 className="text-lg font-semibold">Urun Bilgisi</h2>
@@ -276,12 +282,10 @@ export default function ArViewerClient({
             className="mt-5 w-full px-4 py-3 text-sm font-medium text-white"
             style={{ backgroundColor: buttonColor, borderRadius }}
           >
-            {buttonText}
+            {displayButtonText}
           </button>
 
-          <p className="mt-3 text-xs text-zinc-500">
-            Mobil cihazlarda buton Scene Viewer veya Quick Look akisini tetikler.
-          </p>
+          {hint}
         </aside>
       </div>
     </>

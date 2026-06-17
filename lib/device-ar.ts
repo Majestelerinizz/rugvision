@@ -1,0 +1,181 @@
+export type ArPlatform = "ios" | "android" | "desktop" | "unknown";
+
+export type ArExperience = "quick-look" | "scene-viewer" | "webxr" | "preview-3d";
+
+export type ArDeviceProfile = {
+  platform: ArPlatform;
+  vendor: string | null;
+  modelHint: string | null;
+  /** Google Play Services / Scene Viewer kullanilabilir mi? */
+  likelyHasGms: boolean;
+  supportsNativeAr: boolean;
+  primaryExperience: ArExperience;
+  fallbackExperience: ArExperience;
+  buttonLabel: string;
+  hint: string;
+};
+
+function normalizeUa(ua: string) {
+  return ua.trim();
+}
+
+export function isIosUserAgent(ua: string) {
+  const n = normalizeUa(ua);
+  return (
+    /iPhone|iPad|iPod/i.test(n) ||
+    (/\bMacintosh\b/i.test(n) && /Mobile/i.test(n))
+  );
+}
+
+export function isAndroidUserAgent(ua: string) {
+  return /Android/i.test(normalizeUa(ua));
+}
+
+export function detectVendor(ua: string): string | null {
+  const n = normalizeUa(ua);
+  if (/iPhone|iPad|iPod/i.test(n)) return "apple";
+  if (/Samsung|SM-|SAMSUNG/i.test(n)) return "samsung";
+  if (/Pixel|Google Pixel/i.test(n)) return "google";
+  if (/Huawei|Honor|HMOS|HarmonyOS/i.test(n)) return "huawei";
+  if (/Xiaomi|Redmi|POCO|Mi\s/i.test(n)) return "xiaomi";
+  if (/OPPO|Realme/i.test(n)) return "oppo";
+  if (/vivo/i.test(n)) return "vivo";
+  if (/OnePlus/i.test(n)) return "oneplus";
+  return null;
+}
+
+/** Huawei / bazi Honor cihazlarda GMS yok; Scene Viewer calismaz. */
+export function likelyHasGooglePlayServices(ua: string): boolean {
+  const vendor = detectVendor(ua);
+  if (vendor === "huawei") return false;
+  if (!isAndroidUserAgent(ua)) return true;
+  // HarmonyOS isaretleri
+  if (/HarmonyOS|HMOS/i.test(ua)) return false;
+  return true;
+}
+
+export function parseUserAgent(ua: string): ArDeviceProfile {
+  const n = normalizeUa(ua);
+  const vendor = detectVendor(n);
+  const modelMatch = n.match(/;\s*([^;)]+)\s*Build\//i);
+  const modelHint = modelMatch?.[1]?.trim() ?? null;
+
+  if (isIosUserAgent(n)) {
+    return {
+      platform: "ios",
+      vendor: "apple",
+      modelHint,
+      likelyHasGms: true,
+      supportsNativeAr: true,
+      primaryExperience: "quick-look",
+      fallbackExperience: "preview-3d",
+      buttonLabel: "Odamda Gor",
+      hint: "iPhone ve iPad: Quick Look ile zemine yerlestirme.",
+    };
+  }
+
+  if (isAndroidUserAgent(n)) {
+    const hasGms = likelyHasGooglePlayServices(n);
+    if (!hasGms) {
+      return {
+        platform: "android",
+        vendor,
+        modelHint,
+        likelyHasGms: false,
+        supportsNativeAr: false,
+        primaryExperience: "preview-3d",
+        fallbackExperience: "preview-3d",
+        buttonLabel: "3D Onizleme",
+        hint: "Bu cihazda AR desteklenmiyor; 3D onizleme acilir.",
+      };
+    }
+
+    return {
+      platform: "android",
+      vendor,
+      modelHint,
+      likelyHasGms: true,
+      supportsNativeAr: true,
+      primaryExperience: "scene-viewer",
+      fallbackExperience: "webxr",
+      buttonLabel: "Odamda Gor",
+      hint: "Android: Scene Viewer veya tarayici AR (WebXR) denenir.",
+    };
+  }
+
+  if (/Windows|Macintosh|Linux|CrOS/i.test(n)) {
+    return {
+      platform: "desktop",
+      vendor,
+      modelHint,
+      likelyHasGms: true,
+      supportsNativeAr: false,
+      primaryExperience: "preview-3d",
+      fallbackExperience: "preview-3d",
+      buttonLabel: "3D Onizleme",
+      hint: "Masaustu: 3D model onizleme modali acilir.",
+    };
+  }
+
+  return {
+    platform: "unknown",
+    vendor,
+    modelHint,
+    likelyHasGms: true,
+    supportsNativeAr: false,
+    primaryExperience: "preview-3d",
+    fallbackExperience: "preview-3d",
+    buttonLabel: "Odamda Gor",
+    hint: "Cihaziniza uygun goruntuleme modu acilir.",
+  };
+}
+
+/** Android Scene Viewer intent (ARCore / Google uygulamasi). */
+export function buildSceneViewerIntentUrl(glbUrl: string, fallbackUrl: string) {
+  const file = encodeURIComponent(glbUrl);
+  const fallback = encodeURIComponent(fallbackUrl);
+  return (
+    "intent://arvr.google.com/scene-viewer/1.0?file=" +
+    file +
+    "&mode=ar_preferred&resizable=false&disable_occlusion=true" +
+    "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;" +
+    "action=android.intent.action.VIEW;" +
+    "S.browser_fallback_url=" +
+    fallback +
+    ";end;"
+  );
+}
+
+/** Paket kisitlamasi olmadan genel Android intent (Samsung Internet vb.). */
+export function buildSceneViewerGenericIntentUrl(glbUrl: string, fallbackUrl: string) {
+  const file = encodeURIComponent(glbUrl);
+  const fallback = encodeURIComponent(fallbackUrl);
+  return (
+    "intent://arvr.google.com/scene-viewer/1.0?file=" +
+    file +
+    "&mode=ar_preferred" +
+    "#Intent;scheme=https;action=android.intent.action.VIEW;" +
+    "S.browser_fallback_url=" +
+    fallback +
+    ";end;"
+  );
+}
+
+/** Chrome / Samsung Internet icin dogrudan HTTPS Scene Viewer linki. */
+export function buildSceneViewerHttpsUrl(glbUrl: string) {
+  return (
+    "https://arvr.google.com/scene-viewer/1.0?file=" +
+    encodeURIComponent(glbUrl) +
+    "&mode=ar_preferred&resizable=false&disable_occlusion=true"
+  );
+}
+
+export function arModesForProfile(profile: ArDeviceProfile) {
+  if (profile.platform === "ios") {
+    return "quick-look webxr scene-viewer";
+  }
+  if (profile.platform === "android" && profile.likelyHasGms) {
+    return "webxr scene-viewer quick-look";
+  }
+  return "webxr scene-viewer";
+}

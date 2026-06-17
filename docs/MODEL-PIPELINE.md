@@ -15,6 +15,28 @@
 
 ## Hızlı başlangıç
 
+### 0) Halıcı verisini DB'ye aktar (CSV → Neon)
+
+Halıcıdan aldığın SKU, isim, ölçü ve foto yolunu `data/rugs-batch.csv` dosyasına yaz; önce DB kaydı oluştur:
+
+```powershell
+# .env: DATABASE_URL + MERCHANT_ID
+npm run rugs:import
+npm run rugs:import -- --dry-run
+```
+
+Kolonlar: `sku,image,width_cm,length_cm,name` (opsiyonel `price`).
+
+Tam onboarding (import → foto → model → R2 → DB URL):
+
+```powershell
+npm run rugs:onboard
+npm run models:attach -- --base-url $env:R2_PUBLIC_URL
+npm run rugs:embed-codes
+```
+
+Halıcı sitesine yapıştırılacak embed kodları: `data/embed-snippets.html`.
+
 ### 1) Fotoğrafları koy
 
 `data/rug-photos/` klasörüne SKU adıyla kaydet:

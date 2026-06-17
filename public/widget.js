@@ -82,6 +82,89 @@
     return /Android/i.test(navigator.userAgent);
   }
 
+  function detectVendor() {
+    var ua = navigator.userAgent;
+    if (/iPhone|iPad|iPod/i.test(ua)) return "apple";
+    if (/Samsung|SM-|SAMSUNG/i.test(ua)) return "samsung";
+    if (/Pixel|Google Pixel/i.test(ua)) return "google";
+    if (/Huawei|Honor|HMOS|HarmonyOS/i.test(ua)) return "huawei";
+    if (/Xiaomi|Redmi|POCO|Mi\s/i.test(ua)) return "xiaomi";
+    if (/OPPO|Realme/i.test(ua)) return "oppo";
+    if (/vivo/i.test(ua)) return "vivo";
+    if (/OnePlus/i.test(ua)) return "oneplus";
+    return null;
+  }
+
+  function likelyHasGms() {
+    var vendor = detectVendor();
+    if (vendor === "huawei") return false;
+    if (!isAndroid()) return true;
+    if (/HarmonyOS|HMOS/i.test(navigator.userAgent)) return false;
+    return true;
+  }
+
+  function detectProfile() {
+    if (isIOS()) {
+      return {
+        platform: "ios",
+        vendor: "apple",
+        supportsNativeAr: true,
+        primary: "quick-look",
+        buttonLabel: overrideText || "Odamda Gor",
+      };
+    }
+    if (isAndroid()) {
+      if (!likelyHasGms()) {
+        return {
+          platform: "android",
+          vendor: detectVendor(),
+          supportsNativeAr: false,
+          primary: "preview-3d",
+          buttonLabel: "3D Onizleme",
+        };
+      }
+      return {
+        platform: "android",
+        vendor: detectVendor(),
+        supportsNativeAr: true,
+        primary: "scene-viewer",
+        buttonLabel: overrideText || "Odamda Gor",
+      };
+    }
+    return {
+      platform: "desktop",
+      vendor: detectVendor(),
+      supportsNativeAr: false,
+      primary: "preview-3d",
+      buttonLabel: overrideText || "3D Onizleme",
+    };
+  }
+
+  function mobileViewerUrl() {
+    return base + "/odamda-gor/" + encodeURIComponent(rugId) + "?mobile=1";
+  }
+
+  function sceneViewerHttpsUrl(url) {
+    return (
+      "https://arvr.google.com/scene-viewer/1.0?file=" +
+      encodeURIComponent(url) +
+      "&mode=ar_preferred&resizable=false&disable_occlusion=true"
+    );
+  }
+
+  function sceneViewerIntentUrl(url, fallback) {
+    return (
+      "intent://arvr.google.com/scene-viewer/1.0?file=" +
+      encodeURIComponent(url) +
+      "&mode=ar_preferred&resizable=false&disable_occlusion=true" +
+      "#Intent;scheme=https;package=com.google.android.googlequicksearchbox;" +
+      "action=android.intent.action.VIEW;" +
+      "S.browser_fallback_url=" +
+      encodeURIComponent(fallback) +
+      ";end;"
+    );
+  }
+
   function findTarget() {
     if (targetSelector) {
       var el = document.querySelector(targetSelector);
@@ -188,20 +271,21 @@
     return true;
   }
 
-  // Android Scene Viewer intent (ARCore). Basarisizsa odamda-gor sayfasina duser.
+  // Android Scene Viewer: Samsung/Chrome HTTPS, digerleri intent; fallback mobil AR sayfasi.
   function openSceneViewer() {
     if (!glbUrl) return false;
-    var fallback = base + "/odamda-gor/" + encodeURIComponent(rugId);
-    var intentUrl =
-      "intent://arvr.google.com/scene-viewer/1.0?file=" +
-      encodeURIComponent(glbUrl) +
-      "&mode=ar_preferred#Intent;scheme=https;package=com.google.android.googlequicksearchbox;" +
-      "action=android.intent.action.VIEW;" +
-      "S.browser_fallback_url=" +
-      encodeURIComponent(fallback) +
-      ";end;";
-    window.location.href = intentUrl;
+    var fallback = mobileViewerUrl();
+    var vendor = detectVendor();
+    if (vendor === "samsung" || /Chrome\//i.test(navigator.userAgent)) {
+      window.location.href = sceneViewerHttpsUrl(glbUrl);
+      return true;
+    }
+    window.location.href = sceneViewerIntentUrl(glbUrl, fallback);
     return true;
+  }
+
+  function openMobileViewer() {
+    window.location.href = mobileViewerUrl();
   }
 
   function openModal() {
@@ -256,22 +340,34 @@
 
   function handleClick(merchantId) {
     track("WIDGET_OPENED", merchantId);
+    var profile = detectProfile();
 
-    // Mobilde dogrudan AR (iframe AR'i mobil tarayicilar engelliyor).
-    if (isIOS()) {
+    if (profile.primary === "quick-look" && usdzUrl) {
       track("AR_STARTED", merchantId);
       if (openQuickLook()) return;
-    } else if (isAndroid()) {
+    }
+
+    if (profile.primary === "scene-viewer" && glbUrl) {
       track("AR_STARTED", merchantId);
       if (openSceneViewer()) return;
     }
 
-    // Masaustu (veya model URL'i yoksa): 3D onizleme modal.
+    // Huawei / AR desteklemeyen Android veya model yok: tam sayfa 3D/WebXR.
+    if (profile.platform === "android" || profile.platform === "ios") {
+      openMobileViewer();
+      return;
+    }
+
     openModal();
   }
 
   function buildButton(settings, merchantId) {
-    var text = overrideText || (settings && settings.buttonText) || "Odamda Gor";
+    var profile = detectProfile();
+    var text =
+      overrideText ||
+      (settings && settings.buttonText) ||
+      profile.buttonLabel ||
+      "Odamda Gor";
     var color = overrideColor || (settings && settings.buttonColor) || "#111827";
     var radius =
       settings && typeof settings.borderRadius === "number"

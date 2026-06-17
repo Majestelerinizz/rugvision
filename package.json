@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx --test tests/slug.test.ts tests/domain.test.ts tests/rate-limit.test.ts tests/auth.test.ts tests/storage.test.ts tests/subscription.test.ts tests/ai-detection.test.ts",
+    "test": "node --import tsx --test tests/slug.test.ts tests/domain.test.ts tests/rate-limit.test.ts tests/auth.test.ts tests/storage.test.ts tests/subscription.test.ts tests/ai-detection.test.ts tests/device-ar.test.ts",
     "db:deploy": "prisma migrate deploy",
     "models:batch": "node scripts/batch-generate-rugs.mjs",
     "models:one": "node scripts/batch-generate-rugs.mjs --sku",
@@ -16,6 +16,9 @@
     "photos:clean": "node scripts/clean-rug-photos.mjs",
     "reports:ar-acceptance": "node scripts/generate-ar-acceptance-report.mjs",
     "models:qa": "node scripts/qa-rug-models.mjs",
+    "rugs:import": "tsx --env-file=.env scripts/import-rugs-from-csv.ts",
+    "rugs:embed-codes": "node scripts/generate-embed-snippets.mjs",
+    "rugs:onboard": "npm run rugs:import && npm run photos:clean && npm run models:batch && npm run models:upload-r2 && npm run models:attach",
     "perf:check": "node scripts/perf-check.mjs",
     "tunnel": "node scripts/tunnel.mjs",
     "dev:all": "concurrently -n dev,tunnel -c blue,magenta \"npm:dev\" \"npm:tunnel\""

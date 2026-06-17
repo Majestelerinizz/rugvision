@@ -21,10 +21,12 @@ const R2_BASE =
 
 const DEVICES = [
   { name: "iPhone 12", platform: "iOS Quick Look", result: "PASS", note: "Pilot dogrulandi 17.06.2026" },
-  { name: "iPhone 13+", platform: "iOS Quick Look", result: "PENDING", note: "Genis matris" },
-  { name: "Samsung Galaxy", platform: "Scene Viewer", result: "PENDING", note: "Genis matris" },
-  { name: "Pixel", platform: "Scene Viewer", result: "PENDING", note: "Genis matris" },
-  { name: "Masaustu Chrome", platform: "3D Viewer", result: "PENDING", note: "WebXR" },
+  { name: "iPhone / iPad (Quick Look)", platform: "iOS Quick Look", result: "READY", note: "rel=ar + USDZ CDN" },
+  { name: "Samsung Galaxy", platform: "Scene Viewer HTTPS", result: "READY", note: "arvr.google.com + intent fallback" },
+  { name: "Google Pixel", platform: "Scene Viewer intent", result: "READY", note: "ARCore + GLB CDN" },
+  { name: "Xiaomi / OPPO / vivo (GMS)", platform: "Scene Viewer", result: "READY", note: "GMS + mobil AR sayfasi fallback" },
+  { name: "Huawei / Honor (GMS yok)", platform: "3D / WebXR", result: "READY", note: "3D onizleme; AR yok" },
+  { name: "Masaustu Chrome", platform: "3D modal + GLB proxy", result: "PASS", note: "Embed modal dogrulandi" },
 ];
 
 function parseCsv(filePath) {
