@@ -1,8 +1,9 @@
 # RugVision Pilot — Tamamlandı
 
+> **Durum: PROJE BİTTİ**  
 > Tarih: 17.06.2026  
 > Pilot mağaza: https://savasdogantekstil.com/rugvision/  
-> SaaS: https://rugvision-o54d.vercel.app
+> SaaS (nihai): https://rugvision-o54d.vercel.app
 
 ## PageSpeed Mobil (son ölçüm)
 
@@ -43,12 +44,12 @@ Paylaşımlı cPanel hosting için 71 performans kabul edilebilir hedef. AR ve e
 ## Repo testleri
 
 ```bash
-npm test    # 31/31 geçer
+npm test    # 42/42 geçer
 npm run build
 ```
 
-## Opsiyonel (ileride)
+## Opsiyonel (iptal / ertelendi)
 
-- PWA manifest + ikonlar
-- Kategori/blog için `hali123-300.webp` (~40 KB)
-- CDN veya daha hızlı hosting → performans 85+
+- Özel domain (`app.rugvision.com`, Contabo) — iptal
+- Shopify / WooCommerce eklentileri — gerek yok
+- PWA, ek performans optimizasyonları

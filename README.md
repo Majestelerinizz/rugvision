@@ -297,23 +297,17 @@ Postman koleksiyonu: `docs/postman/`.
 
 ## Yol Haritası
 
-- **Faz 1 - AR çekirdeği:** Tamamlandı (iPhone + Android AR, model pipeline).
-- **Faz 2 - Ürünlesme çekirdeği:** Tamamlandı (embed widget, analytics, panel, upload, domain doğrulama, auth guard).
-- **Faz 3 - Production & büyüme:**
-  - Adım 1 (Production): **%100** — Vercel + Neon CANLI
-  - Adım 2 (Model pipeline + R2): **%100** — Cloudflare R2 CDN canlı
-  - Adım 3 (Pilot e-ticaret): **%100** — savasdogantekstil.com CANLI AR + 10 SKU görsel
-  - Adım 4-7 (Shopify, AI, CI): planlandı
+- **Faz 1 - AR çekirdeği:** Tamamlandı
+- **Faz 2 - Ürünlesme:** Tamamlandı
+- **Faz 3 - Production & büyüme:** **Tamamlandı**
+  - Vercel + Neon + R2 CDN
+  - Pilot e-ticaret (10 SKU AR)
+  - AI zemin v1, cihaz matrisi (18), GitHub CI
+- **İptal / ertelendi:** Özel domain, Contabo, Shopify/WooCommerce eklentileri
 
-Detaylı kapsam ve takip:
-- `docs/rugvision-master-reference-v1.md` (master reference)
-- `docs/PROJE_DURUM_RAPORU.md` (resmi durum raporu)
-- `docs/DEPLOY.md` (production runbook)
-- `docs/PILOT-ECOMMERCE.md` (PHP pilot entegrasyon)
-- `docs/MODEL-PIPELINE.md` (batch GLB/USDZ üretim)
-- `VR_ODANDA_GOR.md` (faz takibi + Faz 3 adım adım plan)
+Detaylı takip: `VR_ODANDA_GOR.md` · `docs/PROJE_DURUM_RAPORU.md`
 
-**Tamamlanma:** ~%90 (tam vizyon) | **TEMEL satış paketi:** **%100** (pilot satışa hazır)
+**Durum: PROJE TAMAMLANDI — %100**
 
 ---
 

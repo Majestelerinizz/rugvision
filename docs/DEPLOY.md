@@ -121,11 +121,15 @@ Vercel GitHub'a bağlıysa `git push origin main` otomatik yeni deploy tetikler.
 
 ## 5. Kalıcı domain + HTTPS (opsiyonel)
 
+### Secenek A — Vercel ozel domain
 1. Vercel → Project → **Settings → Domains** → `app.rugvision.com` ekle.
 2. DNS'te `CNAME` kaydını Vercel'in verdiği hedefe yönlendir.
 3. HTTPS sertifikası Vercel tarafından otomatik üretilir.
 
-> Şu an `rugvision-o54d.vercel.app` ile production çalışıyor; domain bağlama opsiyonel.
+### Secenek B — Contabo + CloudPanel (ERTELENDI / IPTAL)
+Tam Node.js kurulum rehberi: **`docs/DEPLOY-CONTABO.md`** (simdilik kullanilmiyor)
+
+> Production **Vercel** adresi ile devam: `https://rugvision-o54d.vercel.app`
 
 ---
 

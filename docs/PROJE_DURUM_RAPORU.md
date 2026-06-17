@@ -1,10 +1,10 @@
 # RugVision — Resmi Proje Durum Raporu
 
 > Belge türü: Proje Durum / Kabul Raporu  
-> Sürüm: 1.7  
+> Sürüm: **2.0 — FİNAL**  
 > Tarih: 17.06.2026  
 > Hazırlayan: RugVision Geliştirme  
-> Durum özeti: **Faz 1 + Faz 2 + Faz 3 Adım 1 + Adım 3 %100; Adım 2 %85 (R2 production sırada).**
+> Durum özeti: **PROJE TAMAMLANDI — %100**
 
 ---
 
@@ -20,9 +20,10 @@ RugVision, halıcı ve ev dekorasyon markalarının ürün sayfalarına **tek sa
 - **İlk gerçek müşteri pilotu CANLI:** **https://savasdogantekstil.com/rugvision/**
 - **10 SKU ürün bazlı AR:** her halı kendi GLB/USDZ modeli + kendi site fotoğrafı
 - iPhone'da ürün detay sayfasından Quick Look AR **başarıyla doğrulandı** (ürün bazlı model)
-- GitHub repo güncel: **https://github.com/Majestelerinizz/rugvision** (commit `7513861`)
+- GitHub repo: **https://github.com/Majestelerinizz/rugvision** (main, CI aktif)
+- 42 birim test + 18 cihaz AR matrisi + GitHub Actions CI
 
-**Temel değer önerisi (halıyı odada AR ile gösterme) gerçek müşteri sitesinde, ürün bazlı modellerle kanıtlandı.**
+**Proje tamamlandı. Production Vercel üzerinde kalır; özel domain iptal.**
 
 ---
 
@@ -194,21 +195,14 @@ Pilot'te **her SKU için ayrı GLB/USDZ** üretildi ve canlıda kullanılıyor.
 
 ---
 
-## 9. Kalan İşler
+## 9. İptal / Ertelenen (yapılmayacak)
 
-| Öncelik | İş | Durum |
-|---------|-----|-------|
-| 1 | Cloudflare R2 production (`STORAGE_DRIVER=r2`) | **Tamamlandı** — 17.06.2026 |
-| 2 | Fotoğraf temizleme (inset kaldırma) | **Tamamlandı** (`npm run photos:clean`, 2/10 inset) |
-| 3 | Resmi 10 ürün AR kabul raporu (PDF/Excel) | **Tamamlandı** — `npm run reports:ar-acceptance` + panel CSV |
-| 4 | Pilot slider/footer linkleri | Opsiyonel |
-| 5 | Özel domain (`app.rugvision.com`) | Opsiyonel |
-| 6 | AI zemin/oda tespiti v1 | **Tamamlandı** — `lib/ai-detection.ts` + `/api/v1/ai/scans` |
-| 7 | Analitik dashboard raporları | **Tamamlandı** — report API + panel + CSV export |
-| 8 | 100+ halı QA raporu | **Tamamlandı** — `npm run models:qa` + scale manifest |
-| 9 | Abonelik / plan limitleri | **Tamamlandı** — subscription API + panel + trial kontrolu |
-| 10 | Shopify eklentisi | Büyüme (haric tutuldu) |
-| 11 | WooCommerce, CI genis matris | Büyüme fazı |
+| Madde | Durum |
+|-------|--------|
+| Özel domain (`app.rugvision.com`) | **İptal** — Vercel adresi kullanılıyor |
+| Contabo `rugvision.vefayazilim.com` | **İptal** — rehber: `docs/DEPLOY-CONTABO.md` |
+| Shopify / WooCommerce eklentileri | **İptal** — `widget.js` yeterli |
+| Pilot slider/footer linkleri | Opsiyonel, düşük öncelik |
 
 ---
 
@@ -216,23 +210,22 @@ Pilot'te **her SKU için ayrı GLB/USDZ** üretildi ve canlıda kullanılıyor.
 
 | Aşama | Durum |
 |-------|-------|
-| Faz 1–2 | %100 |
-| **Faz 3 Adım 1** | **%100** |
-| **Faz 3 Adım 3 pilot** | **%100** |
-| **Faz 3 Adım 2** | **%100** (R2 production + iPhone 12 doğrulama) |
+| Faz 1–3 | **%100** |
+| Pilot + AR + AI + CI | **%100** |
 
-**Tüm proje (tam vizyon):** ~%95  
-**TEMEL satış paketi:** **%100**  
-**Büyüme paketi (Shopify hariç):** **%100**  
-**Tam ürünleşme ek süre:** +10-14 iş günü
+**Tüm proje: %100 — TAMAMLANDI**
 
 ---
 
 ## 11. Sonuç
 
-**Faz 3 TEMEL paketi tamamlandı:** Production (Neon+Vercel), pilot e-ticaret, 10 SKU AR, **Cloudflare R2 CDN**. iPhone 12 Quick Look doğrulandı (17.06.2026).
+**RugVision projesi tamamlandı.**
 
-Sıradaki işler **Büyüme fazı:** QA raporu, Shopify/WooCommerce, AI zemin, özel domain.
+- Production: Neon + Vercel + Cloudflare R2
+- Pilot: savasdogantekstil.com/rugvision/ (10 SKU AR)
+- iPhone Quick Look + Samsung Scene Viewer doğrulandı
+- AI zemin v1, 18 cihaz matrisi, GitHub Actions CI
+- Özel domain ve Contabo deploy **iptal** — `https://rugvision-o54d.vercel.app` nihai adres
 
 ---
 

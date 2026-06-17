@@ -22,6 +22,8 @@
     "rugs:embed-codes": "node scripts/generate-embed-snippets.mjs",
     "rugs:onboard": "npm run rugs:import && npm run photos:clean && npm run models:batch && npm run models:upload-r2 && npm run models:attach",
     "perf:check": "node scripts/perf-check.mjs",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:restart": "pm2 restart rugvision",
     "tunnel": "node scripts/tunnel.mjs",
     "dev:all": "concurrently -n dev,tunnel -c blue,magenta \"npm:dev\" \"npm:tunnel\""
   },

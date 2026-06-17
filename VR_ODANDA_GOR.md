@@ -113,6 +113,7 @@ Faz 2 Durumu: **Tamamlandi** — embed widget + buton enjeksiyonu + analytics + 
 | `README.md` | Kurulum, API ozeti, widget kullanimi |
 | `docs/PROJE_DURUM_RAPORU.md` | Resmi kabul / durum raporu (surum 1.7) |
 | `docs/DEPLOY.md` | Production deploy runbook (Neon + Vercel) |
+| `docs/DEPLOY-CONTABO.md` | Contabo CloudPanel Node.js deploy (`rugvision.vefayazilim.com`) |
 | `docs/PILOT-ECOMMERCE.md` | PHP pilot entegrasyon + SKU eslemesi |
 | `docs/PILOT-TAMAMLANDI.md` | Pilot tamamlanma ozeti + PageSpeed |
 | `docs/MODEL-PIPELINE.md` | Batch GLB/USDZ uretim runbook |
@@ -127,8 +128,8 @@ Faz 2 Durumu: **Tamamlandi** — embed widget + buton enjeksiyonu + analytics + 
 Faz 3, sirayla yapilacak 7 adimdan olusur. Her adimin bagimliligi bir oncekidir;
 yukaridan asagiya gidilir. Toplam: TEMEL (Adim 1-3) ~6-10 gun, BUYUME (Adim 4-7) +12-18 gun.
 
-**Guncel durum (Haziran 2026):** Adim 1, 2, 3 ve buyume maddelerinin cogu tamamlandi.
-Kalan: ozel domain, Shopify/WooCommerce eklentileri, genis cihaz matrisi CI.
+**Guncel durum (Haziran 2026):** **PROJE TAMAMLANDI.** Production: Vercel + Neon + R2. Pilot canli.
+Iptal/ertelenen: ozel domain (`app.rugvision.com`, `rugvision.vefayazilim.com`), Shopify/WooCommerce eklentileri.
 
 ### ADIM 1 - Production yayini (siteyi internete tasi)  [~2 gun] — **TAMAMLANDI**
 > Amac: `localhost`/tunnel yerine gercek, kalici HTTPS adres.
@@ -136,7 +137,7 @@ Kalan: ozel domain, Shopify/WooCommerce eklentileri, genis cihaz matrisi CI.
 - [x] 1.2 `.env` -> `DATABASE_URL` bulut DB'ye cevrildi
 - [x] 1.3 `npm run db:deploy` / `prisma migrate deploy` ile tablolar kuruldu
 - [x] 1.4 Proje **Vercel'e deploy** edildi — https://rugvision-o54d.vercel.app
-- [~] 1.5 Kalici ozel domain (`app.rugvision.com`) — opsiyonel, buyume fazina ertelendi
+- [-] 1.5 Ozel domain — **iptal / ertelendi** (production Vercel adresi ile devam)
 - [x] 1.6 Tunnel ve `baslat.bat` artik sadece lokal gelistirme icin (production'da gereksiz)
 
 Runbook: `docs/DEPLOY.md`
@@ -196,7 +197,9 @@ Not: v1 tam ML degil; cihaz + kamera heuristikleri ile AR on-hazirlik sinyali. v
 - [x] 7.2b Cihaz matrisi raporu: `npm run reports:device-matrix` → `docs/reports/device-matrix-ar-*.csv`
 - [x] 7.3 Abonelik/plan limitleri: STARTER/PRO/ENTERPRISE (`lib/subscription.ts`, panel karti)
 
-Faz 3 Durumu: **TAMAMLANDI** (Adim 1-7 cekirdek + buyume). Kalan opsiyonel: ozel domain, Shopify/WooCommerce eklentileri.
+Faz 3 Durumu: **TAMAMLANDI — PROJE BITTI.**
+
+Canli adres: https://rugvision-o54d.vercel.app · Pilot: savasdogantekstil.com/rugvision/
 
 ---
 
@@ -215,12 +218,12 @@ Faz 1, Faz 2 ve Faz 3 **TEMEL paketi** tamamlandi. Oncelik sirasi:
 | AI zemin/oda tespiti v1 | **Tamamlandi** |
 | AR kabul raporu + analitik dashboard | **Tamamlandi** |
 
-### B) Kalan — opsiyonel
-- [ ] Ozel domain (`app.rugvision.com`)
-- [ ] Shopify + WooCommerce resmi eklentileri
-- [ ] AI v2: gercek ML tabanli zemin segmentasyonu (v1 heuristik hazir)
+### B) Iptal / gelecek faz (simdilik yapilmayacak)
+- [-] Ozel domain (`app.rugvision.com`, Contabo `rugvision.vefayazilim.com`) — **iptal**
+- [-] Shopify + WooCommerce resmi eklentileri — **gerek yok** (`widget.js` yeterli)
+- [-] AI v2 ML zemin segmentasyonu — v1 heuristik yeterli
 
-**Ozet:** TEMEL satis paketi **%100 hazir**. Buyume maddeleri opsiyonel / sonraki faz.
+**Ozet:** Satis paketi **%100 hazir ve bitti.** Production Vercel uzerinde kalir.
 
 ---
 
@@ -244,7 +247,7 @@ Calisma modeli:
 
 - Musterinin PHP koduna dokunulmaz; veritabanlari birlestirilmez.
 - Tek satir kod urun sayfasi sablonuna yapistirilir:
-  `<script src="https://app.rugvision.com/widget.js" data-rug-id="SKU" data-target=".sepete-ekle" defer></script>`
+  `<script src="https://rugvision-o54d.vercel.app/widget.js" data-merchant-id="..." data-sku="..." defer></script>`
 - `data-target` ile sitedeki "Sepete Ekle" butonu hedeflenir; widget butonu yanina koyar.
 - Bu yuzden PHP/Laravel site ile "birlestirme" derdi YOKTUR; sadece bir HTML satiri.
 
@@ -316,8 +319,8 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
 - [x] Otomatik model uretimi + R2 CDN + batch pipeline tamamlandi.
 - [x] **AI zemin/oda tespiti v1 tamamlandi:** `lib/ai-detection.ts`, `lib/floor-scan-client.ts`, `/api/v1/ai/scans`, widget + AR viewer entegrasyonu.
 - [x] AR kabul raporu, analitik dashboard, abonelik limitleri, 36 birim testi.
-- [ ] Ozel domain (`app.rugvision.com`) — opsiyonel.
-- [ ] Shopify / WooCommerce resmi eklentileri — buyume fazı.
+- [-] Ozel domain (`app.rugvision.com`) — iptal, Vercel adresi kullaniliyor
+- [-] Shopify / WooCommerce resmi eklentileri — iptal, widget.js yeterli
 
 ---
 
@@ -332,13 +335,11 @@ Bu bolum, Faz 3 tamamlandiginda halici firmalara sunulacak operasyon modelini oz
   - Production: Neon + Vercel + Cloudflare R2
   - Pilot: savasdogantekstil.com/rugvision (10 SKU)
   - Model pipeline: batch GLB/USDZ + QA raporu
-- **Faz 3 BUYUME (Adim 4-7):** ~%95 tamamlandi
-  - AI zemin/oda v1, AR kabul raporu, analitik dashboard, abonelik limitleri, **18 cihaz matrisi + CI**: **tamam**
-  - Kalan opsiyonel: Shopify/WooCommerce eklentileri, ozel domain
+- **Faz 3 BUYUME (Adim 4-7):** **%100 tamamlandi** (cihaz matrisi + CI dahil)
 
-**Toplam proje olgunlugu:** ~%98 (TEMEL + buyume cekirdek %100)
+**Toplam proje:** **%100 — TAMAMLANDI** (satis paketi)
 
-**Canli adresler:**
+**Canli adresler (nihai):**
 - SaaS: https://rugvision-o54d.vercel.app
 - Pilot: https://savasdogantekstil.com/rugvision/
 - Repo: https://github.com/Majestelerinizz/rugvision
@@ -396,5 +397,5 @@ Halicilara aylik abonelik karsiliginda urun/model/widget yonetimi, AR deneyimi v
 analitik panel sunan bir SaaS hizmeti. Abonelik modulu (STARTER/PRO/ENTERPRISE) aktif;
 plan limitleri rug olusturmada kontrol edilir.
 
-**Mevcut olgunluk:** Faz 1-2 ve Faz 3 TEMEL paketi tamamlandi. Production + pilot e-ticaret
-+ 10 SKU AR + R2 CDN + AI zemin v1 canli. Kalan buyume: Shopify/WooCommerce, ozel domain, CI matrisi.
+**Mevcut olgunluk:** **Proje tamamlandi.** Faz 1-3, pilot e-ticaret, 10 SKU AR, R2 CDN, AI zemin v1,
+18 cihaz matrisi + GitHub CI. Production: **https://rugvision-o54d.vercel.app**
