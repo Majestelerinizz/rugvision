@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   parseUserAgent,
   likelyHasGooglePlayServices,
+  prefersMobileWebAr,
   buildSceneViewerHttpsUrl,
   buildSceneViewerIntentUrl,
   buildSceneViewerGenericIntentUrl,
@@ -61,6 +62,15 @@ describe("device-ar", () => {
     assert.match(buildSceneViewerHttpsUrl(glb), /^https:\/\/arvr\.google\.com\//);
     assert.match(buildSceneViewerIntentUrl(glb, fb), /^intent:\/\//);
     assert.match(buildSceneViewerGenericIntentUrl(glb, fb), /^intent:\/\//);
+  });
+
+  it("Redmi/Xiaomi prefers mobile WebXR over Scene Viewer intent", () => {
+    const ua =
+      "Mozilla/5.0 (Linux; Android 13; Redmi Note 12 Build/TKQ1) AppleWebKit/537.36 MiuiBrowser/13.0";
+    const p = parseUserAgent(ua);
+    assert.equal(p.vendor, "xiaomi");
+    assert.equal(p.primaryExperience, "webxr");
+    assert.equal(prefersMobileWebAr(ua), true);
   });
 
   it("Samsung uses generic intent (not direct HTTPS 404)", () => {

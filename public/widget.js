@@ -103,6 +103,15 @@
     return true;
   }
 
+  function prefersMobileWebAr() {
+    var ua = navigator.userAgent;
+    var vendor = detectVendor();
+    if (vendor === "xiaomi" || vendor === "oppo" || vendor === "vivo" || vendor === "oneplus") {
+      return true;
+    }
+    return /MiuiBrowser|HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
+  }
+
   function detectProfile() {
     if (isIOS()) {
       return {
@@ -121,6 +130,15 @@
           supportsNativeAr: false,
           primary: "preview-3d",
           buttonLabel: "3D Onizleme",
+        };
+      }
+      if (prefersMobileWebAr()) {
+        return {
+          platform: "android",
+          vendor: detectVendor(),
+          supportsNativeAr: true,
+          primary: "webxr",
+          buttonLabel: overrideText || "Odamda Gor",
         };
       }
       return {
@@ -172,7 +190,7 @@
   function sceneViewerLaunchUrl(url, fallback) {
     var ua = navigator.userAgent;
     var vendor = detectVendor();
-    if (vendor === "samsung" || /SamsungBrowser/i.test(ua)) {
+    if (vendor === "samsung" || vendor === "xiaomi" || /SamsungBrowser|MiuiBrowser/i.test(ua)) {
       return sceneViewerGenericIntentUrl(url, fallback);
     }
     return sceneViewerIntentUrl(url, fallback);

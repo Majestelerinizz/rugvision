@@ -54,6 +54,20 @@ export function likelyHasGooglePlayServices(ua: string): boolean {
   return true;
 }
 
+/** MIUI / ColorOS vb. tarayicilarda intent sessizce basarisiz olur; WebXR sayfasi daha guvenilir. */
+export function prefersMobileWebAr(ua: string): boolean {
+  const vendor = detectVendor(ua);
+  if (
+    vendor === "xiaomi" ||
+    vendor === "oppo" ||
+    vendor === "vivo" ||
+    vendor === "oneplus"
+  ) {
+    return true;
+  }
+  return /MiuiBrowser|HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
+}
+
 export function parseUserAgent(ua: string): ArDeviceProfile {
   const n = normalizeUa(ua);
   const vendor = detectVendor(n);
@@ -87,6 +101,20 @@ export function parseUserAgent(ua: string): ArDeviceProfile {
         fallbackExperience: "preview-3d",
         buttonLabel: "3D Onizleme",
         hint: "Bu cihazda AR desteklenmiyor; 3D onizleme acilir.",
+      };
+    }
+
+    if (prefersMobileWebAr(n)) {
+      return {
+        platform: "android",
+        vendor,
+        modelHint,
+        likelyHasGms: true,
+        supportsNativeAr: true,
+        primaryExperience: "webxr",
+        fallbackExperience: "scene-viewer",
+        buttonLabel: "Odamda Gor",
+        hint: "Redmi/Xiaomi: 3D sayfada AR dugmesine basin. Chrome ile daha iyi calisir.",
       };
     }
 
@@ -171,7 +199,11 @@ export function resolveSceneViewerLaunchUrl(
   fallbackUrl: string
 ): string {
   const vendor = detectVendor(ua);
-  if (vendor === "samsung" || /SamsungBrowser/i.test(ua)) {
+  if (
+    vendor === "samsung" ||
+    vendor === "xiaomi" ||
+    /SamsungBrowser|MiuiBrowser/i.test(ua)
+  ) {
     return buildSceneViewerGenericIntentUrl(glbUrl, fallbackUrl);
   }
   return buildSceneViewerIntentUrl(glbUrl, fallbackUrl);
