@@ -4,8 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Script from "next/script";
 import {
   parseUserAgent,
-  prefersMobileWebAr,
-  resolveSceneViewerLaunchUrl,
+  shouldBlockNativeAr,
+  buildChromeIntentUrl,
   arModesForProfile,
 } from "@/lib/device-ar";
 
@@ -30,10 +30,14 @@ type ModelViewerElement = HTMLElement & {
   activateAR?: () => Promise<void> | void;
 };
 
-function openAndroidSceneViewer(modelUrl: string, fallbackUrl: string, ua: string) {
-  const absoluteUrl = new URL(modelUrl, window.location.href).toString();
-  const absoluteFallback = new URL(fallbackUrl, window.location.href).toString();
-  window.location.href = resolveSceneViewerLaunchUrl(ua, absoluteUrl, absoluteFallback);
+function openInChrome(pageUrl: string) {
+  const intentUrl = buildChromeIntentUrl(pageUrl);
+  const anchor = document.createElement("a");
+  anchor.href = intentUrl;
+  anchor.style.display = "none";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
 }
 
 function openIosQuickLook(iosSrc: string) {
@@ -138,8 +142,15 @@ export default function ArViewerClient({
     return parseUserAgent(navigator.userAgent);
   }, []);
 
+  const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+  const blockNativeAr = shouldBlockNativeAr(ua);
+
   const displayButtonText =
-    mobile && !profile.supportsNativeAr ? profile.buttonLabel : buttonText;
+    blockNativeAr && (mobile || embed)
+      ? "Chrome'da AR Ac"
+      : mobile && !profile.supportsNativeAr
+        ? profile.buttonLabel
+        : buttonText;
   const arModes = arModesForProfile(profile);
   const fullScreen = embed || mobile;
 
@@ -150,7 +161,6 @@ export default function ArViewerClient({
   const handleActivateAr = async () => {
     const viewer = viewerRef.current;
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
-    const useWebXrOnly = prefersMobileWebAr(ua);
 
     trackEvent("AR_STARTED", merchantId, rugId);
     trackAiScan(merchantId, rugId, "FLOOR_DETECTION", profile.vendor);
@@ -161,6 +171,11 @@ export default function ArViewerClient({
       return;
     }
 
+    if (shouldBlockNativeAr(ua)) {
+      openInChrome(window.location.href);
+      return;
+    }
+
     if (viewer && typeof viewer.activateAR === "function") {
       try {
         await viewer.activateAR();
@@ -168,15 +183,6 @@ export default function ArViewerClient({
       } catch {
         // platform fallback below
       }
-    }
-
-    if (useWebXrOnly) {
-      return;
-    }
-
-    if (profile.platform === "android" && profile.likelyHasGms) {
-      openAndroidSceneViewer(modelUrl, window.location.href, ua);
-      return;
     }
 
     window.open(modelUrl, "_blank", "noopener,noreferrer");
@@ -202,11 +208,15 @@ export default function ArViewerClient({
     <model-viewer
       ref={viewerRef}
       src={viewerSrc}
-      ios-src={iosSrc}
+      {...(iosSrc ? { "ios-src": iosSrc } : {})}
       alt={name}
-      ar
-      ar-placement="floor"
-      ar-modes={arModes}
+      {...(!blockNativeAr
+        ? {
+            ar: true,
+            "ar-placement": "floor" as const,
+            "ar-modes": arModes || "webxr scene-viewer quick-look",
+          }
+        : {})}
       camera-controls
       auto-rotate
       shadow-intensity="1"
@@ -246,15 +256,13 @@ export default function ArViewerClient({
             {displayButtonText}
           </button>
         </div>
-        {mobile && (
+        {mobile && blockNativeAr && (
           <p className="px-3 pb-3 text-center text-xs text-zinc-500">
             {profile.hint}
-            {prefersMobileWebAr(
-              typeof navigator !== "undefined" ? navigator.userAgent : ""
-            )
-              ? " AR acilmazsa Google Chrome ile deneyin."
-              : ""}
           </p>
+        )}
+        {mobile && !blockNativeAr && (
+          <p className="px-3 pb-3 text-center text-xs text-zinc-500">{profile.hint}</p>
         )}
       </>
     );

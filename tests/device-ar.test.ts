@@ -8,6 +8,7 @@ import {
   buildSceneViewerIntentUrl,
   buildSceneViewerGenericIntentUrl,
   resolveSceneViewerLaunchUrl,
+  buildChromeIntentUrl,
   arModesForProfile,
 } from "../lib/device-ar";
 
@@ -72,7 +73,7 @@ describe("device-ar", () => {
     assert.equal(p.vendor, "xiaomi");
     assert.equal(p.primaryExperience, "webxr");
     assert.equal(prefersMobileWebAr(ua), true);
-    assert.equal(arModesForProfile(p), "webxr");
+    assert.equal(arModesForProfile(p), "");
   });
 
   it("Redmi/Xiaomi prefers mobile WebXR over Scene Viewer intent", () => {
@@ -82,7 +83,14 @@ describe("device-ar", () => {
     assert.equal(p.vendor, "xiaomi");
     assert.equal(p.primaryExperience, "webxr");
     assert.equal(prefersMobileWebAr(ua), true);
-    assert.equal(arModesForProfile(p), "webxr");
+    assert.equal(arModesForProfile(p), "");
+  });
+
+  it("builds Chrome intent for HyperOS fallback", () => {
+    const url = "https://rugvision-o54d.vercel.app/odamda-gor/abc?mobile=1";
+    const intent = buildChromeIntentUrl(url);
+    assert.match(intent, /^intent:\/\//);
+    assert.match(intent, /com\.android\.chrome/);
   });
 
   it("Samsung uses generic intent (not direct HTTPS 404)", () => {

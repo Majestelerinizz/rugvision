@@ -119,7 +119,7 @@ export function parseUserAgent(ua: string): ArDeviceProfile {
         primaryExperience: "webxr",
         fallbackExperience: "scene-viewer",
         buttonLabel: "Odamda Gor",
-        hint: "Xiaomi/HyperOS: 3D sayfada AR dugmesine basin. Google Chrome onerilir.",
+        hint: "HyperOS tarayicisi AR desteklemez. 'Chrome'da AR Ac' dugmesini kullanin; harici AR APK yuklemeyin.",
       };
     }
 
@@ -223,12 +223,29 @@ export function buildSceneViewerHttpsUrl(glbUrl: string) {
   );
 }
 
+/** HyperOS varsayilan tarayicisinda native AR (Scene Viewer / ARCore) tetiklenmesin. */
+export function shouldBlockNativeAr(ua: string): boolean {
+  return prefersMobileWebAr(ua);
+}
+
+/** Xiaomi/HyperOS: ayni sayfayi Google Chrome ile ac (AR Core APK yuklemesini onler). */
+export function buildChromeIntentUrl(pageUrl: string) {
+  const absolute = pageUrl.startsWith("http") ? pageUrl : `https://${pageUrl}`;
+  const path = absolute.replace(/^https?:\/\//, "");
+  const fallback = encodeURIComponent(absolute);
+  return (
+    `intent://${path}#Intent;scheme=https;package=com.android.chrome;` +
+    `action=android.intent.action.VIEW;S.browser_fallback_url=${fallback};end;`
+  );
+}
+
 export function arModesForProfile(profile: ArDeviceProfile) {
   if (profile.platform === "ios") {
     return "quick-look webxr scene-viewer";
   }
   if (profile.platform === "android" && profile.primaryExperience === "webxr") {
-    return "webxr";
+    // HyperOS: bos — model-viewer ar kapali, Chrome disinda AR tetiklenmez.
+    return "";
   }
   if (profile.platform === "android" && profile.likelyHasGms) {
     return "webxr scene-viewer quick-look";
