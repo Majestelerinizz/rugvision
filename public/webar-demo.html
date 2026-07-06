@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebAR - Odanda Gör Canlı Deneyim (3D Perspektif)</title>
-    <!-- Gelişmiş Premium CSS Tasarımları -->
+    <title>WebAR 3D - Tarayıcı Tabanlı Odanda Gör</title>
+    <!-- Three.js Kütüphanesini CDN üzerinden yüklüyoruz -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         :root {
             --primary: #ea580c;
             --primary-hover: #dd6b20;
             --bg-dark: #09090b;
-            --text-light: #f4f4f5;
         }
 
         body {
@@ -21,7 +21,7 @@
             overflow-x: hidden;
         }
 
-        /* Demo Sayfası Tasarımı (E-Ticaret Simülasyonu) */
+        /* Simüle edilmiş E-Ticaret Sayfası */
         .demo-container {
             max-width: 1200px;
             margin: 0 auto;
@@ -35,7 +35,7 @@
             background: #ffffff;
             padding: 24px;
             border-radius: 24px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
         }
 
         @media (max-width: 768px) {
@@ -54,7 +54,6 @@
             justify-content: center;
             padding: 20px;
             aspect-ratio: 1;
-            position: relative;
         }
 
         .product-image {
@@ -82,23 +81,13 @@
         .title {
             font-size: 32px;
             font-weight: 800;
-            color: #09090b;
             margin: 0 0 12px;
         }
 
         .price {
             font-size: 28px;
             font-weight: 700;
-            color: #09090b;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .price-currency {
-            font-size: 18px;
-            font-weight: 500;
         }
 
         .description {
@@ -112,12 +101,6 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
-        }
-
-        @media (max-width: 480px) {
-            .button-group {
-                grid-template-columns: 1fr;
-            }
         }
 
         .btn {
@@ -136,10 +119,6 @@
             color: #ffffff;
         }
 
-        .btn-primary:hover {
-            background-color: #27272a;
-        }
-
         .btn-ar {
             background-color: var(--primary);
             color: #ffffff;
@@ -153,15 +132,10 @@
         .btn-ar:hover {
             background-color: var(--primary-hover);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px 0 rgba(234, 88, 12, 0.4);
-        }
-
-        .btn-ar:active {
-            transform: translateY(0);
         }
 
         /* ------------------------------------------------------------- */
-        /* WebAR Kamera Konteyneri Tasarımı (#ar-konteyner)             */
+        /* WebAR Üç Boyutlu Kamera Konteyneri (#ar-konteyner)             */
         /* ------------------------------------------------------------- */
         #ar-konteyner {
             position: fixed;
@@ -172,10 +146,10 @@
             z-index: 99999;
             background: #000;
             overflow: hidden;
-            display: none; /* JavaScript ile açılacak */
+            display: none;
         }
 
-        /* Canlı Kamera Akışı */
+        /* Canlı Kamera Akışı (Arka Plan) */
         #kamera-akisi {
             width: 100%;
             height: 100%;
@@ -186,47 +160,18 @@
             z-index: 1;
         }
 
-        /* 3D Perspektif Alanı */
-        #ar-perspektif-alani {
+        /* 3D WebGL Canvas Katmanı (Halı ve Gölgeleri İçerir) */
+        #ar-canvas {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: 10;
-            /* 3D derinlik efekti sağlar. VR/AR hissi için kritiktir. */
-            perspective: 1200px;
-            perspective-origin: 50% 50%;
+            pointer-events: auto; /* Sürükleme algılaması için */
         }
 
-        /* Konumlandırıcı Wrapper */
-        #hali-wrapper {
-            position: absolute;
-            top: 55%; /* Ekranın alt zemin hizasına yakın konumlandırıldı */
-            left: 50%;
-            transform: translate(-50%, -50%);
-            touch-action: none;
-            cursor: move;
-            z-index: 12;
-            transform-style: preserve-3d;
-        }
-
-        /* Şeffaf Halı Görseli (Eğilmiş / Zemin Hizasına Yatırılmış) */
-        #hali-gorseli {
-            width: 320px; /* Varsayılan genişlik */
-            max-width: 90vw;
-            height: auto;
-            display: block;
-            /* Zemin perspektifi için rotateX ile halıyı yatay zemin gibi konumlandırıyoruz */
-            transform: rotateX(65deg) rotate(0deg) scale(0.8);
-            transform-style: preserve-3d;
-            filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.65));
-            user-select: none;
-            -webkit-user-drag: none;
-            transition: transform 0.05s ease-out;
-        }
-
-        /* Kapat Butonu (Şık Üst Kısım Tasarımı) */
+        /* Kapat Butonu */
         #ar-kapat-btn {
             position: absolute;
             top: 24px;
@@ -245,17 +190,17 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: all 0.2s ease;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
         }
 
         #ar-kapat-btn:hover {
-            background: #ea580c;
-            border-color: #ea580c;
+            background: var(--primary);
+            border-color: var(--primary);
             transform: scale(1.05);
         }
 
-        /* WebAR Alt Kontrol Paneli */
+        /* Kontrol Paneli */
         .ar-controls-panel {
             position: absolute;
             bottom: 30px;
@@ -287,7 +232,7 @@
         .control-label {
             font-size: 13px;
             font-weight: 700;
-            min-width: 75px;
+            min-width: 90px;
             color: #d4d4d8;
         }
 
@@ -309,12 +254,6 @@
             border-radius: 50%;
             background: var(--primary);
             cursor: pointer;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
-            transition: transform 0.1s;
-        }
-
-        .control-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
         }
 
         .control-btn-circle {
@@ -330,14 +269,38 @@
             cursor: pointer;
             font-weight: bold;
             font-size: 16px;
-            transition: background 0.2s;
         }
 
         .control-btn-circle:hover {
             background: var(--primary);
         }
 
-        /* Hata veya İzin Bildirimi */
+        #ar-reset-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            width: 100%;
+        }
+
+        /* Jiroskop / Sensor Bildirim Kutusu */
+        .sensor-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: none; /* iOS'ta dinamik açılacak */
+        }
+
+        /* Hata Ekranı */
         .ar-error-message {
             position: absolute;
             top: 50%;
@@ -350,14 +313,7 @@
             max-width: 320px;
             text-align: center;
             color: #fff;
-            border: 1px solid rgba(255,0,0,0.3);
             display: none;
-        }
-
-        .ar-error-message p {
-            margin: 0 0 16px;
-            font-size: 14px;
-            line-height: 1.5;
         }
 
         .ar-error-message button {
@@ -367,7 +323,6 @@
             padding: 8px 16px;
             border-radius: 8px;
             cursor: pointer;
-            font-weight: 600;
         }
     </style>
 </head>
@@ -381,22 +336,20 @@
             <div class="product-info">
                 <div class="brand">RUGVISION PREMIUM</div>
                 <h1 class="title">Luna Modern Salon Halısı</h1>
-                <div class="price">
-                    <span>5.499,00</span> <span class="price-currency">TL</span>
-                </div>
+                <div class="price">5.499,00 TL</div>
                 <p class="description">
                     Evinizin atmosferini değiştirecek modern geometrik desenlerle dokunmuş, yüksek kaliteli, kaymaz tabanlı Luna serisi halı. Şimdi doğrudan kameranızı kullanarak odanızda nasıl duracağını canlı olarak görüntüleyin.
                 </p>
                 <div class="button-group">
                     <button class="btn btn-primary">Sepete Ekle</button>
-                    <!-- "Odanda Gör" AR Başlat Butonu -->
+                    <!-- WebAR 3D Başlat Butonu -->
                     <button id="ar-baslat-btn" class="btn btn-ar">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
                             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                             <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                             <line x1="12" y1="22.08" x2="12" y2="12"></line>
                         </svg>
-                        Odanda Gör (WebAR)
+                        Odanda Gör (3D AR)
                     </button>
                 </div>
             </div>
@@ -404,122 +357,358 @@
     </div>
 
     <!-- ------------------------------------------------------------- -->
-    <!-- WebAR Konteyneri (Sayfa Body Kapanışından Hemen Önce)            -->
+    <!-- WebAR 3D Konteyneri                                           -->
     <!-- ------------------------------------------------------------- -->
     <div id="ar-konteyner">
-        <!-- Canlı Kamera Akışı (playsinline iOS Safari için kritiktir) -->
+        <!-- Canlı Video Akışı (En altta çalışır) -->
         <video id="kamera-akisi" autoplay playsinline></video>
 
-        <!-- 3D Perspektif Alanı -->
-        <div id="ar-perspektif-alani">
-            <!-- Sürüklenebilen Konumlandırıcı Wrapper -->
-            <div id="hali-wrapper">
-                <!-- Zemin Perspektifine Göre Yatırılmış Şeffaf Halı Görseli -->
-                <img id="hali-gorseli" src="/rug-covers/RV-LUNA-001.png" alt="Halı AR">
-            </div>
-        </div>
+        <!-- Three.js WebGL Canvas Katmanı (Halıyı ve gölgesini gerçekçi çizer) -->
+        <canvas id="ar-canvas"></canvas>
 
         <!-- Kapatma Butonu -->
         <button id="ar-kapat-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 6px;">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
             </svg>
             Kapat
         </button>
 
-        <!-- İnce Ayarlar İçin Kontrol Paneli -->
+        <!-- Gelişmiş Kontrol Paneli -->
         <div class="ar-controls-panel">
             <!-- Boyut Kaydırıcısı -->
             <div class="control-row">
-                <span class="control-label">Boyut (Ölçek):</span>
+                <span class="control-label">Boyut (Metre):</span>
                 <button class="control-btn-circle" id="scale-down">-</button>
-                <input type="range" id="ar-scale-slider" class="control-slider" min="0.3" max="2.0" step="0.05" value="0.8">
+                <input type="range" id="ar-scale-slider" class="control-slider" min="0.5" max="3.0" step="0.1" value="1.6">
                 <button class="control-btn-circle" id="scale-up">+</button>
             </div>
             <!-- Döndürme Kaydırıcısı -->
             <div class="control-row">
-                <span class="control-label">Döndür (Z-Aks):</span>
+                <span class="control-label">Döndür (Açı):</span>
                 <button class="control-btn-circle" id="rotate-left">↺</button>
                 <input type="range" id="ar-rotate-slider" class="control-slider" min="0" max="360" step="5" value="0">
                 <button class="control-btn-circle" id="rotate-right">↻</button>
             </div>
-            <!-- Zemin Perspektifi / Eğim (Tilt) Sürgüsü -->
+            <!-- Kamera Görüş Açısı (Yükseklik/Eğim) Sürgüsü -->
             <div class="control-row">
-                <span class="control-label">Zemin Eğimi:</span>
+                <span class="control-label">Kamera Eğim:</span>
                 <button class="control-btn-circle" id="tilt-down">↓</button>
-                <input type="range" id="ar-tilt-slider" class="control-slider" min="45" max="85" step="1" value="65">
+                <input type="range" id="ar-tilt-slider" class="control-slider" min="1.0" max="6.0" step="0.1" value="3.0">
                 <button class="control-btn-circle" id="tilt-up">↑</button>
             </div>
-            <!-- Sıfırlama Butonu -->
-            <div class="control-row" style="justify-content: center; margin-top: 4px;">
-                <button id="ar-reset-btn" style="background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; width: 100%;">
-                    Konumu ve Görünümü Sıfırla
-                </button>
+            <!-- Jiroskop Sensörü Bağlama (Varsa) -->
+            <div class="control-row" style="justify-content: space-between; align-items: center;">
+                <button id="ar-sensor-btn" class="sensor-btn">Jiroskop Sensörünü Aç</button>
+                <button id="ar-reset-btn">Konumu Sıfırla</button>
             </div>
         </div>
 
         <!-- Hata Mesajı Bölümü -->
         <div id="ar-error" class="ar-error-message">
-            <p id="ar-error-text">Kamera erişimine izin verilmedi veya desteklenmeyen bir cihaz.</p>
+            <p id="ar-error-text">Kamera erişimi engellendi.</p>
             <button id="ar-error-close">Tamam</button>
         </div>
     </div>
 
-    <!-- JavaScript Etkileşim ve Kamera Yönetim Kodları -->
+    <!-- JavaScript - Three.js WebAR Motoru -->
     <script>
         // DOM Elemanları
         const arBaslatBtn = document.getElementById('ar-baslat-btn');
         const arKapatBtn = document.getElementById('ar-kapat-btn');
         const arKonteyner = document.getElementById('ar-konteyner');
-        const videoAkisi = document.getElementById('kamera-akisi');
-        const haliWrapper = document.getElementById('hali-wrapper');
-        const haliGorseli = document.getElementById('hali-gorseli');
+        const videoElement = document.getElementById('kamera-akisi');
+        const canvasElement = document.getElementById('ar-canvas');
         
-        // Kontrol Paneli Elemanları
+        // Kontroller
         const scaleSlider = document.getElementById('ar-scale-slider');
         const rotateSlider = document.getElementById('ar-rotate-slider');
         const tiltSlider = document.getElementById('ar-tilt-slider');
-        
         const scaleDownBtn = document.getElementById('scale-down');
         const scaleUpBtn = document.getElementById('scale-up');
         const rotateLeftBtn = document.getElementById('rotate-left');
         const rotateRightBtn = document.getElementById('rotate-right');
         const tiltDownBtn = document.getElementById('tilt-down');
         const tiltUpBtn = document.getElementById('tilt-up');
+        const sensorBtn = document.getElementById('ar-sensor-btn');
         const resetBtn = document.getElementById('ar-reset-btn');
         
-        // Hata Paneli Elemanları
         const arErrorDiv = document.getElementById('ar-error');
         const arErrorText = document.getElementById('ar-error-text');
         const arErrorClose = document.getElementById('ar-error-close');
 
-        // Aktif Kamera Akışı Kaydı
-        let aktifStream = null;
+        // Kamera Akışı
+        let stream = null;
 
-        // Dönüşüm ve Pozisyon Durumları
-        let currentScale = 0.8;
-        let currentRotation = 0;
-        let currentTilt = 65; // Halının zemin eğimi (rotateX)
+        // Three.js Değişkenleri
+        let scene, camera, renderer;
+        let rugMesh, shadowPlane;
+        let ambientLight, directionalLight;
+        let textureLoader;
+
+        // AR Parametreleri
+        let rugWidth = 1.6; // Gerçek halı eni (metre)
+        let rugHeight = 2.3; // Gerçek halı boyu (metre)
+        let scaleFactor = 1.0; // Boyut çarpanı
+        let rotationAngle = 0; // Y ekseni etrafında dönüş
+        let cameraHeight = 3.0; // Kameranın yerden yüksekliği (metre)
+        let cameraDistance = 4.0; // Kameranın halı merkezine uzaklığı
+
+        // Sürükleme ve Takip Durumları
         let isDragging = false;
-        
-        // Sürükle ve Bırak Koordinat Kayıtları
-        let startX = 0;
-        let startY = 0;
-        let xOffset = 0;
-        let yOffset = 0;
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); // y = 0 (zemin düzlemi)
+        let dragOffset = new THREE.Vector3();
 
-        // Görseli Güncel Konum ve Dönüşüm Değerleriyle Boyama Fonksiyonu
-        function applyTransformations() {
-            // Wrapper sadece 2D düzlemde (ekran üzerinde) kaydırılır
-            haliWrapper.style.transform = `translate(calc(-50% + ${xOffset}px), calc(-50% + ${yOffset}px))`;
+        // Jiroskop Sensör Verileri
+        let gyroActive = false;
+        let initialGyro = { alpha: null, beta: null, gamma: null };
+        let currentGyro = { alpha: 0, beta: 0, gamma: 0 };
+
+        // ==========================================
+        // 1. THREE.JS SAHNE KURULUMU (3D AR ORTAMI)
+        // ==========================================
+        function initThreeJS() {
+            // Sahne (Scene)
+            scene = new THREE.Scene();
+
+            // Kamera (Camera) - Gerçekçi bir perspektif açısı (45 derece fov)
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+            updateCameraPosition();
+
+            // Renderer (WebGL ile Çizici) - Arka planı şeffaf (alpha: true) yapıyoruz
+            renderer = new THREE.WebGLRenderer({
+                canvas: canvasElement,
+                alpha: true,
+                antialias: true,
+                precision: 'highp'
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true; // Gerçekçi Gölgeleri Aktif Ediyoruz
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // Işıklandırma (Lighting) - Halının odadaki ışıkla bütünleşmesi için ambient ve yönlü ışık
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+
+            // Gölgeli Güneş Işığı (Directional Light) - Halının altına yumuşak gölge düşürür
+            directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight.position.set(2, 6, 2);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 15;
+            directionalLight.shadow.bias = -0.001;
+            scene.add(directionalLight);
+
+            // Zemin Gölge Alıcısı (Shadow Plane) - Görünmezdir ama halının gölgesini alır
+            const shadowPlaneGeo = new THREE.PlaneGeometry(100, 100);
+            const shadowPlaneMat = new THREE.ShadowMaterial({ opacity: 0.55 });
+            shadowPlane = new THREE.Mesh(shadowPlaneGeo, shadowPlaneMat);
+            shadowPlane.rotation.x = -Math.PI / 2; // Yatay zemin haline getir
+            shadowPlane.position.y = -0.001; // Z-fighting engellemek için hafifçe aşağıda
+            shadowPlane.receiveShadow = true;
+            scene.add(shadowPlane);
+
+            // Halı Düzlemi (Rug Plane) - Yükseklik gerçek boyuta göre oranlanır
+            const rugGeo = new THREE.PlaneGeometry(rugWidth, rugHeight);
             
-            // Halı görselinin kendisi 3D eğim (rotateX), döndürme (rotate) ve ölçeklendirme ile zemine oturtulur
-            haliGorseli.style.transform = `rotateX(${currentTilt}deg) rotate(${currentRotation}deg) scale(${currentScale})`;
+            // Doku Yükleyici - Halının resmini çekiyoruz
+            textureLoader = new THREE.TextureLoader();
+            const texturePath = "<?php echo $urunResimURL ?? '/rug-covers/RV-LUNA-001.png'; ?>";
+            
+            textureLoader.load(texturePath, (texture) => {
+                texture.generateMipmaps = true;
+                texture.minFilter = THREE.LinearMipmapLinearFilter;
+                
+                // Gerçekçi malzeme ayarları (Hafif mat kumaş hissi)
+                const rugMat = new THREE.MeshStandardMaterial({
+                    map: texture,
+                    roughness: 0.9,
+                    metalness: 0.05,
+                    side: THREE.DoubleSide
+                });
+
+                rugMesh = new THREE.Mesh(rugGeo, rugMat);
+                rugMesh.rotation.x = -Math.PI / 2; // Halıyı zemin üzerine yatır
+                rugMesh.castShadow = true; // Işıktan gölge üretsin
+                rugMesh.receiveShadow = true;
+                
+                scene.add(rugMesh);
+                updateRugTransform();
+            });
+
+            // Pencere boyutu değiştiğinde 3D alanı güncelle
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // Kamera yüksekliğini ve açısını güncelleyen fonksiyon
+        function updateCameraPosition() {
+            camera.position.set(0, cameraHeight, cameraDistance);
+            camera.lookAt(0, 0, 0); // Kamera her zaman halının merkezine bakar
+        }
+
+        // Halının dönme ve ölçek değerlerini uygulayan fonksiyon
+        function updateRugTransform() {
+            if (rugMesh) {
+                rugMesh.scale.set(scaleFactor, scaleFactor, 1);
+                rugMesh.rotation.z = THREE.MathUtils.degToRad(-rotationAngle); // Zemin düzleminde döner
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
         // ==========================================
-        // 1. KAMERA BAĞLANTI VE BAŞLATMA MANTIĞI
+        // 2. SÜRÜKLE VE BIRAK (XZ DÜZLEMİNDE RAYCASTING)
+        // ==========================================
+        function getIntersectionPoint(clientX, clientY, targetVec) {
+            mouse.x = (clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            return raycaster.ray.intersectPlane(groundPlane, targetVec);
+        }
+
+        // Touch ve Mouse Dinleyicileri
+        function setupInteraction() {
+            const onDown = (clientX, clientY) => {
+                if (!rugMesh) return;
+                const intersect = new THREE.Vector3();
+                if (getIntersectionPoint(clientX, clientY, intersect)) {
+                    // Tıklanan nokta halının merkezine yakın mı kontrol et (Sürükleme başlat)
+                    const dist = intersect.distanceTo(rugMesh.position);
+                    if (dist < 2.5) { 
+                        isDragging = true;
+                        dragOffset.copy(rugMesh.position).sub(intersect);
+                    }
+                }
+            };
+
+            const onMove = (clientX, clientY) => {
+                if (!isDragging || !rugMesh) return;
+                const intersect = new THREE.Vector3();
+                if (getIntersectionPoint(clientX, clientY, intersect)) {
+                    // Halıyı zemin (XZ) üzerinde sürükle, Y (yükseklik) sıfır kalır
+                    rugMesh.position.copy(intersect).add(dragOffset);
+                    rugMesh.position.y = 0; // Zemine yapışık kalması için
+                }
+            };
+
+            const onUp = () => {
+                isDragging = false;
+            };
+
+            // Touch Olayları
+            canvasElement.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    onDown(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            canvasElement.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) {
+                    onMove(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
+
+            canvasElement.addEventListener('touchend', onUp);
+
+            // Mouse Olayları (Masaüstü testi için)
+            canvasElement.addEventListener('mousedown', (e) => {
+                onDown(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                onMove(e.clientX, e.clientY);
+            });
+
+            window.addEventListener('mouseup', onUp);
+        }
+
+        // ==========================================
+        // 3. JİROSKOP SENSÖRÜ İLE GERÇEK AR HİSSİ
+        // ==========================================
+        function requestSensorAccess() {
+            // iOS 13+ için Jiroskop izin talebi
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            startGyroTracking();
+                        } else {
+                            alert("Jiroskop izni verilmedi. Sensör desteği olmadan çalışacak.");
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Sensör izin hatası:", err);
+                    });
+            } else {
+                // Diğer tarayıcılar (Android Chrome/Edge vb.)
+                startGyroTracking();
+            }
+        }
+
+        function startGyroTracking() {
+            window.addEventListener('deviceorientation', handleOrientation);
+            gyroActive = true;
+            sensorBtn.textContent = "Jiroskop Aktif ✓";
+            sensorBtn.style.background = "var(--primary)";
+        }
+
+        function handleOrientation(event) {
+            if (!gyroActive) return;
+
+            // İlk açılış açısını sıfır referans noktası olarak belirle
+            if (initialGyro.alpha === null) {
+                initialGyro.alpha = event.alpha;
+                initialGyro.beta = event.beta;
+                initialGyro.gamma = event.gamma;
+            }
+
+            // Sapma miktarlarını hesapla
+            currentGyro.alpha = event.alpha - initialGyro.alpha;
+            currentGyro.beta = event.beta - initialGyro.beta;
+            currentGyro.gamma = event.gamma - initialGyro.gamma;
+        }
+
+        // Cihaz Jiroskopu destekliyorsa butonu göster
+        if (typeof window.DeviceOrientationEvent !== 'undefined') {
+            sensorBtn.style.display = "block";
+            sensorBtn.addEventListener('click', requestSensorAccess);
+        }
+
+        // ==========================================
+        // 4. ANA DÖNGÜ (RENDER LOOP)
+        // ==========================================
+        function animate() {
+            if (!scene) return;
+            requestAnimationFrame(animate);
+
+            // Eğer jiroskop aktifse kameranın bakışını cihaz hareketine göre sars
+            if (gyroActive) {
+                // Jiroskop beta ve gamma verileriyle kamera rotasyonunu sarsarak
+                // gerçekçi bir "zemine kilitlenme" (3D SLAM / AR) efekti simüle ediyoruz.
+                const factor = 0.015;
+                const offsetZ = currentGyro.beta * factor;
+                const offsetX = -currentGyro.gamma * factor;
+
+                camera.position.x = offsetX;
+                camera.position.y = cameraHeight + offsetZ;
+                camera.lookAt(0, 0, 0);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // ==========================================
+        // 5. KAMERA STREAM KONTROLLERİ VE AÇMA/KAPATMA
         // ==========================================
         async function kameraBaslat() {
             const constraints = {
@@ -532,170 +721,150 @@
             };
 
             try {
-                // Kamera akışını al
-                aktifStream = await navigator.mediaDevices.getUserMedia(constraints);
-                videoAkisi.srcObject = aktifStream;
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = stream;
                 
-                // Kamera bağlantısı başarılıysa arayüzü göster
                 arKonteyner.style.display = 'block';
-                document.body.style.overflow = 'hidden'; // Sayfa kaydırmasını kapat
+                document.body.style.overflow = 'hidden';
+
+                // Sahneyi sıfırdan kur
+                initThreeJS();
+                setupInteraction();
                 
-                // Başlangıç konumuna getir
+                // Sıfırlama
                 resetToDefault();
+                
+                // Çizim döngüsünü başlat
+                animate();
             } catch (err) {
-                console.error("Kamera başlatılamadı:", err);
-                hataGoster("Kamera erişimi reddedildi veya arka kamera bulunamadı. Lütfen kamera izinlerinizi kontrol edin.");
+                console.error("Kamera açılamadı:", err);
+                hataGoster("Kamera veya WebGL 3D donanımına erişilemedi. Lütfen kamera izinlerinizi kontrol edin.");
             }
         }
 
-        // ==========================================
-        // 2. KAMERA VE STREAM DURDURMA (BELLEK YÖNETİMİ)
-        // ==========================================
         function kameraDurdur() {
-            if (aktifStream) {
-                aktifStream.getTracks().forEach(track => {
-                    track.stop();
-                });
-                aktifStream = null;
+            // Jiroskop bağlantısını kes
+            window.removeEventListener('deviceorientation', handleOrientation);
+            gyroActive = false;
+            sensorBtn.textContent = "Jiroskop Sensörünü Aç";
+            sensorBtn.style.background = "";
+            initialGyro = { alpha: null, beta: null, gamma: null };
+
+            // Kamera stream'ini durdur
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
             }
-            videoAkisi.srcObject = null;
+            videoElement.srcObject = null;
+
+            // Bellek Yönetimi (Disposal) - Tarayıcıda yavaşlamayı önler
+            if (renderer) {
+                renderer.dispose();
+            }
+            if (rugMesh) {
+                scene.remove(rugMesh);
+                rugMesh.geometry.dispose();
+                rugMesh.material.dispose();
+            }
+            if (shadowPlane) {
+                scene.remove(shadowPlane);
+                shadowPlane.geometry.dispose();
+                shadowPlane.material.dispose();
+            }
+            
+            scene = null;
+            camera = null;
+            renderer = null;
+
             arKonteyner.style.display = 'none';
-            document.body.style.overflow = ''; // Sayfa kaydırmasını aç
+            document.body.style.overflow = '';
         }
 
         // ==========================================
-        // 3. SÜRÜKLE-BIRAK ETKİLEŞİMİ (TOUCH & MOUSE)
-        // ==========================================
-        
-        // Touch Başlangıcı
-        haliWrapper.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                isDragging = true;
-                startX = e.touches[0].clientX - xOffset;
-                startY = e.touches[0].clientY - yOffset;
-            }
-        }, { passive: true });
-
-        // Touch Hareketi
-        haliWrapper.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            if (e.touches.length === 1) {
-                xOffset = e.touches[0].clientX - startX;
-                yOffset = e.touches[0].clientY - startY;
-                applyTransformations();
-            }
-        }, { passive: true });
-
-        // Touch Bitişi
-        haliWrapper.addEventListener('touchend', () => {
-            isDragging = false;
-        });
-
-        // Masaüstü Testleri için Mouse Etkileşimleri
-        haliWrapper.addEventListener('mousedown', (e) => {
-            isDragging = true;
-            startX = e.clientX - xOffset;
-            startY = e.clientY - yOffset;
-            haliWrapper.style.cursor = 'grabbing';
-            e.preventDefault();
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            xOffset = e.clientX - startX;
-            yOffset = e.clientY - startY;
-            applyTransformations();
-        });
-
-        window.addEventListener('mouseup', () => {
-            if (isDragging) {
-                isDragging = false;
-                haliWrapper.style.cursor = 'move';
-            }
-        });
-
-        // ==========================================
-        // 4. KONTROL ELEMANLARI VE SLIDER AYARLARI
+        // 6. KONTROL SÜRGÜSÜ ETKİNLİKLERİ
         // ==========================================
         
         // Boyut Değişimi
         scaleSlider.addEventListener('input', (e) => {
-            currentScale = parseFloat(e.target.value);
-            applyTransformations();
+            scaleFactor = parseFloat(e.target.value) / 1.6; // slider 1.6 varsayılana göre oranlanır
+            updateRugTransform();
         });
 
         scaleDownBtn.addEventListener('click', () => {
-            currentScale = Math.max(0.3, currentScale - 0.1);
-            scaleSlider.value = currentScale;
-            applyTransformations();
+            let val = Math.max(0.5, parseFloat(scaleSlider.value) - 0.1);
+            scaleSlider.value = val.toFixed(1);
+            scaleFactor = val / 1.6;
+            updateRugTransform();
         });
 
         scaleUpBtn.addEventListener('click', () => {
-            currentScale = Math.min(2.0, currentScale + 0.1);
-            scaleSlider.value = currentScale;
-            applyTransformations();
+            let val = Math.min(3.0, parseFloat(scaleSlider.value) + 0.1);
+            scaleSlider.value = val.toFixed(1);
+            scaleFactor = val / 1.6;
+            updateRugTransform();
         });
 
         // Döndürme Değişimi
         rotateSlider.addEventListener('input', (e) => {
-            currentRotation = parseInt(e.target.value);
-            applyTransformations();
+            rotationAngle = parseInt(e.target.value);
+            updateRugTransform();
         });
 
         rotateLeftBtn.addEventListener('click', () => {
-            currentRotation = (currentRotation - 15 + 360) % 360;
-            rotateSlider.value = currentRotation;
-            applyTransformations();
+            rotationAngle = (rotationAngle - 15 + 360) % 360;
+            rotateSlider.value = rotationAngle;
+            updateRugTransform();
         });
 
         rotateRightBtn.addEventListener('click', () => {
-            currentRotation = (currentRotation + 15) % 360;
-            rotateSlider.value = currentRotation;
-            applyTransformations();
+            rotationAngle = (rotationAngle + 15) % 360;
+            rotateSlider.value = rotationAngle;
+            updateRugTransform();
         });
 
-        // Zemin Perspektifi / Eğim (Tilt) Değişimi
+        // Kamera Yükseklik/Eğim Değişimi (Zemin Perspektifi)
         tiltSlider.addEventListener('input', (e) => {
-            currentTilt = parseInt(e.target.value);
-            applyTransformations();
+            cameraHeight = parseFloat(e.target.value);
+            updateCameraPosition();
         });
 
         tiltDownBtn.addEventListener('click', () => {
-            currentTilt = Math.max(45, currentTilt - 2);
-            tiltSlider.value = currentTilt;
-            applyTransformations();
+            cameraHeight = Math.max(1.0, cameraHeight - 0.2);
+            tiltSlider.value = cameraHeight.toFixed(1);
+            updateCameraPosition();
         });
 
         tiltUpBtn.addEventListener('click', () => {
-            currentTilt = Math.min(85, currentTilt + 2);
-            tiltSlider.value = currentTilt;
-            applyTransformations();
+            cameraHeight = Math.min(6.0, cameraHeight + 0.2);
+            tiltSlider.value = cameraHeight.toFixed(1);
+            updateCameraPosition();
         });
 
-        // Konum Sıfırlama
+        // Sıfırlama
         function resetToDefault() {
-            currentScale = 0.8;
-            currentRotation = 0;
-            currentTilt = 65; // Halının zemin eğimi (rotateX) varsayılan
-            xOffset = 0;
-            yOffset = 0;
-            scaleSlider.value = 0.8;
+            scaleFactor = 1.0;
+            rotationAngle = 0;
+            cameraHeight = 3.0;
+            scaleSlider.value = 1.6;
             rotateSlider.value = 0;
-            tiltSlider.value = 65;
-            applyTransformations();
+            tiltSlider.value = 3.0;
+            
+            if (rugMesh) {
+                rugMesh.position.set(0, 0, 0);
+            }
+            updateRugTransform();
+            updateCameraPosition();
         }
 
         resetBtn.addEventListener('click', resetToDefault);
 
-        // ==========================================
-        // 5. ETKİNLİK DİNLEYİCİLERİ VE HATA GÖSTERİMİ
-        // ==========================================
+        // Hata Yönetimi
         arBaslatBtn.addEventListener('click', kameraBaslat);
         arKapatBtn.addEventListener('click', kameraDurdur);
 
         function hataGoster(mesaj) {
             arErrorText.textContent = mesaj;
-            arKonteyner.style.display = 'block'; 
+            arKonteyner.style.display = 'block';
             arErrorDiv.style.display = 'block';
         }
 
