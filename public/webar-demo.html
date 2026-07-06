@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WebAR - Odanda Gör Canlı Deneyim</title>
+    <title>WebAR - Odanda Gör Canlı Deneyim (3D Perspektif)</title>
     <!-- Gelişmiş Premium CSS Tasarımları -->
     <style>
         :root {
@@ -186,19 +186,44 @@
             z-index: 1;
         }
 
-        /* Şeffaf Halı Görseli */
-        #hali-gorseli {
+        /* 3D Perspektif Alanı */
+        #ar-perspektif-alani {
             position: absolute;
-            top: 50%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            /* 3D derinlik efekti sağlar. VR/AR hissi için kritiktir. */
+            perspective: 1200px;
+            perspective-origin: 50% 50%;
+        }
+
+        /* Konumlandırıcı Wrapper */
+        #hali-wrapper {
+            position: absolute;
+            top: 55%; /* Ekranın alt zemin hizasına yakın konumlandırıldı */
             left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 10;
-            max-width: 80%;
-            touch-action: none; /* Tarayıcı kaydırma hareketini engellemek için */
-            filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
+            touch-action: none;
             cursor: move;
+            z-index: 12;
+            transform-style: preserve-3d;
+        }
+
+        /* Şeffaf Halı Görseli (Eğilmiş / Zemin Hizasına Yatırılmış) */
+        #hali-gorseli {
+            width: 320px; /* Varsayılan genişlik */
+            max-width: 90vw;
+            height: auto;
+            display: block;
+            /* Zemin perspektifi için rotateX ile halıyı yatay zemin gibi konumlandırıyoruz */
+            transform: rotateX(65deg) rotate(0deg) scale(0.8);
+            transform-style: preserve-3d;
+            filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.65));
             user-select: none;
             -webkit-user-drag: none;
+            transition: transform 0.05s ease-out;
         }
 
         /* Kapat Butonu (Şık Üst Kısım Tasarımı) */
@@ -230,7 +255,7 @@
             transform: scale(1.05);
         }
 
-        /* WebAR Alt Kontrol Paneli (İnce Ayarlar İçin Ekstra Premium Özellikler) */
+        /* WebAR Alt Kontrol Paneli */
         .ar-controls-panel {
             position: absolute;
             bottom: 30px;
@@ -242,9 +267,9 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.15);
             padding: 16px 24px;
-            border-radius: 20px;
-            width: 90%;
-            max-width: 450px;
+            border-radius: 24px;
+            width: 92%;
+            max-width: 460px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
@@ -256,14 +281,14 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
+            gap: 12px;
         }
 
         .control-label {
             font-size: 13px;
-            font-weight: 600;
-            min-width: 60px;
-            color: #a1a1aa;
+            font-weight: 700;
+            min-width: 75px;
+            color: #d4d4d8;
         }
 
         .control-slider {
@@ -272,7 +297,7 @@
             appearance: none;
             height: 6px;
             border-radius: 3px;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
             outline: none;
         }
 
@@ -371,7 +396,7 @@
                             <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
                             <line x1="12" y1="22.08" x2="12" y2="12"></line>
                         </svg>
-                        Odanda Gör
+                        Odanda Gör (WebAR)
                     </button>
                 </div>
             </div>
@@ -385,8 +410,14 @@
         <!-- Canlı Kamera Akışı (playsinline iOS Safari için kritiktir) -->
         <video id="kamera-akisi" autoplay playsinline></video>
 
-        <!-- Sürüklenip Döndürülebilen Şeffaf Ürün Görseli -->
-        <img id="hali-gorseli" src="/rug-covers/RV-LUNA-001.png" alt="Halı AR">
+        <!-- 3D Perspektif Alanı -->
+        <div id="ar-perspektif-alani">
+            <!-- Sürüklenebilen Konumlandırıcı Wrapper -->
+            <div id="hali-wrapper">
+                <!-- Zemin Perspektifine Göre Yatırılmış Şeffaf Halı Görseli -->
+                <img id="hali-gorseli" src="/rug-covers/RV-LUNA-001.png" alt="Halı AR">
+            </div>
+        </div>
 
         <!-- Kapatma Butonu -->
         <button id="ar-kapat-btn">
@@ -401,22 +432,29 @@
         <div class="ar-controls-panel">
             <!-- Boyut Kaydırıcısı -->
             <div class="control-row">
-                <span class="control-label">Boyut:</span>
+                <span class="control-label">Boyut (Ölçek):</span>
                 <button class="control-btn-circle" id="scale-down">-</button>
                 <input type="range" id="ar-scale-slider" class="control-slider" min="0.3" max="2.0" step="0.05" value="0.8">
                 <button class="control-btn-circle" id="scale-up">+</button>
             </div>
             <!-- Döndürme Kaydırıcısı -->
             <div class="control-row">
-                <span class="control-label">Döndür:</span>
+                <span class="control-label">Döndür (Z-Aks):</span>
                 <button class="control-btn-circle" id="rotate-left">↺</button>
                 <input type="range" id="ar-rotate-slider" class="control-slider" min="0" max="360" step="5" value="0">
                 <button class="control-btn-circle" id="rotate-right">↻</button>
             </div>
-            <!-- Reset Butonu -->
+            <!-- Zemin Perspektifi / Eğim (Tilt) Sürgüsü -->
+            <div class="control-row">
+                <span class="control-label">Zemin Eğimi:</span>
+                <button class="control-btn-circle" id="tilt-down">↓</button>
+                <input type="range" id="ar-tilt-slider" class="control-slider" min="45" max="85" step="1" value="65">
+                <button class="control-btn-circle" id="tilt-up">↑</button>
+            </div>
+            <!-- Sıfırlama Butonu -->
             <div class="control-row" style="justify-content: center; margin-top: 4px;">
                 <button id="ar-reset-btn" style="background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; width: 100%;">
-                    Konumu ve Boyutu Sıfırla
+                    Konumu ve Görünümü Sıfırla
                 </button>
             </div>
         </div>
@@ -435,15 +473,20 @@
         const arKapatBtn = document.getElementById('ar-kapat-btn');
         const arKonteyner = document.getElementById('ar-konteyner');
         const videoAkisi = document.getElementById('kamera-akisi');
+        const haliWrapper = document.getElementById('hali-wrapper');
         const haliGorseli = document.getElementById('hali-gorseli');
         
         // Kontrol Paneli Elemanları
         const scaleSlider = document.getElementById('ar-scale-slider');
         const rotateSlider = document.getElementById('ar-rotate-slider');
+        const tiltSlider = document.getElementById('ar-tilt-slider');
+        
         const scaleDownBtn = document.getElementById('scale-down');
         const scaleUpBtn = document.getElementById('scale-up');
         const rotateLeftBtn = document.getElementById('rotate-left');
         const rotateRightBtn = document.getElementById('rotate-right');
+        const tiltDownBtn = document.getElementById('tilt-down');
+        const tiltUpBtn = document.getElementById('tilt-up');
         const resetBtn = document.getElementById('ar-reset-btn');
         
         // Hata Paneli Elemanları
@@ -457,6 +500,7 @@
         // Dönüşüm ve Pozisyon Durumları
         let currentScale = 0.8;
         let currentRotation = 0;
+        let currentTilt = 65; // Halının zemin eğimi (rotateX)
         let isDragging = false;
         
         // Sürükle ve Bırak Koordinat Kayıtları
@@ -467,15 +511,17 @@
 
         // Görseli Güncel Konum ve Dönüşüm Değerleriyle Boyama Fonksiyonu
         function applyTransformations() {
-            // translate(-50%, -50%) görselin tam ortadan hizalanmasını korur.
-            haliGorseli.style.transform = `translate(calc(-50% + ${xOffset}px), calc(-50% + ${yOffset}px)) scale(${currentScale}) rotate(${currentRotation}deg)`;
+            // Wrapper sadece 2D düzlemde (ekran üzerinde) kaydırılır
+            haliWrapper.style.transform = `translate(calc(-50% + ${xOffset}px), calc(-50% + ${yOffset}px))`;
+            
+            // Halı görselinin kendisi 3D eğim (rotateX), döndürme (rotate) ve ölçeklendirme ile zemine oturtulur
+            haliGorseli.style.transform = `rotateX(${currentTilt}deg) rotate(${currentRotation}deg) scale(${currentScale})`;
         }
 
         // ==========================================
         // 1. KAMERA BAĞLANTI VE BAŞLATMA MANTIĞI
         // ==========================================
         async function kameraBaslat() {
-            // Kesin Kural: FacingMode: 'environment' doğrudan arka kamerayı açar.
             const constraints = {
                 video: {
                     facingMode: 'environment',
@@ -507,13 +553,11 @@
         // ==========================================
         function kameraDurdur() {
             if (aktifStream) {
-                // Kesin Kural: Tüm track'leri döngüyle durdur
                 aktifStream.getTracks().forEach(track => {
                     track.stop();
                 });
                 aktifStream = null;
             }
-            // Video elemanının bağlantısını temizle
             videoAkisi.srcObject = null;
             arKonteyner.style.display = 'none';
             document.body.style.overflow = ''; // Sayfa kaydırmasını aç
@@ -524,20 +568,18 @@
         // ==========================================
         
         // Touch Başlangıcı
-        haliGorseli.addEventListener('touchstart', (e) => {
+        haliWrapper.addEventListener('touchstart', (e) => {
             if (e.touches.length === 1) {
                 isDragging = true;
-                // Parmağın dokunduğu ilk nokta ile mevcut offset arasındaki farkı al
                 startX = e.touches[0].clientX - xOffset;
                 startY = e.touches[0].clientY - yOffset;
             }
         }, { passive: true });
 
         // Touch Hareketi
-        haliGorseli.addEventListener('touchmove', (e) => {
+        haliWrapper.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
             if (e.touches.length === 1) {
-                // Yeni offset değerlerini hesapla
                 xOffset = e.touches[0].clientX - startX;
                 yOffset = e.touches[0].clientY - startY;
                 applyTransformations();
@@ -545,16 +587,16 @@
         }, { passive: true });
 
         // Touch Bitişi
-        haliGorseli.addEventListener('touchend', () => {
+        haliWrapper.addEventListener('touchend', () => {
             isDragging = false;
         });
 
         // Masaüstü Testleri için Mouse Etkileşimleri
-        haliGorseli.addEventListener('mousedown', (e) => {
+        haliWrapper.addEventListener('mousedown', (e) => {
             isDragging = true;
             startX = e.clientX - xOffset;
             startY = e.clientY - yOffset;
-            haliGorseli.style.cursor = 'grabbing';
+            haliWrapper.style.cursor = 'grabbing';
             e.preventDefault();
         });
 
@@ -568,7 +610,7 @@
         window.addEventListener('mouseup', () => {
             if (isDragging) {
                 isDragging = false;
-                haliGorseli.style.cursor = 'move';
+                haliWrapper.style.cursor = 'move';
             }
         });
 
@@ -612,14 +654,34 @@
             applyTransformations();
         });
 
+        // Zemin Perspektifi / Eğim (Tilt) Değişimi
+        tiltSlider.addEventListener('input', (e) => {
+            currentTilt = parseInt(e.target.value);
+            applyTransformations();
+        });
+
+        tiltDownBtn.addEventListener('click', () => {
+            currentTilt = Math.max(45, currentTilt - 2);
+            tiltSlider.value = currentTilt;
+            applyTransformations();
+        });
+
+        tiltUpBtn.addEventListener('click', () => {
+            currentTilt = Math.min(85, currentTilt + 2);
+            tiltSlider.value = currentTilt;
+            applyTransformations();
+        });
+
         // Konum Sıfırlama
         function resetToDefault() {
             currentScale = 0.8;
             currentRotation = 0;
+            currentTilt = 65; // Halının zemin eğimi (rotateX) varsayılan
             xOffset = 0;
             yOffset = 0;
             scaleSlider.value = 0.8;
             rotateSlider.value = 0;
+            tiltSlider.value = 65;
             applyTransformations();
         }
 
@@ -633,7 +695,7 @@
 
         function hataGoster(mesaj) {
             arErrorText.textContent = mesaj;
-            arKonteyner.style.display = 'block'; // Hata ekranının görünebilmesi için konteyner açılır
+            arKonteyner.style.display = 'block'; 
             arErrorDiv.style.display = 'block';
         }
 
