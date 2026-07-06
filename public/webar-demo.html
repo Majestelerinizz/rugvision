@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WebAR - Odanda Gör Canlı Deneyim</title>
+    <!-- Gelişmiş Premium CSS Tasarımları -->
+    <style>
+        :root {
+            --primary: #ea580c;
+            --primary-hover: #dd6b20;
+            --bg-dark: #09090b;
+            --text-light: #f4f4f5;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #fafafa;
+            color: #18181b;
+            overflow-x: hidden;
+        }
+
+        /* Demo Sayfası Tasarımı (E-Ticaret Simülasyonu) */
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .product-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+        }
+
+        .product-image-wrapper {
+            background: #f4f4f5;
+            border-radius: 16px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            aspect-ratio: 1;
+            position: relative;
+        }
+
+        .product-image {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.1));
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brand {
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        .title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #09090b;
+            margin: 0 0 12px;
+        }
+
+        .price {
+            font-size: 28px;
+            font-weight: 700;
+            color: #09090b;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .price-currency {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .description {
+            font-size: 16px;
+            color: #71717a;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 480px) {
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            padding: 16px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-align: center;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #09090b;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: #27272a;
+        }
+
+        .btn-ar {
+            background-color: var(--primary);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px 0 rgba(234, 88, 12, 0.4);
+        }
+
+        .btn-ar:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px 0 rgba(234, 88, 12, 0.4);
+        }
+
+        .btn-ar:active {
+            transform: translateY(0);
+        }
+
+        /* ------------------------------------------------------------- */
+        /* WebAR Kamera Konteyneri Tasarımı (#ar-konteyner)             */
+        /* ------------------------------------------------------------- */
+        #ar-konteyner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 99999;
+            background: #000;
+            overflow: hidden;
+            display: none; /* JavaScript ile açılacak */
+        }
+
+        /* Canlı Kamera Akışı */
+        #kamera-akisi {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Şeffaf Halı Görseli */
+        #hali-gorseli {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            max-width: 80%;
+            touch-action: none; /* Tarayıcı kaydırma hareketini engellemek için */
+            filter: drop-shadow(0 15px 30px rgba(0, 0, 0, 0.4));
+            cursor: move;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        /* Kapat Butonu (Şık Üst Kısım Tasarımı) */
+        #ar-kapat-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            z-index: 100;
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #ar-kapat-btn:hover {
+            background: #ea580c;
+            border-color: #ea580c;
+            transform: scale(1.05);
+        }
+
+        /* WebAR Alt Kontrol Paneli (İnce Ayarlar İçin Ekstra Premium Özellikler) */
+        .ar-controls-panel {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 16px 24px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            color: #fff;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .control-label {
+            font-size: 13px;
+            font-weight: 600;
+            min-width: 60px;
+            color: #a1a1aa;
+        }
+
+        .control-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+        }
+
+        .control-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+            transition: transform 0.1s;
+        }
+
+        .control-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .control-btn-circle {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background 0.2s;
+        }
+
+        .control-btn-circle:hover {
+            background: var(--primary);
+        }
+
+        /* Hata veya İzin Bildirimi */
+        .ar-error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 150;
+            background: rgba(9, 9, 11, 0.95);
+            padding: 24px;
+            border-radius: 16px;
+            max-width: 320px;
+            text-align: center;
+            color: #fff;
+            border: 1px solid rgba(255,0,0,0.3);
+            display: none;
+        }
+
+        .ar-error-message p {
+            margin: 0 0 16px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .ar-error-message button {
+            background: var(--primary);
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="demo-container">
+        <div class="product-grid">
+            <div class="product-image-wrapper">
+                <img class="product-image" src="/rug-covers/RV-LUNA-001.png" alt="Luna Premium Halı">
+            </div>
+            <div class="product-info">
+                <div class="brand">RUGVISION PREMIUM</div>
+                <h1 class="title">Luna Modern Salon Halısı</h1>
+                <div class="price">
+                    <span>5.499,00</span> <span class="price-currency">TL</span>
+                </div>
+                <p class="description">
+                    Evinizin atmosferini değiştirecek modern geometrik desenlerle dokunmuş, yüksek kaliteli, kaymaz tabanlı Luna serisi halı. Şimdi doğrudan kameranızı kullanarak odanızda nasıl duracağını canlı olarak görüntüleyin.
+                </p>
+                <div class="button-group">
+                    <button class="btn btn-primary">Sepete Ekle</button>
+                    <!-- "Odanda Gör" AR Başlat Butonu -->
+                    <button id="ar-baslat-btn" class="btn btn-ar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                            <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                        </svg>
+                        Odanda Gör
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- WebAR Konteyneri (Sayfa Body Kapanışından Hemen Önce)            -->
+    <!-- ------------------------------------------------------------- -->
+    <div id="ar-konteyner">
+        <!-- Canlı Kamera Akışı (playsinline iOS Safari için kritiktir) -->
+        <video id="kamera-akisi" autoplay playsinline></video>
+
+        <!-- Sürüklenip Döndürülebilen Şeffaf Ürün Görseli -->
+        <img id="hali-gorseli" src="/rug-covers/RV-LUNA-001.png" alt="Halı AR">
+
+        <!-- Kapatma Butonu -->
+        <button id="ar-kapat-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            Kapat
+        </button>
+
+        <!-- İnce Ayarlar İçin Kontrol Paneli -->
+        <div class="ar-controls-panel">
+            <!-- Boyut Kaydırıcısı -->
+            <div class="control-row">
+                <span class="control-label">Boyut:</span>
+                <button class="control-btn-circle" id="scale-down">-</button>
+                <input type="range" id="ar-scale-slider" class="control-slider" min="0.3" max="2.0" step="0.05" value="0.8">
+                <button class="control-btn-circle" id="scale-up">+</button>
+            </div>
+            <!-- Döndürme Kaydırıcısı -->
+            <div class="control-row">
+                <span class="control-label">Döndür:</span>
+                <button class="control-btn-circle" id="rotate-left">↺</button>
+                <input type="range" id="ar-rotate-slider" class="control-slider" min="0" max="360" step="5" value="0">
+                <button class="control-btn-circle" id="rotate-right">↻</button>
+            </div>
+            <!-- Reset Butonu -->
+            <div class="control-row" style="justify-content: center; margin-top: 4px;">
+                <button id="ar-reset-btn" style="background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 6px 16px; border-radius: 20px; cursor: pointer; font-size: 12px; font-weight: 600; width: 100%;">
+                    Konumu ve Boyutu Sıfırla
+                </button>
+            </div>
+        </div>
+
+        <!-- Hata Mesajı Bölümü -->
+        <div id="ar-error" class="ar-error-message">
+            <p id="ar-error-text">Kamera erişimine izin verilmedi veya desteklenmeyen bir cihaz.</p>
+            <button id="ar-error-close">Tamam</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Etkileşim ve Kamera Yönetim Kodları -->
+    <script>
+        // DOM Elemanları
+        const arBaslatBtn = document.getElementById('ar-baslat-btn');
+        const arKapatBtn = document.getElementById('ar-kapat-btn');
+        const arKonteyner = document.getElementById('ar-konteyner');
+        const videoAkisi = document.getElementById('kamera-akisi');
+        const haliGorseli = document.getElementById('hali-gorseli');
+        
+        // Kontrol Paneli Elemanları
+        const scaleSlider = document.getElementById('ar-scale-slider');
+        const rotateSlider = document.getElementById('ar-rotate-slider');
+        const scaleDownBtn = document.getElementById('scale-down');
+        const scaleUpBtn = document.getElementById('scale-up');
+        const rotateLeftBtn = document.getElementById('rotate-left');
+        const rotateRightBtn = document.getElementById('rotate-right');
+        const resetBtn = document.getElementById('ar-reset-btn');
+        
+        // Hata Paneli Elemanları
+        const arErrorDiv = document.getElementById('ar-error');
+        const arErrorText = document.getElementById('ar-error-text');
+        const arErrorClose = document.getElementById('ar-error-close');
+
+        // Aktif Kamera Akışı Kaydı
+        let aktifStream = null;
+
+        // Dönüşüm ve Pozisyon Durumları
+        let currentScale = 0.8;
+        let currentRotation = 0;
+        let isDragging = false;
+        
+        // Sürükle ve Bırak Koordinat Kayıtları
+        let startX = 0;
+        let startY = 0;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        // Görseli Güncel Konum ve Dönüşüm Değerleriyle Boyama Fonksiyonu
+        function applyTransformations() {
+            // translate(-50%, -50%) görselin tam ortadan hizalanmasını korur.
+            haliGorseli.style.transform = `translate(calc(-50% + ${xOffset}px), calc(-50% + ${yOffset}px)) scale(${currentScale}) rotate(${currentRotation}deg)`;
+        }
+
+        // ==========================================
+        // 1. KAMERA BAĞLANTI VE BAŞLATMA MANTIĞI
+        // ==========================================
+        async function kameraBaslat() {
+            // Kesin Kural: FacingMode: 'environment' doğrudan arka kamerayı açar.
+            const constraints = {
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: false
+            };
+
+            try {
+                // Kamera akışını al
+                aktifStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoAkisi.srcObject = aktifStream;
+                
+                // Kamera bağlantısı başarılıysa arayüzü göster
+                arKonteyner.style.display = 'block';
+                document.body.style.overflow = 'hidden'; // Sayfa kaydırmasını kapat
+                
+                // Başlangıç konumuna getir
+                resetToDefault();
+            } catch (err) {
+                console.error("Kamera başlatılamadı:", err);
+                hataGoster("Kamera erişimi reddedildi veya arka kamera bulunamadı. Lütfen kamera izinlerinizi kontrol edin.");
+            }
+        }
+
+        // ==========================================
+        // 2. KAMERA VE STREAM DURDURMA (BELLEK YÖNETİMİ)
+        // ==========================================
+        function kameraDurdur() {
+            if (aktifStream) {
+                // Kesin Kural: Tüm track'leri döngüyle durdur
+                aktifStream.getTracks().forEach(track => {
+                    track.stop();
+                });
+                aktifStream = null;
+            }
+            // Video elemanının bağlantısını temizle
+            videoAkisi.srcObject = null;
+            arKonteyner.style.display = 'none';
+            document.body.style.overflow = ''; // Sayfa kaydırmasını aç
+        }
+
+        // ==========================================
+        // 3. SÜRÜKLE-BIRAK ETKİLEŞİMİ (TOUCH & MOUSE)
+        // ==========================================
+        
+        // Touch Başlangıcı
+        haliGorseli.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDragging = true;
+                // Parmağın dokunduğu ilk nokta ile mevcut offset arasındaki farkı al
+                startX = e.touches[0].clientX - xOffset;
+                startY = e.touches[0].clientY - yOffset;
+            }
+        }, { passive: true });
+
+        // Touch Hareketi
+        haliGorseli.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            if (e.touches.length === 1) {
+                // Yeni offset değerlerini hesapla
+                xOffset = e.touches[0].clientX - startX;
+                yOffset = e.touches[0].clientY - startY;
+                applyTransformations();
+            }
+        }, { passive: true });
+
+        // Touch Bitişi
+        haliGorseli.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Masaüstü Testleri için Mouse Etkileşimleri
+        haliGorseli.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX - xOffset;
+            startY = e.clientY - yOffset;
+            haliGorseli.style.cursor = 'grabbing';
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            xOffset = e.clientX - startX;
+            yOffset = e.clientY - startY;
+            applyTransformations();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                haliGorseli.style.cursor = 'move';
+            }
+        });
+
+        // ==========================================
+        // 4. KONTROL ELEMANLARI VE SLIDER AYARLARI
+        // ==========================================
+        
+        // Boyut Değişimi
+        scaleSlider.addEventListener('input', (e) => {
+            currentScale = parseFloat(e.target.value);
+            applyTransformations();
+        });
+
+        scaleDownBtn.addEventListener('click', () => {
+            currentScale = Math.max(0.3, currentScale - 0.1);
+            scaleSlider.value = currentScale;
+            applyTransformations();
+        });
+
+        scaleUpBtn.addEventListener('click', () => {
+            currentScale = Math.min(2.0, currentScale + 0.1);
+            scaleSlider.value = currentScale;
+            applyTransformations();
+        });
+
+        // Döndürme Değişimi
+        rotateSlider.addEventListener('input', (e) => {
+            currentRotation = parseInt(e.target.value);
+            applyTransformations();
+        });
+
+        rotateLeftBtn.addEventListener('click', () => {
+            currentRotation = (currentRotation - 15 + 360) % 360;
+            rotateSlider.value = currentRotation;
+            applyTransformations();
+        });
+
+        rotateRightBtn.addEventListener('click', () => {
+            currentRotation = (currentRotation + 15) % 360;
+            rotateSlider.value = currentRotation;
+            applyTransformations();
+        });
+
+        // Konum Sıfırlama
+        function resetToDefault() {
+            currentScale = 0.8;
+            currentRotation = 0;
+            xOffset = 0;
+            yOffset = 0;
+            scaleSlider.value = 0.8;
+            rotateSlider.value = 0;
+            applyTransformations();
+        }
+
+        resetBtn.addEventListener('click', resetToDefault);
+
+        // ==========================================
+        // 5. ETKİNLİK DİNLEYİCİLERİ VE HATA GÖSTERİMİ
+        // ==========================================
+        arBaslatBtn.addEventListener('click', kameraBaslat);
+        arKapatBtn.addEventListener('click', kameraDurdur);
+
+        function hataGoster(mesaj) {
+            arErrorText.textContent = mesaj;
+            arKonteyner.style.display = 'block'; // Hata ekranının görünebilmesi için konteyner açılır
+            arErrorDiv.style.display = 'block';
+        }
+
+        arErrorClose.addEventListener('click', () => {
+            arErrorDiv.style.display = 'none';
+            kameraDurdur();
+        });
+    </script>
+</body>
+</html>
