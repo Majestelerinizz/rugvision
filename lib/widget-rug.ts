@@ -78,10 +78,16 @@ const cachedWidgetRugBySku = unstable_cache(
 
 // Hali kimligine gore (panelden uretilen embed: data-rug-id).
 export async function findWidgetRugById(id: string) {
+  if (process.env.NODE_ENV === "development") {
+    return loadWidgetRugById(id);
+  }
   return cachedWidgetRugById(id);
 }
 
 // Merchant + SKU eslemesine gore (data-merchant-id + data-sku).
 export async function findWidgetRugBySku(merchantId: string, sku: string) {
+  if (process.env.NODE_ENV === "development") {
+    return loadWidgetRugBySku(merchantId, sku);
+  }
   return cachedWidgetRugBySku(merchantId, sku);
 }

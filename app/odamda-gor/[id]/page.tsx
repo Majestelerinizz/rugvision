@@ -25,10 +25,12 @@ async function loadRugForViewer(id: string) {
   });
 }
 
-const getRugForViewer = unstable_cache(loadRugForViewer, ["odamda-gor-rug"], {
-  revalidate: ODAMDA_GOR_REVALIDATE_SEC,
-  tags: [ODAMDA_GOR_CACHE_TAG],
-});
+const getRugForViewer = process.env.NODE_ENV === "development"
+  ? loadRugForViewer
+  : unstable_cache(loadRugForViewer, ["odamda-gor-rug"], {
+      revalidate: ODAMDA_GOR_REVALIDATE_SEC,
+      tags: [ODAMDA_GOR_CACHE_TAG],
+    });
 
 export default async function OdamdaGorPage({
   params,
@@ -61,25 +63,33 @@ export default async function OdamdaGorPage({
     );
   }
 
-  const modelUrl = rug.model3dUrl || FALLBACK_MODEL_URL;
-  const viewerSrc = buildViewerGlbSrc(modelUrl);
-  const iosSrc = buildIosSrc(modelUrl);
-  const isFallbackModel = !rug.model3dUrl;
-  const buttonText = rug.merchant.widgetSettings?.buttonText || "Odamda Gor";
+  // Prioritize new model fields if they exist, fallback to model3dUrl
+  const glbUrl = rug.modelGlbUrl || rug.model3dUrl || FALLBACK_MODEL_URL;
+  const usdzUrl = rug.modelUsdzUrl || (rug.model3dUrl ? buildIosSrc(rug.model3dUrl) : undefined);
+  const posterUrl = rug.modelPosterUrl || rug.coverImage || "";
+  const thicknessMm = rug.thicknessMm || 8;
+  const hasARModel = rug.hasARModel ?? !!rug.model3dUrl;
+
+  const isFallbackModel = !rug.model3dUrl && !rug.modelGlbUrl;
+  const buttonText = rug.merchant.widgetSettings?.buttonText || "HEMEN ODANDA GÖR";
   const buttonColor = rug.merchant.widgetSettings?.buttonColor || "#111827";
   const borderRadius = rug.merchant.widgetSettings?.borderRadius ?? 9999;
 
   const viewer = (
     <ArViewerClient
-      modelUrl={modelUrl}
-      viewerSrc={viewerSrc}
-      iosSrc={iosSrc}
+      glbUrl={glbUrl}
+      usdzUrl={usdzUrl}
+      posterUrl={posterUrl}
       name={rug.name}
       merchantId={rug.merchant.id}
       merchantName={rug.merchant.name}
       rugId={rug.id}
       sku={rug.sku}
       slug={rug.slug}
+      widthCm={rug.widthCm}
+      lengthCm={rug.lengthCm}
+      thicknessMm={thicknessMm}
+      hasARModel={hasARModel}
       buttonText={buttonText}
       buttonColor={buttonColor}
       borderRadius={borderRadius}
