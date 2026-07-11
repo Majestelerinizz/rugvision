@@ -572,40 +572,14 @@
     track("WIDGET_OPENED", merchantId);
     var profile = detectProfile();
 
-    if (profile.primary === "quick-look" && usdzUrl) {
-      runArWithFloorScan(merchantId, function () {
-        openQuickLook();
-      });
-      return;
-    }
-
-    if (profile.primary === "chrome-handoff") {
-      runArWithFloorScan(merchantId, function () {
-        openInChromeViewer();
-      });
-      return;
-    }
-
-    if (profile.primary === "webxr") {
-      runArWithFloorScan(merchantId, function () {
-        openMobileViewer();
-      });
-      return;
-    }
-
-    if (profile.primary === "scene-viewer" && glbUrl) {
-      runArWithFloorScan(merchantId, function () {
-        openSceneViewer();
-      });
-      return;
-    }
-
-    // Huawei / AR desteklemeyen Android veya model yok: tam sayfa 3D/WebXR.
+    // Mobil kullanıcıları (iOS/Android) her zaman mobil görüntüleyici sayfasına yönlendir.
+    // Bu sayede hem 3D/AR hem de yeni "Fotoğrafta Gör" (2D Perspective Canvas) sekmelerine erişebilirler.
     if (profile.platform === "android" || profile.platform === "ios") {
       openMobileViewer();
       return;
     }
 
+    // Masaüstü kullanıcıları için 3D modal/iframe aç.
     openModal();
   }
 
