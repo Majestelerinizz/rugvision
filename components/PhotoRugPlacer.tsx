@@ -127,6 +127,7 @@ export default function PhotoRugPlacer({
   const [shareSupported, setShareSupported] = useState(false);
   const [rugLoaded, setRugLoaded] = useState(false);
   const [photoSize, setPhotoSize] = useState({ w: 0, h: 0 });
+  const [showHandles, setShowHandles] = useState(false);
 
   /* Ref'ler */
   const containerRef = useRef<HTMLDivElement>(null);
@@ -217,36 +218,38 @@ export default function PhotoRugPlacer({
     ctx.restore();
 
     // Handle'lar (sadece düzenleme modunda)
-    quad.forEach((p, i) => {
+    if (showHandles) {
+      quad.forEach((p, i) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, HANDLE_VISUAL, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(255,255,255,0.92)";
+        ctx.fill();
+        ctx.strokeStyle = buttonColor;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Köşe numarası
+        ctx.fillStyle = buttonColor;
+        ctx.font = "bold 10px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(String(i + 1), p.x, p.y);
+      });
+
+      // Kenar çizgisi
       ctx.beginPath();
-      ctx.arc(p.x, p.y, HANDLE_VISUAL, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255,255,255,0.92)";
-      ctx.fill();
-      ctx.strokeStyle = buttonColor;
-      ctx.lineWidth = 2.5;
+      ctx.moveTo(tl.x, tl.y);
+      ctx.lineTo(tr.x, tr.y);
+      ctx.lineTo(br.x, br.y);
+      ctx.lineTo(bl.x, bl.y);
+      ctx.closePath();
+      ctx.strokeStyle = "rgba(255,255,255,0.6)";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 4]);
       ctx.stroke();
-
-      // Köşe numarası
-      ctx.fillStyle = buttonColor;
-      ctx.font = "bold 10px sans-serif";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(String(i + 1), p.x, p.y);
-    });
-
-    // Kenar çizgisi
-    ctx.beginPath();
-    ctx.moveTo(tl.x, tl.y);
-    ctx.lineTo(tr.x, tr.y);
-    ctx.lineTo(br.x, br.y);
-    ctx.lineTo(bl.x, bl.y);
-    ctx.closePath();
-    ctx.strokeStyle = "rgba(255,255,255,0.6)";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }, [quad, buttonColor, widthCm, lengthCm]);
+      ctx.setLineDash([]);
+    }
+  }, [quad, buttonColor, widthCm, lengthCm, showHandles]);
 
   useEffect(() => {
     redrawCanvas();
@@ -325,7 +328,7 @@ export default function PhotoRugPlacer({
   /* Pointer down */
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLCanvasElement>) => {
-      if (!quad) return;
+      if (!quad || !showHandles) return;
       const p = canvasPoint(e);
       const idx = hitTest(p);
       if (idx !== null) {
@@ -333,7 +336,7 @@ export default function PhotoRugPlacer({
         setDragging(idx);
       }
     },
-    [quad, canvasPoint, hitTest]
+    [quad, showHandles, canvasPoint, hitTest]
   );
 
   /* Pointer move */
@@ -539,8 +542,15 @@ export default function PhotoRugPlacer({
           <div className="flex items-start gap-2 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-3 py-2.5 text-xs text-zinc-600 dark:text-zinc-400">
             <span className="text-base leading-none mt-0.5">💡</span>
             <span>
-              Numaralı <strong>köşe noktalarını</strong> sürükleyerek halıyı
-              odanızın zeminine perspektifle yerleştirin.
+              {showHandles ? (
+                <>
+                  Numaralı <strong>köşe noktalarını</strong> sürükleyerek halının zemine oturuşunu ince ince ayarlayabilirsiniz.
+                </>
+              ) : (
+                <>
+                  Yapay zeka zemin açısını otomatik algılayıp halıyı yerleştirdi. İnce ayar yapmak için <strong>Konumu Ayarla</strong> butonuna basabilirsiniz.
+                </>
+              )}
             </span>
           </div>
 
@@ -572,6 +582,19 @@ export default function PhotoRugPlacer({
               </div>
             )}
           </div>
+
+          {/* İnce Ayar / Düzenleme Butonu */}
+          <button
+            onClick={() => setShowHandles(!showHandles)}
+            className="w-full flex items-center justify-center gap-1.5 rounded-xl py-3 px-4 text-sm font-semibold border transition shadow-sm cursor-pointer"
+            style={{
+              borderColor: buttonColor,
+              color: showHandles ? "#fff" : buttonColor,
+              backgroundColor: showHandles ? buttonColor : "transparent",
+            }}
+          >
+            {showHandles ? "✅ Konumu Kilitle" : "✏️ İnce Ayar Yap (Köşeleri Düzenle)"}
+          </button>
 
           {/* Aksiyon butonları */}
           <div className="grid grid-cols-2 gap-2">
