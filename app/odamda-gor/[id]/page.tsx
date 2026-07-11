@@ -80,6 +80,7 @@ export default async function OdamdaGorPage({
       glbUrl={glbUrl}
       usdzUrl={usdzUrl}
       posterUrl={posterUrl}
+      coverImage={rug.coverImage || undefined}
       name={rug.name}
       merchantId={rug.merchant.id}
       merchantName={rug.merchant.name}

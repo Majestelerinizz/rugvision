@@ -11,11 +11,14 @@ import {
 import { runPreArFloorScans } from "@/lib/floor-scan-client";
 import RugARViewer from "@/components/RugARViewer";
 import ARConfirmationModal from "@/components/ARConfirmationModal";
+import PhotoRugPlacer from "@/components/PhotoRugPlacer";
 
 type Props = {
   glbUrl: string;
   usdzUrl?: string;
   posterUrl?: string;
+  /** Halının ürün/kapak görseli — Fotoğrafta Gör için */
+  coverImage?: string;
   name: string;
   merchantId: string;
   merchantName: string;
@@ -32,6 +35,8 @@ type Props = {
   embed?: boolean;
   mobile?: boolean;
 };
+
+type Tab = "ar" | "photo";
 
 function openInChrome(pageUrl: string) {
   const intentUrl = buildChromeIntentUrl(pageUrl);
@@ -93,6 +98,7 @@ export default function ArViewerClient({
   glbUrl,
   usdzUrl = "",
   posterUrl = "",
+  coverImage = "",
   name,
   merchantId,
   merchantName,
@@ -112,6 +118,7 @@ export default function ArViewerClient({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [arSupported, setArSupported] = useState(true);
+  const [activeTab, setActiveTab] = useState<Tab>("ar");
 
   const profile = useMemo(() => {
     if (typeof navigator === "undefined") return parseUserAgent("");
@@ -176,29 +183,114 @@ export default function ArViewerClient({
 
   const isEmbedMode = embed || mobile;
 
+  /* ─── Sekme çubuğu (AR Gör + Fotoğrafta Gör) ──────────────── */
+  const tabBar = (
+    <div className="flex rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 p-1 mb-4 gap-1">
+      <button
+        id="tab-ar-gor"
+        onClick={() => setActiveTab("ar")}
+        className={[
+          "flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 px-3 text-xs font-semibold transition-all",
+          activeTab === "ar"
+            ? "bg-white dark:bg-zinc-900 shadow-sm text-zinc-900 dark:text-zinc-50"
+            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200",
+        ].join(" ")}
+        aria-selected={activeTab === "ar"}
+        role="tab"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" />
+        </svg>
+        3D / AR Gör
+      </button>
+
+      <button
+        id="tab-fotografta-gor"
+        onClick={() => setActiveTab("photo")}
+        className={[
+          "flex-1 flex items-center justify-center gap-1.5 rounded-lg py-2 px-3 text-xs font-semibold transition-all",
+          activeTab === "photo"
+            ? "bg-white dark:bg-zinc-900 shadow-sm text-zinc-900 dark:text-zinc-50"
+            : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200",
+        ].join(" ")}
+        aria-selected={activeTab === "photo"}
+        role="tab"
+      >
+        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        📷 Fotoğrafta Gör
+      </button>
+    </div>
+  );
+
+  /* GMS/AR yok ise fotoğraf sekmesini öneren banner */
+  const noArBanner = !arSupported && activeTab === "ar" && (
+    <button
+      onClick={() => setActiveTab("photo")}
+      className="w-full flex items-center gap-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 px-4 py-3 text-xs text-amber-800 dark:text-amber-300 text-left hover:bg-amber-100 dark:hover:bg-amber-900/30 transition"
+    >
+      <span className="text-base">📷</span>
+      <span>
+        <strong>Bu cihaz AR desteklemiyor.</strong> Oda fotoğrafınıza halıyı
+        perspektifle yerleştirmek için{" "}
+        <span className="underline underline-offset-2 font-semibold">Fotoğrafta Gör</span>'e geçin.
+      </span>
+      <svg className="w-4 h-4 ml-auto flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+  );
+
+  /* ─── EMBED / MOBİL MODU ──────────────────────────────────── */
   if (isEmbedMode) {
     return (
       <div className="relative h-[calc(100vh-24px)] w-full flex flex-col justify-between">
-        <div className="flex-1 min-h-[350px]">
-          <RugARViewer
-            productName={name}
-            glbUrl={glbUrl}
-            usdzUrl={usdzUrl}
-            posterUrl={posterUrl}
-            widthCm={widthCm}
-            lengthCm={lengthCm}
-            thicknessMm={thicknessMm}
-            onArSupportChange={setArSupported}
-          />
+        {/* Sekme çubuğu */}
+        <div className="px-3 pt-3">
+          {tabBar}
+          {noArBanner}
         </div>
 
-        {!arSupported && (
+        {/* 3D/AR sekmesi */}
+        {activeTab === "ar" && (
+          <div className="flex-1 min-h-[300px] px-3">
+            <RugARViewer
+              productName={name}
+              glbUrl={glbUrl}
+              usdzUrl={usdzUrl}
+              posterUrl={posterUrl}
+              widthCm={widthCm}
+              lengthCm={lengthCm}
+              thicknessMm={thicknessMm}
+              onArSupportChange={setArSupported}
+            />
+          </div>
+        )}
+
+        {/* Fotoğrafta Gör sekmesi */}
+        {activeTab === "photo" && (
+          <div className="flex-1 overflow-y-auto px-3 pb-4">
+            <PhotoRugPlacer
+              rugImageUrl={coverImage || posterUrl}
+              rugName={name}
+              widthCm={widthCm}
+              lengthCm={lengthCm}
+              buttonColor={buttonColor}
+            />
+          </div>
+        )}
+
+        {/* AR butonu — sadece AR sekmesinde, destekleniyorsa */}
+        {activeTab === "ar" && !arSupported && (
           <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border-t border-zinc-200 dark:border-zinc-800 text-xs text-amber-800 dark:text-amber-300 leading-normal">
             ⚠️ Bu cihaz artırılmış gerçeklik özelliğini desteklemiyor. Halıyı 3B olarak incelemeye devam edebilirsiniz.
           </div>
         )}
 
-        {hasARModel && arSupported && (
+        {activeTab === "ar" && hasARModel && arSupported && (
           <div className="p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
             <button
               onClick={() => setIsModalOpen(true)}
@@ -226,23 +318,48 @@ export default function ArViewerClient({
     );
   }
 
+  /* ─── TAM SAYFA MODU ─────────────────────────────────────── */
   return (
     <div className="grid gap-6 md:grid-cols-3">
-      {/* 3D Model Viewer Area */}
-      <section className="md:col-span-2 min-h-[400px] md:min-h-[500px]">
-        <RugARViewer
-          productName={name}
-          glbUrl={glbUrl}
-          usdzUrl={usdzUrl}
-          posterUrl={posterUrl}
-          widthCm={widthCm}
-          lengthCm={lengthCm}
-          thicknessMm={thicknessMm}
-          onArSupportChange={setArSupported}
-        />
+      {/* Sol: Viewer alanı */}
+      <section className="md:col-span-2 flex flex-col gap-4">
+        {/* Sekme çubuğu */}
+        <div role="tablist" aria-label="Görüntüleme modu">
+          {tabBar}
+        </div>
+
+        {/* GMS/AR yok banner */}
+        {noArBanner}
+
+        {/* 3D/AR sekmesi */}
+        {activeTab === "ar" && (
+          <div className="min-h-[400px] md:min-h-[500px]">
+            <RugARViewer
+              productName={name}
+              glbUrl={glbUrl}
+              usdzUrl={usdzUrl}
+              posterUrl={posterUrl}
+              widthCm={widthCm}
+              lengthCm={lengthCm}
+              thicknessMm={thicknessMm}
+              onArSupportChange={setArSupported}
+            />
+          </div>
+        )}
+
+        {/* Fotoğrafta Gör sekmesi */}
+        {activeTab === "photo" && (
+          <PhotoRugPlacer
+            rugImageUrl={coverImage || posterUrl}
+            rugName={name}
+            widthCm={widthCm}
+            lengthCm={lengthCm}
+            buttonColor={buttonColor}
+          />
+        )}
       </section>
 
-      {/* Info & AR trigger Area */}
+      {/* Sağ: Bilgi + AR tetikleyici */}
       <aside className="rounded-2xl border border-zinc-200 p-6 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col justify-between h-fit gap-6 shadow-sm">
         <div className="space-y-4">
           <h2 className="text-xl font-semibold border-b border-zinc-100 dark:border-zinc-800 pb-2">Halı Bilgileri</h2>
@@ -255,13 +372,21 @@ export default function ArViewerClient({
           </div>
         </div>
 
-        {!arSupported && (
+        {/* AR desteklenmiyorsa ve AR sekmesindeyse */}
+        {activeTab === "ar" && !arSupported && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 text-xs text-amber-800 dark:text-amber-300 leading-normal">
-            ⚠️ Bu cihaz artırılmış gerçeklik özelliğini desteklemiyor. Halıyı 3B olarak incelemeye devam edebilirsiniz.
+            ⚠️ Bu cihaz AR özelliğini desteklemiyor.
+            <button
+              onClick={() => setActiveTab("photo")}
+              className="mt-2 w-full text-center py-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/40 font-semibold"
+            >
+              📷 Fotoğrafta Gör'e Geç →
+            </button>
           </div>
         )}
 
-        {hasARModel && arSupported && (
+        {/* AR butonu — AR sekmesi + destekleniyor + model var */}
+        {activeTab === "ar" && hasARModel && arSupported && (
           <div className="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800">
             <button
               onClick={() => setIsModalOpen(true)}
@@ -277,6 +402,13 @@ export default function ArViewerClient({
             <p className="text-[11px] text-zinc-500 leading-tight">
               Satın almadan önce halının odanızda nasıl durduğunu görün.
             </p>
+          </div>
+        )}
+
+        {/* Fotoğraf sekmesindeyse kısa ipucu */}
+        {activeTab === "photo" && (
+          <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 leading-relaxed">
+            💡 Oda fotoğrafınıza halıyı perspektifle yerleştirin, ardından indirin veya paylaşın.
           </div>
         )}
 
