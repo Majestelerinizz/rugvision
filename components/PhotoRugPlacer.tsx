@@ -251,6 +251,37 @@ export default function PhotoRugPlacer({
     redrawCanvas();
   }, [redrawCanvas]);
 
+  /* Oda fotoğrafını yükle ve canvas'ı ilklendir */
+  useEffect(() => {
+    if (!roomPhoto) return;
+
+    const img = new Image();
+    img.onload = () => {
+      photoImgRef.current = img;
+
+      const canvas = canvasRef.current;
+      const container = containerRef.current;
+      if (!canvas || !container) return;
+
+      const maxW = container.clientWidth || window.innerWidth || 360;
+      const maxH = Math.min(window.innerHeight * 0.55, 520);
+      const ratio = img.naturalWidth / img.naturalHeight;
+
+      let cw = maxW;
+      let ch = Math.round(cw / ratio);
+      if (ch > maxH) {
+        ch = maxH;
+        cw = Math.round(ch * ratio);
+      }
+
+      canvas.width = cw;
+      canvas.height = ch;
+      setPhotoSize({ w: cw, h: ch });
+      initQuad(cw, ch);
+    };
+    img.src = roomPhoto;
+  }, [roomPhoto, initQuad]);
+
   /* Fotoğraf seçme */
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -258,35 +289,9 @@ export default function PhotoRugPlacer({
       if (!file) return;
 
       const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.onload = () => {
-        photoImgRef.current = img;
-
-        // Canvas boyutunu ayarla
-        const canvas = canvasRef.current;
-        const container = containerRef.current;
-        if (!canvas || !container) return;
-
-        const maxW = container.clientWidth;
-        const maxH = Math.min(window.innerHeight * 0.55, 520);
-        const ratio = img.naturalWidth / img.naturalHeight;
-
-        let cw = maxW;
-        let ch = Math.round(cw / ratio);
-        if (ch > maxH) {
-          ch = maxH;
-          cw = Math.round(ch * ratio);
-        }
-
-        canvas.width = cw;
-        canvas.height = ch;
-        setPhotoSize({ w: cw, h: ch });
-        setRoomPhoto(url);
-        initQuad(cw, ch);
-      };
-      img.src = url;
+      setRoomPhoto(url);
     },
-    [initQuad]
+    []
   );
 
   /* Pointer koordinatlarını canvas'a dönüştür */
