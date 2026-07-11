@@ -263,28 +263,37 @@ export default function PhotoRugPlacer({
     img.onload = () => {
       photoImgRef.current = img;
 
-      const canvas = canvasRef.current;
-      const container = containerRef.current;
-      if (!canvas || !container) return;
+      const initCanvas = () => {
+        const canvas = canvasRef.current;
+        const container = containerRef.current;
 
-      const maxW = container.clientWidth || window.innerWidth || 360;
-      const maxH = Math.min(window.innerHeight * 0.55, 520);
-      const ratio = img.naturalWidth / img.naturalHeight;
+        if (!canvas || !container) {
+          // React DOM'u henüz güncellemediyse bir sonraki karede tekrar dene
+          requestAnimationFrame(initCanvas);
+          return;
+        }
 
-      let cw = maxW;
-      let ch = Math.round(cw / ratio);
-      if (ch > maxH) {
-        ch = maxH;
-        cw = Math.round(ch * ratio);
-      }
+        const maxW = container.clientWidth || window.innerWidth || 360;
+        const maxH = Math.min(window.innerHeight * 0.55, 520);
+        const ratio = img.naturalWidth / img.naturalHeight;
 
-      canvas.width = cw;
-      canvas.height = ch;
-      setPhotoSize({ w: cw, h: ch });
+        let cw = maxW;
+        let ch = Math.round(cw / ratio);
+        if (ch > maxH) {
+          ch = maxH;
+          cw = Math.round(ch * ratio);
+        }
 
-      // AI ile odaya göre otomatik perspektif hesapla
-      const autoQuad = detectFloorPerspective(img, cw, ch, widthCm / lengthCm);
-      setQuad(autoQuad);
+        canvas.width = cw;
+        canvas.height = ch;
+        setPhotoSize({ w: cw, h: ch });
+
+        // AI ile odaya göre otomatik perspektif hesapla
+        const autoQuad = detectFloorPerspective(img, cw, ch, widthCm / lengthCm);
+        setQuad(autoQuad);
+      };
+
+      initCanvas();
     };
     img.src = roomPhoto;
   }, [roomPhoto, widthCm, lengthCm]);
