@@ -19,6 +19,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { detectFloorPerspective } from "@/lib/ai-floor-detection";
 
 /* ─── Tip tanımları ─────────────────────────────────────────── */
 
@@ -277,10 +278,13 @@ export default function PhotoRugPlacer({
       canvas.width = cw;
       canvas.height = ch;
       setPhotoSize({ w: cw, h: ch });
-      initQuad(cw, ch);
+
+      // AI ile odaya göre otomatik perspektif hesapla
+      const autoQuad = detectFloorPerspective(img, cw, ch, widthCm / lengthCm);
+      setQuad(autoQuad);
     };
     img.src = roomPhoto;
-  }, [roomPhoto, initQuad]);
+  }, [roomPhoto, widthCm, lengthCm]);
 
   /* Fotoğraf seçme */
   const handleFileChange = useCallback(
