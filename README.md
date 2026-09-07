@@ -33,8 +33,10 @@ kendi odasının zemininde **gerçek boyutta** görmesini sağlamaktır ("Odamda
 
 - 3D/AR görüntüleyici sayfası (`/odamda-gor/:id`) - `model-viewer` tabanlı.
 - iPhone **Quick Look** (USDZ) + Android **Scene Viewer** (GLB) AR akışı.
+- **Fotoğrafta Gör:** AR olmayan cihazlarda oda fotoğrafına perspektif halı yerleştirme + PNG indir/paylaş.
+- AR içinde **ölçü seçici** (80×150 … 200×300) — model gerçek boyutta ölçeklenir.
 - Tek satır **embed widget** (`public/widget.js`): "Sepete Ekle" yanına otomatik "Odamda Gör" butonu.
-- Merchant paneli (`/panel`): giriş, analitik, halı listesi, model yükleme, embed kodu üreteci.
+- Merchant paneli (`/panel`): kayıt, giriş, analitik, halı listesi, model yükleme, embed kodu üreteci.
 - JWT auth (register/login/refresh/logout) + merchant bazlı izolasyon.
 - Rugs CRUD, widget ayarları, analytics, domain doğrulama, model upload endpoint'leri.
 
@@ -123,7 +125,11 @@ Her iki durumda da şemayi kurmak için: `npx prisma migrate dev` (veya producti
 
 ## İlk Hesabı Oluşturma
 
-Panelde şu an **kayıt (register)** ekranı yoktur; ilk merchant hesabıni API ile oluşturursun.
+1. `http://localhost:3000/panel` adresini aç.
+2. **Mağaza kaydı oluştur** ile e-posta, şifre, ad ve firma adı gir.
+3. Kayıt sonrası panel otomatik açılır (14 günlük STARTER deneme).
+
+API ile de kayıt açılabilir:
 
 **macOS / Linux (curl):**
 ```bash
@@ -320,8 +326,9 @@ Detaylı takip: `VR_ODANDA_GOR.md` · `docs/PROJE_DURUM_RAPORU.md`
 | Pilot mağaza | https://savasdogantekstil.com/rugvision/ |
 | GitHub | https://github.com/Majestelerinizz/rugvision |
 
-Demo: `demo@ornek.com` / `Test12345!`  
-Pilot: `savas@rugvision.com` / `Savas2026!`
+Demo merchant: panelden kayıt ol veya mevcut hesabınla giriş yap.
+
+Pilot mağaza: https://savasdogantekstil.com/rugvision/
 
 ---
 

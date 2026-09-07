@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "RugVision — Odamda Gör",
   description:
     "Halıcılar için tek satır kodla 'Odamda Gör' AR deneyimi: müşteri halıyı kendi odasında gerçek boyutta görür.",
-  robots: { index: false, follow: false },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

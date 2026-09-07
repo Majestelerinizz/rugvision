@@ -39,6 +39,8 @@ interface PhotoRugPlacerProps {
   lengthCm: number;
   /** Merchant rengi (butonlar için) */
   buttonColor?: string;
+  onShared?: () => void;
+  onDownloaded?: () => void;
 }
 
 /* ─── Yardımcı: Perspektif Dönüşüm (Homografi) ──────────────── */
@@ -118,6 +120,8 @@ export default function PhotoRugPlacer({
   widthCm,
   lengthCm,
   buttonColor = "#111827",
+  onShared,
+  onDownloaded,
 }: PhotoRugPlacerProps) {
   /* Durum */
   const [roomPhoto, setRoomPhoto] = useState<string | null>(null);
@@ -396,12 +400,13 @@ export default function PhotoRugPlacer({
         a.click();
         URL.revokeObjectURL(url);
         setIsExporting(false);
+        onDownloaded?.();
         // Handle'ları geri çiz
         redrawCanvas();
       },
       "image/png"
     );
-  }, [quad, rugName, widthCm, lengthCm, redrawCanvas]);
+  }, [quad, rugName, widthCm, lengthCm, redrawCanvas, onDownloaded]);
 
   /* Web Share API */
   const handleShare = useCallback(async () => {
@@ -430,12 +435,13 @@ export default function PhotoRugPlacer({
           text: `RugVision ile ${rugName} halısını odamda denedim! 🏠`,
           files: [file],
         });
+        onShared?.();
       } catch {
         // Kullanıcı iptal etti veya desteklenmiyor — sessizce geç
       }
       setIsExporting(false);
     }, "image/png");
-  }, [quad, rugName, widthCm, lengthCm, redrawCanvas]);
+  }, [quad, rugName, widthCm, lengthCm, redrawCanvas, onShared]);
 
   /* Sıfırla */
   const handleReset = useCallback(() => {

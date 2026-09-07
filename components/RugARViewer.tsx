@@ -21,6 +21,8 @@ interface RugARViewerProps {
   widthCm: number;
   lengthCm: number;
   thicknessMm: number;
+  /** model-viewer scale, e.g. "1 1 1" */
+  modelScale?: string;
   onArSupportChange?: (supported: boolean) => void;
 }
 
@@ -36,6 +38,7 @@ export default function RugARViewer({
   widthCm,
   lengthCm,
   thicknessMm,
+  modelScale = "1 1 1",
   onArSupportChange,
 }: RugARViewerProps) {
   const viewerRef = useRef<ModelViewerElement | null>(null);
@@ -250,12 +253,14 @@ export default function RugARViewer({
             poster={posterUrl}
             alt={`${productName} 3D halı modeli`}
             ar
-            ar-modes="webxr scene-viewer quick-look"
+            ar-modes={arModes}
             ar-placement="floor"
             ar-scale="fixed"
+            scale={modelScale}
             camera-controls
             xr-environment
-            shadow-intensity="1"
+            shadow-intensity="1.2"
+            shadow-softness="0.8"
             exposure="1"
             touch-action="pan-y"
             loading="lazy"

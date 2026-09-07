@@ -81,6 +81,8 @@ export function isStockMiuiBrowser(ua: string): boolean {
 export function prefersMobileWebAr(ua: string): boolean {
   if (isStockMiuiBrowser(ua)) return true;
   const vendor = detectVendor(ua);
+  // Xiaomi Chrome: Scene Viewer intent HyperOS'ta sessizce düşer; WebXR kamera Chrome içinde açılır.
+  if (vendor === "xiaomi" && isAndroidChrome(ua)) return true;
   if (vendor === "oppo" || vendor === "vivo" || vendor === "oneplus") return true;
   return /HeyTapBrowser|VivoBrowser|OPPOBrowser/i.test(ua);
 }
@@ -142,11 +144,11 @@ export function parseUserAgent(ua: string): ArDeviceProfile {
           modelHint,
           likelyHasGms: hasGms,
           supportsNativeAr: true,
-          primaryExperience: "scene-viewer",
-          fallbackExperience: "preview-3d",
+          primaryExperience: "webxr",
+          fallbackExperience: "scene-viewer",
           buttonLabel: "Odamda Gor",
           hint:
-            "AR icin Play Store'dan ucretsiz 'Google Play Hizmetleri icin AR' kurun, sonra bu dugmeye basin (Samsung gibi).",
+            "Google Chrome kamerayı açar; halı tarayıcı içinde zemine yerleşir. Scene Viewer uygulaması Xiaomi'de açılmaz.",
         };
       }
     }
@@ -171,10 +173,15 @@ export function parseUserAgent(ua: string): ArDeviceProfile {
       modelHint,
       likelyHasGms: true,
       supportsNativeAr: true,
-      primaryExperience: "scene-viewer",
-      fallbackExperience: "webxr",
+      primaryExperience:
+        vendor === "samsung" || vendor === "google" ? "scene-viewer" : "webxr",
+      fallbackExperience:
+        vendor === "samsung" || vendor === "google" ? "webxr" : "scene-viewer",
       buttonLabel: "Odamda Gor",
-      hint: "Android: Scene Viewer veya tarayici AR (WebXR) denenir.",
+      hint:
+        vendor === "samsung" || vendor === "google"
+          ? "Android: Scene Viewer veya tarayici AR (WebXR) denenir."
+          : "Google Chrome kamerayı açar; halı tarayıcı içinde zemine yerleşir.",
     };
   }
 
@@ -269,11 +276,23 @@ export function shouldBlockNativeAr(ua: string): boolean {
   return isStockMiuiBrowser(ua);
 }
 
-/** Android'de model-viewer activateAR yerine Scene Viewer intent (Samsung yolu). */
+/** Android'de model-viewer activateAR yerine Scene Viewer intent (Samsung / Pixel). */
 export function shouldUseSceneViewerIntent(ua: string): boolean {
   if (!isAndroidUserAgent(ua)) return false;
   if (isStockMiuiBrowser(ua)) return false;
+  if (prefersMobileWebAr(ua)) return false;
+  const vendor = detectVendor(ua);
+  // Xiaomi/POCO ve markası UA'da görünmeyen Android: Scene Viewer HyperOS'ta düşer.
+  if (vendor === "xiaomi" || vendor === null) return false;
   return likelyHasGooglePlayServices(ua);
+}
+
+/** Xiaomi / POCO / HyperOS: ARCore yok. Tarayıcı kamerası (getUserMedia) kullan. */
+export function shouldPreferLiveCamera(ua: string): boolean {
+  if (!isAndroidUserAgent(ua)) return false;
+  if (isStockMiuiBrowser(ua)) return true;
+  const vendor = detectVendor(ua);
+  return vendor === "xiaomi" || vendor === null;
 }
 
 export function shouldShowArCoreInstallHint(ua: string): boolean {
@@ -296,7 +315,8 @@ export function arModesForProfile(profile: ArDeviceProfile) {
     return "quick-look webxr scene-viewer";
   }
   if (profile.platform === "android" && profile.primaryExperience === "webxr") {
-    return "webxr";
+    // WebXR önce: kamera Chrome içinde açılır. Scene Viewer yedek.
+    return "webxr scene-viewer";
   }
   return "scene-viewer";
 }

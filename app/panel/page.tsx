@@ -66,6 +66,9 @@ export default function PanelPage() {
   const [merchantId, setMerchantId] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -254,6 +257,34 @@ export default function PanelPage() {
       const json = await res.json();
       if (!res.ok) {
         setError(json?.error?.message || "Giriş başarısız.");
+        return;
+      }
+      const tokens: Tokens = json.data.tokens;
+      const mId: string = json.data.user.merchantId;
+      setToken(tokens.accessToken);
+      setRefreshToken(tokens.refreshToken);
+      setMerchantId(mId);
+      persistSession(tokens.accessToken, tokens.refreshToken, mId);
+    } catch {
+      setError("Sunucuya ulaşılamadı.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRegister(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/v1/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, fullName, companyName }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json?.error?.message || "Kayıt başarısız.");
         return;
       }
       const tokens: Tokens = json.data.tokens;
@@ -498,7 +529,44 @@ export default function PanelPage() {
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-5">
+            <form
+              onSubmit={authMode === "login" ? handleLogin : handleRegister}
+              className="space-y-5"
+            >
+              {authMode === "register" && (
+                <>
+                  <div>
+                    <label htmlFor="fullName" className="mb-1.5 block text-sm font-medium text-stone-700">
+                      Ad Soyad
+                    </label>
+                    <input
+                      id="fullName"
+                      type="text"
+                      placeholder="Ayşe Yılmaz"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600/20"
+                      required
+                      minLength={2}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="companyName" className="mb-1.5 block text-sm font-medium text-stone-700">
+                      Mağaza / Firma
+                    </label>
+                    <input
+                      id="companyName"
+                      type="text"
+                      placeholder="Yılmaz Halı"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      className="w-full rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600/20"
+                      required
+                      minLength={2}
+                    />
+                  </div>
+                </>
+              )}
               <div>
                 <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-stone-700">
                   E-posta
@@ -520,11 +588,12 @@ export default function PanelPage() {
                 <input
                   id="password"
                   type="password"
-                  placeholder="********"
+                  placeholder={authMode === "register" ? "En az 8 karakter, harf + rakam" : "********"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-lg border border-stone-300 bg-white px-4 py-2.5 text-stone-900 placeholder:text-stone-400 focus:border-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-600/20"
                   required
+                  minLength={authMode === "register" ? 8 : undefined}
                 />
               </div>
 
@@ -539,9 +608,47 @@ export default function PanelPage() {
                 disabled={loading}
                 className="w-full rounded-lg bg-amber-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {loading ? "Giriş yapılıyor..." : "Panele Gir"}
+                {loading
+                  ? authMode === "login"
+                    ? "Giriş yapılıyor..."
+                    : "Hesap oluşturuluyor..."
+                  : authMode === "login"
+                    ? "Panele Gir"
+                    : "Ücretsiz hesap aç"}
               </button>
             </form>
+
+            <p className="mt-5 text-center text-sm text-stone-600">
+              {authMode === "login" ? (
+                <>
+                  Hesabın yok mu?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("register");
+                      setError(null);
+                    }}
+                    className="font-semibold text-amber-800 hover:underline"
+                  >
+                    Mağaza kaydı oluştur
+                  </button>
+                </>
+              ) : (
+                <>
+                  Zaten hesabın var mı?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("login");
+                      setError(null);
+                    }}
+                    className="font-semibold text-amber-800 hover:underline"
+                  >
+                    Giriş yap
+                  </button>
+                </>
+              )}
+            </p>
           </div>
 
           <p className="mt-6 text-center text-xs text-stone-500">

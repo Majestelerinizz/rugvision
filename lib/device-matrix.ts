@@ -141,10 +141,10 @@ export const DEVICE_MATRIX: DeviceMatrixEntry[] = [
     browser: "Chrome",
     userAgent:
       "Mozilla/5.0 (Linux; Android 14; Redmi Note 12 Build/TKQ1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36",
-    expectedPrimary: "scene-viewer",
+    expectedPrimary: "webxr",
     expectedSupportsNativeAr: true,
-    expectedWidgetAction: "scene-viewer",
-    note: "ARCore uyumlu modellerde Scene Viewer",
+    expectedWidgetAction: "webxr",
+    note: "Xiaomi Chrome: WebXR kamera tarayıcıda (Scene Viewer HyperOS'ta düşer)",
   },
   {
     id: "redmi-note-12-miui",
@@ -167,9 +167,10 @@ export const DEVICE_MATRIX: DeviceMatrixEntry[] = [
     browser: "Chrome",
     userAgent:
       "Mozilla/5.0 (Linux; Android 13; 22111317PG Build/TKQ1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36",
-    expectedPrimary: "scene-viewer",
+    expectedPrimary: "webxr",
     expectedSupportsNativeAr: true,
-    expectedWidgetAction: "scene-viewer",
+    expectedWidgetAction: "webxr",
+    note: "Xiaomi Chrome: WebXR kamera tarayıcıda",
   },
   {
     id: "oppo-reno-chrome",
@@ -276,10 +277,7 @@ export function resolveWidgetArAction(ua: string): WidgetArAction {
   if (profile.platform === "android") {
     if (!profile.likelyHasGms) return "preview-3d";
     if (isStockMiuiBrowser(ua)) return "chrome-handoff";
-    if (profile.vendor === "xiaomi" && /Chrome\//i.test(ua) && !/MiuiBrowser/i.test(ua)) {
-      return "scene-viewer";
-    }
-    if (prefersMobileWebAr(ua)) return "webxr";
+    if (prefersMobileWebAr(ua) || profile.primaryExperience === "webxr") return "webxr";
     if (profile.primaryExperience === "scene-viewer") return "scene-viewer";
     return "preview-3d";
   }

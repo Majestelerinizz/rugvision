@@ -17,10 +17,10 @@ Bu doküman, RugVision platformunu daha da güçlendirecek, bütçe dostu veya e
 ### 📂 PROJE 1: Fotoğraf Üzerine Halı Yerleştirici (2D Perspective Canvas)
 > **Amaç:** ARCore/derinlik sensörü desteği olmayan (tüm Redmi, Huawei, eski iPhone) cihazlarda kullanıcının odasının fotoğrafını yükleyerek halıyı perspektif olarak yerleştirebilmesini sağlamak.
 
-- [ ] **1.1 Arayüz Tasarımı:** Kullanıcıya "Oda Fotoğrafı Yükle" butonu sunulması.
-- [ ] **1.2 Canvas Entegrasyonu:** Yüklenen fotoğrafın arkada, halı görselinin ise önde dikey/yatay kontrol noktalarıyla (`fabric.js` veya HTML5 Canvas) render edilmesi.
-- [ ] **1.3 Perspektif Algoritması (Homografi):** Kullanıcının 4 köşesinden tutarak sürüklediği noktaları matematiksel olarak CSS `matrix3d` transformuna dönüştürerek halıyı zemine yatırma.
-- [ ] **1.4 Kaydetme & Paylaşma:** Yerleşimi yapılmış oda görselinin PNG formatında indirilebilmesi.
+- [x] **1.1 Arayüz Tasarımı:** Kullanıcıya "Oda Fotoğrafı Yükle" butonu sunulması.
+- [x] **1.2 Canvas Entegrasyonu:** Yüklenen fotoğrafın arkada, halı görselinin ise önde dikey/yatay kontrol noktalarıyla (HTML5 Canvas) render edilmesi.
+- [x] **1.3 Perspektif Algoritması (Homografi):** 4 köşe tutamacı + vanishing-point AI ile zemine yatırma (`PhotoRugPlacer`, `lib/ai-floor-detection.ts`).
+- [x] **1.4 Kaydetme & Paylaşma:** PNG indirme + Web Share API; `SHARED` analitik olayı.
 
 ---
 
@@ -46,8 +46,8 @@ Bu doküman, RugVision platformunu daha da güçlendirecek, bütçe dostu veya e
 ### 📂 PROJE 4: AR İçinden Dinamik Boyut Seçimi & Satın Alma (In-AR Sizing & Checkout)
 > **Amaç:** Kullanıcı AR veya 3D modundayken ekran üzerinden halının farklı boyutlarını (varyantlarını) seçebilmesi ve halının odada gerçek boyutlarıyla büyüyüp küçülebilmesi.
 
-- [ ] **4.1 Boyut Değiştirici Menü:** Arayüze boyut varyantı seçici dropdown/button tasarımı.
-- [ ] **4.2 Dinamik Ölçeklendirme:** Model-viewer `scale` niteliğinin seçilen boyuta göre (örn: 1.6 1.0 2.3) dinamik olarak güncellenmesi.
+- [x] **4.1 Boyut Değiştirici Menü:** Arayüze boyut varyantı seçici (`RugSizePicker`).
+- [x] **4.2 Dinamik Ölçeklendirme:** Model-viewer `scale` niteliği seçilen boyuta göre güncellenir (`lib/rug-scale.ts`).
 - [ ] **4.3 Fiyat Entegrasyonu:** Seçilen boyuta göre fiyat bilgisinin güncellenmesi.
 - [ ] **4.4 AR'dan Sepete Ekleme:** AR ekranı kapatılmadan doğrudan sepet işleminin tetiklenebilmesi.
 
@@ -56,9 +56,9 @@ Bu doküman, RugVision platformunu daha da güçlendirecek, bütçe dostu veya e
 ### 📂 PROJE 5: "Nasıl Durdu?" Sosyal Paylaşım Modülü (Collaborative AR Shopping)
 > **Amaç:** Kullanıcı halıyı odasına yerleştirdikten sonra odanın halıyla birlikte fotoğrafını tek tuşla çekip paylaşabilmesini sağlamak.
 
-- [ ] **5.1 Ekran Görüntüsü Alıcı (Snapshot):** Model-viewer'ın `toDataURL()` yeteneğini kullanarak yerleştirilen halının ve oda arka planının fotoğrafını çekme.
-- [ ] **5.2 Görsel Birleştirme:** Kullanıcının oda görüntüsü ile 3D model frame'ini hatasız birleştiren canvas aracı.
-- [ ] **5.3 Paylaşım Butonu:** Web Share API kullanarak fotoğrafın WhatsApp, Instagram veya SMS üzerinden tek tuşla paylaşılabilmesi.
+- [x] **5.1 Ekran Görüntüsü Alıcı (Snapshot):** Fotoğrafta Gör canvas PNG export.
+- [x] **5.2 Görsel Birleştirme:** Oda fotoğrafı + perspektif halı overlay.
+- [x] **5.3 Paylaşım Butonu:** Web Share API (WhatsApp / sistem paylaşımı).
 
 ---
 
@@ -75,6 +75,6 @@ Bu doküman, RugVision platformunu daha da güçlendirecek, bütçe dostu veya e
 > **Amaç:** Halının odada yapay durmasını engelleyerek odadaki ışık kaynaklarına göre gölgesini gerçekçi şekilde zemine düşürmek.
 
 - [ ] **7.1 Doğal Işık Algılama (AR Light Estimation):** WebXR API kullanarak odadaki pencere veya avize ışığının yönünü ve şiddetini algılama.
-- [ ] **7.2 Dinamik Gölge Düşürme:** Model-viewer `shadow-intensity` ve `ar-lighting` özelliklerini aktif ederek halının altına yumuşak, gerçekçi gölge ekleme.
+- [x] **7.2 Dinamik Gölge Düşürme:** Model-viewer `shadow-intensity` / `shadow-softness` aktif.
 - [ ] **7.3 Malzeme Gerçekçiliği (PBR Mapping):** Halıların bambu, yün veya ipek dokusuna uygun yansıma (roughness/metalness) haritalarının modele işlenmesi.
 

@@ -165,7 +165,7 @@
           platform: "android",
           vendor: "xiaomi",
           supportsNativeAr: true,
-          primary: "scene-viewer",
+          primary: "webxr",
           buttonLabel: overrideText || "Odamda Gor",
         };
       }

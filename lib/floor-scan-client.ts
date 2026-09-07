@@ -106,18 +106,28 @@ export async function runPreArFloorScans(options: {
   rugId: string;
   vendor: string | null;
   maxWaitMs?: number;
+  skipCamera?: boolean;
 }) {
-  const { apiBase = "", merchantId, rugId, vendor, maxWaitMs = 750 } = options;
+  const {
+    apiBase = "",
+    merchantId,
+    rugId,
+    vendor,
+    maxWaitMs = 750,
+    skipCamera = false,
+  } = options;
   const context = buildScanContext(vendor);
 
-  const stats = await Promise.race([
-    captureFloorFromCamera(maxWaitMs),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), maxWaitMs)),
-  ]);
+  if (!skipCamera) {
+    const stats = await Promise.race([
+      captureFloorFromCamera(maxWaitMs),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), maxWaitMs)),
+    ]);
 
-  if (stats) {
-    context.imageBottomLuma = Number(stats.luma.toFixed(2));
-    context.imageBottomVariance = Number(stats.variance.toFixed(2));
+    if (stats) {
+      context.imageBottomLuma = Number(stats.luma.toFixed(2));
+      context.imageBottomVariance = Number(stats.variance.toFixed(2));
+    }
   }
 
   await Promise.all([

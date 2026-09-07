@@ -3,15 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   parseUserAgent,
-  shouldBlockNativeAr,
   shouldUseSceneViewerIntent,
-  buildChromeIntentUrl,
+  shouldPreferLiveCamera,
   resolveSceneViewerLaunchUrl,
 } from "@/lib/device-ar";
 import { runPreArFloorScans } from "@/lib/floor-scan-client";
 import RugARViewer from "@/components/RugARViewer";
 import ARConfirmationModal from "@/components/ARConfirmationModal";
 import PhotoRugPlacer from "@/components/PhotoRugPlacer";
+import RugSizePicker from "@/components/RugSizePicker";
+import LiveCameraRugOverlay from "@/components/LiveCameraRugOverlay";
+import { modelViewerScale, type RugSize } from "@/lib/rug-scale";
 
 type Props = {
   glbUrl: string;
@@ -38,16 +40,6 @@ type Props = {
 
 type Tab = "ar" | "photo";
 
-function openInChrome(pageUrl: string) {
-  const intentUrl = buildChromeIntentUrl(pageUrl);
-  const anchor = document.createElement("a");
-  anchor.href = intentUrl;
-  anchor.style.display = "none";
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-}
-
 function openSceneViewerIntent(glbUrl: string, fallbackUrl: string, ua: string) {
   const intentUrl = resolveSceneViewerLaunchUrl(ua, glbUrl, fallbackUrl);
   const anchor = document.createElement("a");
@@ -72,7 +64,7 @@ function openIosQuickLook(iosSrc: string) {
 }
 
 function trackEvent(
-  eventType: "VIEW_3D" | "AR_STARTED",
+  eventType: "VIEW_3D" | "AR_STARTED" | "SHARED",
   merchantId: string,
   rugId: string
 ) {
@@ -118,7 +110,20 @@ export default function ArViewerClient({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [arSupported, setArSupported] = useState(true);
+  const [liveCameraOpen, setLiveCameraOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("ar");
+  const [selectedSize, setSelectedSize] = useState<RugSize>({
+    label: `${widthCm}×${lengthCm}`,
+    widthCm,
+    lengthCm,
+  });
+
+  const viewerScale = modelViewerScale(
+    widthCm,
+    lengthCm,
+    selectedSize.widthCm,
+    selectedSize.lengthCm
+  );
 
   const profile = useMemo(() => {
     if (typeof navigator === "undefined") return parseUserAgent("");
@@ -144,20 +149,17 @@ export default function ArViewerClient({
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
 
     trackEvent("AR_STARTED", merchantId, rugId);
+    // Xiaomi'de ön tarama kamerayı kilitliyor; canlı AR/overlay'den önce alma.
     await runPreArFloorScans({
       merchantId,
       rugId,
       vendor: profile.vendor,
       maxWaitMs: 750,
+      skipCamera: true,
     });
 
     if (profile.primaryExperience === "quick-look" && usdzUrl) {
       openIosQuickLook(usdzUrl);
-      return;
-    }
-
-    if (shouldBlockNativeAr(ua)) {
-      openInChrome(window.location.href);
       return;
     }
 
@@ -167,19 +169,33 @@ export default function ArViewerClient({
       return;
     }
 
-    // Default WebXR fallback
-    const viewer = document.querySelector("model-viewer") as any;
-    if (viewer && typeof viewer.activateAR === "function") {
+    if (shouldPreferLiveCamera(ua)) {
+      setLiveCameraOpen(true);
+      return;
+    }
+
+    const viewer = document.querySelector("model-viewer") as HTMLElement & {
+      activateAR?: () => Promise<void> | void;
+      canActivateAR?: boolean;
+    };
+    if (viewer?.canActivateAR && typeof viewer.activateAR === "function") {
       try {
         await viewer.activateAR();
         return;
       } catch {
-        // platform fallback below
+        // canlı kamera yedeği
       }
     }
 
-    window.open(glbUrl, "_blank", "noopener,noreferrer");
+    setLiveCameraOpen(true);
   };
+
+  const showArButton = hasARModel && (arSupported || profile.platform === "android");
+  const insecureOrigin =
+    typeof window !== "undefined" &&
+    window.location.protocol === "http:" &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1";
 
   const isEmbedMode = embed || mobile;
 
@@ -226,8 +242,14 @@ export default function ArViewerClient({
     </div>
   );
 
-  /* GMS/AR yok ise fotoğraf sekmesini öneren banner */
-  const noArBanner = !arSupported && activeTab === "ar" && (
+  const httpCameraBanner = insecureOrigin && activeTab === "ar" && (
+    <div className="w-full rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 px-4 py-3 text-xs text-red-800 dark:text-red-300">
+      <strong>Kamera bu adreste açılmaz.</strong> Tarayıcılar <code>http://192.168…</code> üzerinde
+      kamerayı engeller. Xiaomi’de denemek için <code>https://</code> gerekir (Vercel veya
+      <code>npm run dev:all</code> tunnel).
+    </div>
+  );
+  const noArBanner = !arSupported && activeTab === "ar" && profile.platform !== "android" && (
     <button
       onClick={() => setActiveTab("photo")}
       className="w-full flex items-center gap-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 px-4 py-3 text-xs text-amber-800 dark:text-amber-300 text-left hover:bg-amber-100 dark:hover:bg-amber-900/30 transition"
@@ -251,21 +273,29 @@ export default function ArViewerClient({
         {/* Sekme çubuğu */}
         <div className="px-3 pt-3">
           {tabBar}
+          {httpCameraBanner}
           {noArBanner}
         </div>
 
         {/* 3D/AR sekmesi */}
         {activeTab === "ar" && (
-          <div className="flex-1 min-h-[300px] px-3">
+          <div className="flex-1 min-h-[300px] px-3 flex flex-col gap-3">
             <RugARViewer
               productName={name}
               glbUrl={glbUrl}
               usdzUrl={usdzUrl}
               posterUrl={posterUrl}
-              widthCm={widthCm}
-              lengthCm={lengthCm}
+              widthCm={selectedSize.widthCm}
+              lengthCm={selectedSize.lengthCm}
               thicknessMm={thicknessMm}
+              modelScale={viewerScale}
               onArSupportChange={setArSupported}
+            />
+            <RugSizePicker
+              originalWidthCm={widthCm}
+              originalLengthCm={lengthCm}
+              selected={selectedSize}
+              onChange={setSelectedSize}
             />
           </div>
         )}
@@ -276,21 +306,23 @@ export default function ArViewerClient({
             <PhotoRugPlacer
               rugImageUrl={coverImage || posterUrl}
               rugName={name}
-              widthCm={widthCm}
-              lengthCm={lengthCm}
+              widthCm={selectedSize.widthCm}
+              lengthCm={selectedSize.lengthCm}
               buttonColor={buttonColor}
+              onShared={() => trackEvent("SHARED", merchantId, rugId)}
+              onDownloaded={() => trackEvent("SHARED", merchantId, rugId)}
             />
           </div>
         )}
 
         {/* AR butonu — sadece AR sekmesinde, destekleniyorsa */}
-        {activeTab === "ar" && !arSupported && (
+        {activeTab === "ar" && !arSupported && profile.platform !== "android" && (
           <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border-t border-zinc-200 dark:border-zinc-800 text-xs text-amber-800 dark:text-amber-300 leading-normal">
             ⚠️ Bu cihaz artırılmış gerçeklik özelliğini desteklemiyor. Halıyı 3B olarak incelemeye devam edebilirsiniz.
           </div>
         )}
 
-        {activeTab === "ar" && hasARModel && arSupported && (
+        {activeTab === "ar" && hasARModel && showArButton && (
           <div className="p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
             <button
               onClick={() => setIsModalOpen(true)}
@@ -304,7 +336,9 @@ export default function ArViewerClient({
               {buttonText}
             </button>
             <p className="text-center text-[11px] text-zinc-500">
-              Satın almadan önce halının odanızda nasıl durduğunu görün.
+              {shouldPreferLiveCamera(navigator.userAgent)
+                ? "Chrome kamerayı açacak. Google AR uygulaması gerekmez."
+                : "Satın almadan önce halının odanızda nasıl durduğunu görün."}
             </p>
           </div>
         )}
@@ -313,6 +347,15 @@ export default function ArViewerClient({
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onConfirm={handleActivateAr}
+        />
+        <LiveCameraRugOverlay
+          open={liveCameraOpen}
+          onClose={() => setLiveCameraOpen(false)}
+          rugImageUrl={coverImage || posterUrl}
+          rugName={name}
+          widthCm={selectedSize.widthCm}
+          lengthCm={selectedSize.lengthCm}
+          buttonColor={buttonColor}
         />
       </div>
     );
@@ -329,20 +372,28 @@ export default function ArViewerClient({
         </div>
 
         {/* GMS/AR yok banner */}
+        {httpCameraBanner}
         {noArBanner}
 
         {/* 3D/AR sekmesi */}
         {activeTab === "ar" && (
-          <div className="min-h-[400px] md:min-h-[500px]">
+          <div className="min-h-[400px] md:min-h-[500px] flex flex-col gap-3">
             <RugARViewer
               productName={name}
               glbUrl={glbUrl}
               usdzUrl={usdzUrl}
               posterUrl={posterUrl}
-              widthCm={widthCm}
-              lengthCm={lengthCm}
+              widthCm={selectedSize.widthCm}
+              lengthCm={selectedSize.lengthCm}
               thicknessMm={thicknessMm}
+              modelScale={viewerScale}
               onArSupportChange={setArSupported}
+            />
+            <RugSizePicker
+              originalWidthCm={widthCm}
+              originalLengthCm={lengthCm}
+              selected={selectedSize}
+              onChange={setSelectedSize}
             />
           </div>
         )}
@@ -352,9 +403,11 @@ export default function ArViewerClient({
           <PhotoRugPlacer
             rugImageUrl={coverImage || posterUrl}
             rugName={name}
-            widthCm={widthCm}
-            lengthCm={lengthCm}
+            widthCm={selectedSize.widthCm}
+            lengthCm={selectedSize.lengthCm}
             buttonColor={buttonColor}
+            onShared={() => trackEvent("SHARED", merchantId, rugId)}
+            onDownloaded={() => trackEvent("SHARED", merchantId, rugId)}
           />
         )}
       </section>
@@ -367,13 +420,13 @@ export default function ArViewerClient({
             <p><span className="font-medium">Mağaza:</span> {merchantName}</p>
             <p><span className="font-medium">SKU:</span> {sku}</p>
             <p><span className="font-medium">Slug:</span> {slug}</p>
-            <p><span className="font-medium">Boyut:</span> {widthCm} x {lengthCm} cm</p>
+            <p><span className="font-medium">Boyut:</span> {selectedSize.widthCm} x {selectedSize.lengthCm} cm</p>
             <p><span className="font-medium">Kalınlık:</span> {thicknessMm} mm</p>
           </div>
         </div>
 
         {/* AR desteklenmiyorsa ve AR sekmesindeyse */}
-        {activeTab === "ar" && !arSupported && (
+        {activeTab === "ar" && !arSupported && profile.platform !== "android" && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 text-xs text-amber-800 dark:text-amber-300 leading-normal">
             ⚠️ Bu cihaz AR özelliğini desteklemiyor.
             <button
@@ -386,7 +439,7 @@ export default function ArViewerClient({
         )}
 
         {/* AR butonu — AR sekmesi + destekleniyor + model var */}
-        {activeTab === "ar" && hasARModel && arSupported && (
+        {activeTab === "ar" && hasARModel && showArButton && (
           <div className="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800">
             <button
               onClick={() => setIsModalOpen(true)}
@@ -400,7 +453,9 @@ export default function ArViewerClient({
               {buttonText}
             </button>
             <p className="text-[11px] text-zinc-500 leading-tight">
-              Satın almadan önce halının odanızda nasıl durduğunu görün.
+              {shouldPreferLiveCamera(navigator.userAgent)
+                ? "Chrome kamerayı açacak. Google AR uygulaması gerekmez."
+                : "Satın almadan önce halının odanızda nasıl durduğunu görün."}
             </p>
           </div>
         )}
@@ -416,6 +471,15 @@ export default function ArViewerClient({
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onConfirm={handleActivateAr}
+        />
+        <LiveCameraRugOverlay
+          open={liveCameraOpen}
+          onClose={() => setLiveCameraOpen(false)}
+          rugImageUrl={coverImage || posterUrl}
+          rugName={name}
+          widthCm={selectedSize.widthCm}
+          lengthCm={selectedSize.lengthCm}
+          buttonColor={buttonColor}
         />
       </aside>
     </div>

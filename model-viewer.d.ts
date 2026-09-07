@@ -12,6 +12,10 @@ type ModelViewerAttributes = React.DetailedHTMLProps<
   "camera-controls"?: boolean;
   "auto-rotate"?: boolean;
   "shadow-intensity"?: string;
+  "shadow-softness"?: string;
+  "ar-placement"?: string;
+  "ar-scale"?: string;
+  scale?: string;
   exposure?: string;
   style?: React.CSSProperties;
   poster?: string;

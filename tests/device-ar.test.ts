@@ -14,6 +14,7 @@ import {
   resolveSceneViewerLaunchUrl,
   buildChromeIntentUrl,
   arModesForProfile,
+  shouldPreferLiveCamera,
 } from "../lib/device-ar";
 
 describe("device-ar", () => {
@@ -80,15 +81,16 @@ describe("device-ar", () => {
     assert.equal(shouldUseSceneViewerIntent(ua), false);
   });
 
-  it("Xiaomi Chrome uses Scene Viewer like Samsung", () => {
+  it("Xiaomi Chrome uses in-browser WebXR camera", () => {
     const ua =
       "Mozilla/5.0 (Linux; Android 14; Redmi Note 12 Build/TKQ1) AppleWebKit/537.36 Chrome/124.0 Mobile Safari/537.36";
     const p = parseUserAgent(ua);
     assert.equal(p.vendor, "xiaomi");
-    assert.equal(p.primaryExperience, "scene-viewer");
+    assert.equal(p.primaryExperience, "webxr");
     assert.equal(shouldBlockNativeAr(ua), false);
-    assert.equal(shouldUseSceneViewerIntent(ua), true);
-    assert.equal(arModesForProfile(p), "scene-viewer");
+    assert.equal(shouldUseSceneViewerIntent(ua), false);
+    assert.equal(shouldPreferLiveCamera(ua), true);
+    assert.equal(arModesForProfile(p), "webxr scene-viewer");
   });
 
   it("Redmi MiuiBrowser prefers Chrome handoff", () => {
@@ -98,6 +100,7 @@ describe("device-ar", () => {
     assert.equal(p.vendor, "xiaomi");
     assert.equal(p.primaryExperience, "preview-3d");
     assert.equal(isStockMiuiBrowser(ua), true);
+    assert.equal(shouldPreferLiveCamera(ua), true);
   });
 
   it("builds Chrome intent for HyperOS fallback", () => {
