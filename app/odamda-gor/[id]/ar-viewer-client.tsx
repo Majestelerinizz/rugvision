@@ -322,23 +322,35 @@ export default function ArViewerClient({
           </div>
         )}
 
-        {activeTab === "ar" && hasARModel && showArButton && (
-          <div className="p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
+        {activeTab === "ar" && (
+          <div className="p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2.5">
+            {/* 1. Canlı WebAR Kamerası Butonu - Evrensel (iPhone, Android, PC) */}
             <button
-              onClick={() => setIsModalOpen(true)}
-              className="w-full py-4 px-6 text-sm font-semibold text-white shadow-lg flex items-center justify-center transition-all hover:brightness-110 active:scale-[0.98]"
-              style={{ backgroundColor: buttonColor, borderRadius: `${borderRadius}px` }}
+              id="btn-live-webar-mobile"
+              type="button"
+              onClick={() => setLiveCameraOpen(true)}
+              className="w-full py-3.5 px-4 text-sm font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg className="w-5 h-5 flex-shrink-0 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              {buttonText}
+              <span>🌐 Canlı WebAR Kamerası (Tüm Cihazlar & 3D Zemin)</span>
             </button>
+
+            {/* 2. Sistem AR Butonu (Quick Look / Scene Viewer) */}
+            {hasARModel && showArButton && (
+              <button
+                id="btn-system-ar-mobile"
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="w-full py-2.5 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition-all rounded-xl"
+              >
+                <span>📱 Sistem AR ({profile.platform === "ios" ? "Apple Quick Look" : "Google ARCore"})</span>
+              </button>
+            )}
+
             <p className="text-center text-[11px] text-zinc-500">
-              {shouldPreferLiveCamera(navigator.userAgent)
-                ? "Chrome kamerayı açacak. Google AR uygulaması gerekmez."
-                : "Satın almadan önce halının odanızda nasıl durduğunu görün."}
+              Uygulama yüklemeden tarayıcınızdan canlı kamera ve 3D zemin yerleşimi.
             </p>
           </div>
         )}
@@ -438,24 +450,36 @@ export default function ArViewerClient({
           </div>
         )}
 
-        {/* AR butonu — AR sekmesi + destekleniyor + model var */}
-        {activeTab === "ar" && hasARModel && showArButton && (
-          <div className="space-y-2 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+        {/* AR Butonları — AR sekmesinde */}
+        {activeTab === "ar" && (
+          <div className="space-y-2.5 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            {/* 1. Canlı WebAR Kamerası Butonu - Evrensel (iPhone, Android, PC) */}
             <button
-              onClick={() => setIsModalOpen(true)}
-              className="w-full py-3.5 px-6 text-sm font-semibold text-white shadow-md flex items-center justify-center transition-all hover:brightness-110 active:scale-[0.98]"
-              style={{ backgroundColor: buttonColor, borderRadius: `${borderRadius}px` }}
+              id="btn-live-webar-desktop"
+              type="button"
+              onClick={() => setLiveCameraOpen(true)}
+              className="w-full py-3.5 px-4 text-sm font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              <svg className="w-5 h-5 flex-shrink-0 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
-              {buttonText}
+              <span>🌐 Canlı WebAR Kamerası (3D Zemin)</span>
             </button>
+
+            {/* 2. Sistem AR Butonu (Quick Look / Scene Viewer) */}
+            {hasARModel && showArButton && (
+              <button
+                id="btn-system-ar-desktop"
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                className="w-full py-2.5 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition-all rounded-xl"
+              >
+                <span>📱 Sistem AR ({profile.platform === "ios" ? "Apple Quick Look" : "Google ARCore"})</span>
+              </button>
+            )}
+
             <p className="text-[11px] text-zinc-500 leading-tight">
-              {shouldPreferLiveCamera(navigator.userAgent)
-                ? "Chrome kamerayı açacak. Google AR uygulaması gerekmez."
-                : "Satın almadan önce halının odanızda nasıl durduğunu görün."}
+              Tüm telefonlarda ve tarayıcılarda uygulama gerektirmeden çalışan yeni 3D kamera motoru.
             </p>
           </div>
         )}
