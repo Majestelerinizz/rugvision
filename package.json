@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --import tsx --test tests/slug.test.ts tests/domain.test.ts tests/rate-limit.test.ts tests/auth.test.ts tests/storage.test.ts tests/subscription.test.ts tests/ai-detection.test.ts tests/device-ar.test.ts tests/device-matrix.test.ts tests/model-urls.test.ts tests/rug-scale.test.ts",
+    "test": "node --import tsx --test tests/slug.test.ts tests/domain.test.ts tests/rate-limit.test.ts tests/auth.test.ts tests/storage.test.ts tests/subscription.test.ts tests/ai-detection.test.ts tests/device-ar.test.ts tests/device-matrix.test.ts tests/model-urls.test.ts tests/rug-scale.test.ts tests/sensor-fusion.test.ts tests/webgl-scene.test.ts tests/floor-odometry.test.ts tests/webgl-dimensions.test.ts",
     "test:device-matrix": "node --import tsx --test tests/device-matrix.test.ts",
     "db:deploy": "prisma migrate deploy",
     "models:batch": "node scripts/batch-generate-rugs.mjs",
@@ -31,6 +31,7 @@
     "@aws-sdk/client-s3": "^3.1069.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@types/three": "^0.186.0",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.3",
     "next": "16.2.9",
@@ -38,6 +39,7 @@
     "prisma": "^7.8.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "three": "^0.186.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
