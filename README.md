@@ -16,7 +16,7 @@ E-ticaret sitelerine eklenen **tek satır widget kodu** ile müşterilerinizin, 
 
 | Servis | Canlı URL | Açıklama |
 |---|---|---|
-| **Canlı WebAR Halı Görüntüleyici** | [rugvision.vercel.app/odamda-gor/cmqgswc5a000004lanqoxc666](https://rugvision.vercel.app/odamda-gor/cmqgswc5a000004lanqoxc666) | Universal WebAR, 3D zemin, sensör füzyonu, boyut seçici |
+| **Canlı WebAR Halı Görüntüleyici** | [rugvision.vercel.app/odamda-gor/cmqgswcn5000404la5os5ls7v](https://rugvision.vercel.app/odamda-gor/cmqgswcn5000404la5os5ls7v) | Universal WebAR, 3D zemin, sensör füzyonu, boyut seçici |
 | **SaaS Yönetim Paneli** | [rugvision.vercel.app/panel](https://rugvision.vercel.app/panel) | Halı yönetimi, analitik, embed kodu üretici, model yükleme |
 | **Pilot E-Ticaret Entegrasyonu** | [savasdogantekstil.com/rugvision](https://savasdogantekstil.com/rugvision/product-detail.php?id=3) | Savaş Doğan Tekstil pilot mağaza tek satır widget testi |
 

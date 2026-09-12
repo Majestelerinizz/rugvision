@@ -11,17 +11,50 @@ import { buildIosSrc, buildViewerGlbSrc } from "@/lib/model-urls";
 const FALLBACK_MODEL_URL = "https://modelviewer.dev/shared-assets/models/Astronaut.glb";
 
 async function loadRugForViewer(id: string) {
-  return prisma.rug.findUnique({
-    where: { id },
-    include: {
-      merchant: {
-        select: {
-          id: true,
-          name: true,
-          widgetSettings: true,
-        },
+  const includeMerchant = {
+    merchant: {
+      select: {
+        id: true,
+        name: true,
+        widgetSettings: true,
       },
     },
+  };
+
+  // 1. Direct match by Rug ID
+  const direct = await prisma.rug.findUnique({
+    where: { id },
+    include: includeMerchant,
+  });
+  if (direct) return direct;
+
+  // 2. Match by SKU
+  const bySku = await prisma.rug.findFirst({
+    where: { sku: id },
+    include: includeMerchant,
+  });
+  if (bySku) return bySku;
+
+  // 3. Match by Slug
+  const bySlug = await prisma.rug.findFirst({
+    where: { slug: id },
+    include: includeMerchant,
+  });
+  if (bySlug) return bySlug;
+
+  // 4. Fallback: If id is a merchantId (e.g. cmqgswc5a000004lanqoxc666), load their first active rug
+  const byMerchant = await prisma.rug.findFirst({
+    where: { merchantId: id, status: "ACTIVE" },
+    include: includeMerchant,
+    orderBy: { createdAt: "asc" },
+  });
+  if (byMerchant) return byMerchant;
+
+  // 5. Ultimate fallback: load first active rug so public link never dead-ends
+  return prisma.rug.findFirst({
+    where: { status: "ACTIVE" },
+    include: includeMerchant,
+    orderBy: { createdAt: "asc" },
   });
 }
 
