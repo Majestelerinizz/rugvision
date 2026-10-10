@@ -14,9 +14,8 @@
  *   data-button-text   Buton metni override
  *   data-button-color  Buton rengi override
  *
- * Mobilde AR dogrudan tetiklenir (iOS Quick Look / Android Scene Viewer);
- * masaustunde 3D onizleme modal (iframe) acilir. iframe icinden mobil AR
- * tarayicilar tarafindan engellendigi icin mobilde iframe kullanilmaz.
+ * Tiklaninca baska sayfa veya AR uygulamasi acilmaz.
+ * Kamera izni istenir ve yer ayni sayfada, tam ekran kamerayla cekilir.
  */
 (function () {
   "use strict";
@@ -61,6 +60,10 @@
   // Modelden tureyen mutlak URL'ler (init icinde doldurulur).
   var glbUrl = null;
   var usdzUrl = null;
+  var coverImageUrl = "";
+  var rugWidthM = 1.6;
+  var rugLengthM = 2.3;
+  var threePromise = null;
 
   var COMMON_TARGETS = [
     "[data-rugvision]",
@@ -568,19 +571,179 @@
     document.body.appendChild(overlay);
   }
 
-  function handleClick(merchantId) {
-    track("WIDGET_OPENED", merchantId);
-    var profile = detectProfile();
+  function loadThree() {
+    if (window.THREE) return Promise.resolve();
+    if (threePromise) return threePromise;
+    threePromise = new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+      s.onload = function () {
+        resolve();
+      };
+      s.onerror = function () {
+        reject(new Error("three"));
+      };
+      document.head.appendChild(s);
+    });
+    return threePromise;
+  }
 
-    // Mobil kullanıcıları (iOS/Android) her zaman mobil görüntüleyici sayfasına yönlendir.
-    // Bu sayede hem 3D/AR hem de yeni "Fotoğrafta Gör" (2D Perspective Canvas) sekmelerine erişebilirler.
-    if (profile.platform === "android" || profile.platform === "ios") {
-      openMobileViewer();
+  function openFloorCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showWidgetError("Bu tarayici kamerayi acamiyor. Chrome veya Safari kullanin.");
       return;
     }
 
-    // Masaüstü kullanıcıları için 3D modal/iframe aç.
-    openModal();
+    var orientEvt = window.DeviceOrientationEvent;
+    if (orientEvt && typeof orientEvt.requestPermission === "function") {
+      orientEvt.requestPermission().catch(function () {});
+    }
+
+    var overlay = document.createElement("div");
+    overlay.setAttribute("data-rugvision-camera", "");
+    overlay.style.cssText =
+      "position:fixed;inset:0;z-index:2147483647;background:#000;touch-action:none;";
+
+    var video = document.createElement("video");
+    video.setAttribute("playsinline", "true");
+    video.setAttribute("webkit-playsinline", "true");
+    video.muted = true;
+    video.autoplay = true;
+    video.style.cssText =
+      "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;";
+
+    var canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:absolute;inset:0;width:100%;height:100%;";
+
+    var closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.textContent = "Kapat";
+    closeBtn.style.cssText =
+      "position:absolute;top:16px;right:16px;z-index:2;border:0;border-radius:999px;" +
+      "background:rgba(0,0,0,.65);color:#fff;font:600 13px sans-serif;padding:10px 14px;";
+
+    var hint = document.createElement("p");
+    hint.textContent = "Kamera aciliyor…";
+    hint.style.cssText =
+      "position:absolute;left:16px;right:16px;bottom:28px;z-index:2;margin:0;" +
+      "text-align:center;color:#fff;font:600 14px sans-serif;" +
+      "text-shadow:0 1px 4px #000;";
+
+    overlay.appendChild(video);
+    overlay.appendChild(canvas);
+    overlay.appendChild(closeBtn);
+    overlay.appendChild(hint);
+    document.body.appendChild(overlay);
+
+    var stream = null;
+    var renderer = null;
+    var anim = 0;
+    var lookDown = 52;
+    var stopped = false;
+
+    function onOrient(e) {
+      if (e.beta == null) return;
+      lookDown = Math.max(18, Math.min(75, 90 - e.beta));
+    }
+    window.addEventListener("deviceorientation", onOrient, true);
+
+    function stop() {
+      if (stopped) return;
+      stopped = true;
+      window.removeEventListener("deviceorientation", onOrient, true);
+      if (anim) cancelAnimationFrame(anim);
+      if (stream) {
+        stream.getTracks().forEach(function (t) {
+          t.stop();
+        });
+      }
+      if (renderer) renderer.dispose();
+      if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    }
+    closeBtn.addEventListener("click", stop);
+
+    var cameraPromise = navigator.mediaDevices
+      .getUserMedia({
+        audio: false,
+        video: { facingMode: { ideal: "environment" } },
+      })
+      .catch(function () {
+        return navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+      });
+
+    cameraPromise
+      .then(function (s) {
+        stream = s;
+        video.srcObject = s;
+        return video.play();
+      })
+      .then(function () {
+        return loadThree();
+      })
+      .then(function () {
+        if (stopped || !window.THREE) return;
+        var THREE = window.THREE;
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(
+          45,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          100
+        );
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight, false);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+        var sun = new THREE.DirectionalLight(0xffffff, 0.7);
+        sun.position.set(2, 6, 2);
+        scene.add(sun);
+
+        var rug = new THREE.Mesh(
+          new THREE.PlaneGeometry(rugWidthM, rugLengthM),
+          new THREE.MeshStandardMaterial({
+            color: 0x8a5a32,
+            roughness: 0.9,
+            metalness: 0.02,
+            side: THREE.DoubleSide,
+          })
+        );
+        rug.rotation.x = -Math.PI / 2;
+        scene.add(rug);
+
+        if (coverImageUrl) {
+          var loader = new THREE.TextureLoader();
+          loader.setCrossOrigin("anonymous");
+          loader.load(coverImageUrl, function (texture) {
+            rug.material.map = texture;
+            rug.material.needsUpdate = true;
+          });
+        }
+
+        hint.textContent = "Telefonu yere tut. Hali yerde, gercek olcude.";
+
+        function frame() {
+          if (stopped) return;
+          var dist = 1.7;
+          var h = Math.tan((lookDown * Math.PI) / 180) * dist;
+          camera.position.set(0, Math.max(0.4, h), dist);
+          camera.lookAt(0, 0, 0);
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight, false);
+          renderer.render(scene, camera);
+          anim = requestAnimationFrame(frame);
+        }
+        frame();
+      })
+      .catch(function () {
+        hint.textContent = "Kamera izni verilmedi. Tarayici ayarindan izin verip tekrar dene.";
+      });
+  }
+
+  function handleClick(merchantId) {
+    track("WIDGET_OPENED", merchantId);
+    track("AR_STARTED", merchantId);
+    openFloorCamera();
   }
 
   function buildButton(settings, merchantId) {
@@ -688,6 +851,9 @@
       .then(function (json) {
         var data = json && json.data ? json.data : {};
         if (!rugId && data.id) rugId = data.id;
+        if (data.coverImage) coverImageUrl = data.coverImage;
+        if (data.dimensions && data.dimensions.widthCm) rugWidthM = data.dimensions.widthCm / 100;
+        if (data.dimensions && data.dimensions.lengthCm) rugLengthM = data.dimensions.lengthCm / 100;
         if (!data.model3dUrl) {
           showWidgetError(
             "Bu urun icin 3D model henuz yuklenmemis. Panelden GLB dosyasi ekleyin."
