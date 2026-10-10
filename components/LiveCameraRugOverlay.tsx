@@ -10,6 +10,7 @@ import {
   requestDeviceOrientationPermission,
 } from "@/lib/sensor-fusion";
 import {
+  estimatePhoneVerticalFov,
   initWebGLFloorScene,
   type WebGLFloorSceneController,
 } from "@/lib/webgl-floor-scene";
@@ -98,6 +99,10 @@ export default function LiveCameraRugOverlay({
   }>({ pitch: 55, roll: 0, alpha: 0, beta: 55, gamma: 0, hasOrientation: false });
   const floorAnchoredRef = useRef(false);
   const [floorAnchored, setFloorAnchored] = useState(false);
+  const alignFramesRef = useRef(0);
+  const fovAppliedRef = useRef(false);
+  const coachRef = useRef<"ayarla" | "eg">("ayarla");
+  const [coach, setCoach] = useState<"ayarla" | "eg">("ayarla");
   const activePointersRef = useRef<Map<number, PointerCoord>>(new Map());
   const pinchStartRef = useRef<{ dist: number; initialScale: number; initialRot: number; angle: number } | null>(null);
   const singleDragStartRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -117,6 +122,10 @@ export default function LiveCameraRugOverlay({
       setSensorActive(false);
       setFloorAnchored(false);
       floorAnchoredRef.current = false;
+      alignFramesRef.current = 0;
+      fovAppliedRef.current = false;
+      coachRef.current = "ayarla";
+      setCoach("ayarla");
       orientationRef.current.hasOrientation = false;
       odometryTrackerRef.current = null;
       return;
@@ -225,7 +234,10 @@ export default function LiveCameraRugOverlay({
 
       sceneControllerRef.current = controller;
       floorAnchoredRef.current = false;
+      alignFramesRef.current = 0;
       setFloorAnchored(false);
+      coachRef.current = "ayarla";
+      setCoach("ayarla");
       setWebglActive(true);
 
       const handleResize = () => {
@@ -334,18 +346,46 @@ export default function LiveCameraRugOverlay({
             orientationRef.current.gamma,
             screenAngle
           );
-          // Yere bakınca halıyı bir kez bakılan zemin noktasına oturt.
-          if (!floorAnchoredRef.current && orientationRef.current.pitch >= 35) {
+        } else {
+          sceneControllerRef.current.updateOrientation(curPitch, curRoll);
+        }
+
+        const video = videoRef.current;
+        if (!fovAppliedRef.current && video && video.videoWidth > 0) {
+          sceneControllerRef.current.setVerticalFov(
+            estimatePhoneVerticalFov(video.videoWidth, video.videoHeight)
+          );
+          fovAppliedRef.current = true;
+        }
+
+        if (!floorAnchoredRef.current) {
+          sceneControllerRef.current.setRugVisible(false);
+          sceneControllerRef.current.setScale(1);
+          const onFloor = sceneControllerRef.current.updateFloorGuide();
+          const lookDown = orientationRef.current.pitch;
+          const nextCoach = lookDown >= 36 ? "eg" : "ayarla";
+          if (nextCoach !== coachRef.current) {
+            coachRef.current = nextCoach;
+            setCoach(nextCoach);
+          }
+          if (lookDown >= 48 && onFloor) {
+            alignFramesRef.current += 1;
+          } else {
+            alignFramesRef.current = 0;
+          }
+          if (alignFramesRef.current >= 18) {
             const placed = sceneControllerRef.current.placeUnderCrosshair();
             if (placed) {
               floorAnchoredRef.current = true;
               setFloorAnchored(true);
+              setScale(1);
             }
           }
         } else {
-          sceneControllerRef.current.updateOrientation(curPitch, curRoll);
+          sceneControllerRef.current.setRugVisible(true);
+          sceneControllerRef.current.setGuideVisible(false);
+          sceneControllerRef.current.setScale(scale);
         }
-        sceneControllerRef.current.setScale(scale);
         sceneControllerRef.current.setUserRotation(userRotation);
         sceneControllerRef.current.render();
       }
@@ -376,13 +416,20 @@ export default function LiveCameraRugOverlay({
   // Ölçü Değiştirme
   const anchorRugToFloor = () => {
     odometryTrackerRef.current?.reset();
+    if (orientationRef.current.pitch < 48) {
+      setSnapshotFeedback("Telefonu yere doğru ayarla");
+      setTimeout(() => setSnapshotFeedback(null), 2200);
+      return;
+    }
+    sceneControllerRef.current?.setScale(1);
     const placed = sceneControllerRef.current?.placeUnderCrosshair() ?? false;
     if (placed) {
       floorAnchoredRef.current = true;
       setFloorAnchored(true);
-      setSnapshotFeedback("Halı zemine oturdu");
+      setScale(1);
+      setSnapshotFeedback("Halı yerde, gerçek ölçüde");
     } else {
-      setSnapshotFeedback("Telefonu biraz daha yere doğru eğin");
+      setSnapshotFeedback("Telefonu yere doğru ayarla");
     }
     setTimeout(() => setSnapshotFeedback(null), 2200);
   };
@@ -616,7 +663,7 @@ export default function LiveCameraRugOverlay({
       />
 
       {/* 3. CSS Fallback Katmanı */}
-      {!webglActive && !error && (
+      {!webglActive && !error && floorAnchored && (
         <div
           className="absolute left-1/2 bottom-[18%] z-10 touch-none cursor-grab active:cursor-grabbing will-change-transform"
           style={{
@@ -676,6 +723,19 @@ export default function LiveCameraRugOverlay({
         </div>
       )}
 
+      {!floorAnchored && ready && !error && (
+        <div className="pointer-events-none absolute inset-x-6 top-[30%] z-40 text-center">
+          <div className="mx-auto max-w-xs rounded-2xl bg-black/75 px-5 py-4 text-white shadow-2xl backdrop-blur-md">
+            <p className="text-base font-bold">
+              {coach === "eg" ? "Biraz daha yere eğ" : "Telefonu yere doğru ayarla"}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-white/80">
+              Açı oturunca halı resim gibi durmaz. Yerde yatan halının ölçüsünde görünür.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Fotoğraf Bildirim Rozeti (Toast) */}
       {snapshotFeedback && (
         <div className="absolute top-16 left-1/2 -translate-x-1/2 z-50 rounded-full bg-emerald-500/95 text-black px-4 py-1.5 text-xs font-bold shadow-2xl animate-bounce">
@@ -691,7 +751,7 @@ export default function LiveCameraRugOverlay({
             {sensorActive && !manualTiltMode ? (
               <div className="inline-flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 border border-emerald-500/30 text-[11px] font-medium text-emerald-300">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>{floorAnchored ? "Zemine oturdu" : "Yere bakınca oturur"}</span>
+                <span>{floorAnchored ? "Yerde, gerçek ölçüde" : "Ayarla"}</span>
               </div>
             ) : needsIosPermission ? (
               <button
@@ -730,8 +790,10 @@ export default function LiveCameraRugOverlay({
 
           <p className="text-[11px] text-white/80 drop-shadow">
             {floorAnchored
-              ? "Halı zeminde. Sürükleyerek kaydırın • İki parmakla çevirin"
-              : "Telefonu yere doğru eğin, halı zemine otursun"}
+              ? "Halı yerde yatıyor. Sürükleyerek kaydırın"
+              : coach === "eg"
+                ? "Biraz daha yere eğ"
+                : "Telefonu yere doğru ayarla"}
           </p>
         </div>
 

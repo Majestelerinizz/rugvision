@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   calculateCameraRotation,
   calculateRugMeshDimensions,
+  estimatePhoneVerticalFov,
   raycastFloorIntersection,
   rearCameraLookDirection,
 } from "../lib/webgl-floor-scene";
@@ -37,6 +38,11 @@ test("calculateRugMeshDimensions: santimetreyi Three.js metre birimine dönüşt
   const fallback = calculateRugMeshDimensions(0, -5);
   assert.equal(fallback.widthM, 1.6);
   assert.equal(fallback.lengthM, 2.3);
+});
+
+test("estimatePhoneVerticalFov: telefon videosuna yakın dikey açı üretir", () => {
+  const fov = estimatePhoneVerticalFov(1280, 720);
+  assert.ok(fov > 38 && fov < 48, `Beklenen ~41, gelen: ${fov}`);
 });
 
 test("rearCameraLookDirection: telefon düzken arka kamera yere bakar", () => {

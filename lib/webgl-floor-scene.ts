@@ -21,6 +21,10 @@ export interface WebGLFloorSceneController {
   updateOrientation: (pitchDeg: number, rollDeg: number) => void;
   updateDeviceOrientation: (alpha: number, beta: number, gamma: number, screenAngle?: number) => void;
   placeUnderCrosshair: () => boolean;
+  updateFloorGuide: () => boolean;
+  setRugVisible: (visible: boolean) => void;
+  setGuideVisible: (visible: boolean) => void;
+  setVerticalFov: (fovDeg: number) => void;
   setRugPositionFromScreen: (clientX: number, clientY: number, screenW: number, screenH: number) => boolean;
   applyDisplacement: (dxM: number, dzM: number) => void;
   updateDimensions: (widthCm: number, lengthCm: number) => void;
@@ -99,6 +103,24 @@ export function calculateCameraRotation(pitchDeg: number, rollDeg: number): { pi
 /**
  * Santimetre cinsinden ebatları Three.js dünya birimlerine (metre) dönüştürür.
  */
+/**
+ * Telefon kamerasının dikey görüş açısı.
+ * Video yatay kadrajda gelir; object-cover ile ekranda görünen yükseklik bu açıdır.
+ * 60° sanal kamera halıyı yerdeki halıdan büyük/küçük bir resim gibi gösterir.
+ */
+export function estimatePhoneVerticalFov(
+  videoWidth: number,
+  videoHeight: number,
+  horizontalFovDeg = 67
+): number {
+  if (videoWidth <= 0 || videoHeight <= 0) return 46;
+  const aspect = videoWidth / videoHeight;
+  const halfH = (horizontalFovDeg * Math.PI) / 360;
+  const vRad = 2 * Math.atan(Math.tan(halfH) / aspect);
+  const vDeg = (vRad * 180) / Math.PI;
+  return Number(Math.max(36, Math.min(62, vDeg)).toFixed(1));
+}
+
 export function calculateRugMeshDimensions(widthCm: number, lengthCm: number): { widthM: number; lengthM: number } {
   const w = widthCm > 0 ? widthCm / 100 : 1.6;
   const l = lengthCm > 0 ? lengthCm / 100 : 2.3;
@@ -230,7 +252,7 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
   const scene = new THREE.Scene();
 
   const aspect = (canvas.clientWidth || window.innerWidth) / (canvas.clientHeight || window.innerHeight);
-  const camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 50);
+  const camera = new THREE.PerspectiveCamera(46, aspect, 0.1, 50);
 
   const cameraHeight = 1.3;
   camera.position.set(0, cameraHeight, 0);
@@ -288,6 +310,7 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
   const rugGroup = new THREE.Group();
   const RUG_FLOOR_Y = 0.004;
   rugGroup.position.set(0, RUG_FLOOR_Y, -1.6);
+  rugGroup.visible = false;
 
   const rugMesh = new THREE.Mesh(rugGeometry, rugMaterial);
   rugGroup.add(rugMesh);
@@ -322,6 +345,21 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
   rugGroup.add(gizmoMesh);
 
   scene.add(rugGroup);
+
+  // Ayarlama halkası: yere bakılınca yerde yatan bir daire olur, duvara bakınca kaybolur.
+  const guide = new THREE.Mesh(
+    new THREE.RingGeometry(0.55, 0.64, 64),
+    new THREE.MeshBasicMaterial({
+      color: 0xffffff,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.92,
+      depthWrite: false,
+    })
+  );
+  guide.rotation.x = -Math.PI / 2;
+  guide.position.set(0, 0.01, -1.2);
+  scene.add(guide);
 
   // Zemin Düzlemi (Raycaster)
   const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -360,9 +398,48 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
       applyRearCameraOrientation(camera, alpha, beta, gamma, screenAngle);
     },
 
+    updateFloorGuide() {
+      camera.updateMatrixWorld(true);
+      raycaster.setFromCamera(new THREE.Vector2(0, -0.2), camera);
+      const intersection = new THREE.Vector3();
+      const hit = raycaster.ray.intersectPlane(floorPlane, intersection);
+      if (!hit) {
+        guide.visible = false;
+        return false;
+      }
+      const dist = Math.hypot(
+        intersection.x - camera.position.x,
+        intersection.z - camera.position.z
+      );
+      if (dist < 0.45 || dist > 3.2) {
+        guide.visible = false;
+        return false;
+      }
+      guide.visible = true;
+      guide.position.set(intersection.x, 0.01, intersection.z);
+      return true;
+    },
+
+    setRugVisible(visible: boolean) {
+      rugGroup.visible = visible;
+    },
+
+    setGuideVisible(visible: boolean) {
+      guide.visible = visible;
+    },
+
+    setVerticalFov(fovDeg: number) {
+      camera.fov = Math.max(36, Math.min(62, fovDeg));
+      camera.updateProjectionMatrix();
+    },
+
     placeUnderCrosshair() {
-      // Bakılan noktanın biraz altı: zemin genelde kadrajın alt yarısındadır.
-      return placeRugOnFloor(0, -0.15);
+      const placed = placeRugOnFloor(0, -0.2);
+      if (!placed) return false;
+      rugGroup.scale.set(1, 1, 1);
+      rugGroup.visible = true;
+      guide.visible = false;
+      return true;
     },
 
     setRugPositionFromScreen(clientX: number, clientY: number, screenW: number, screenH: number): boolean {
@@ -429,6 +506,8 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
     },
 
     dispose() {
+      guide.geometry.dispose();
+      (guide.material as THREE.Material).dispose();
       rugGeometry.dispose();
       rugMaterial.dispose();
       shadowGeometry.dispose();
