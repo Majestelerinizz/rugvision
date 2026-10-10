@@ -6,6 +6,7 @@ import {
   calculateFloorRoll,
   applyLowPassFilter,
   buildRugCssTransform,
+  lerpAngleDeg,
   requestDeviceOrientationPermission,
 } from "@/lib/sensor-fusion";
 import {
@@ -87,7 +88,16 @@ export default function LiveCameraRugOverlay({
   const [manualTiltMode, setManualTiltMode] = useState<boolean>(false);
 
   // Ref'ler (animasyon ve pointer takibi için)
-  const orientationRef = useRef<{ pitch: number; roll: number }>({ pitch: 55, roll: 0 });
+  const orientationRef = useRef<{
+    pitch: number;
+    roll: number;
+    alpha: number;
+    beta: number;
+    gamma: number;
+    hasOrientation: boolean;
+  }>({ pitch: 55, roll: 0, alpha: 0, beta: 55, gamma: 0, hasOrientation: false });
+  const floorAnchoredRef = useRef(false);
+  const [floorAnchored, setFloorAnchored] = useState(false);
   const activePointersRef = useRef<Map<number, PointerCoord>>(new Map());
   const pinchStartRef = useRef<{ dist: number; initialScale: number; initialRot: number; angle: number } | null>(null);
   const singleDragStartRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -105,6 +115,9 @@ export default function LiveCameraRugOverlay({
       setReady(false);
       setError(null);
       setSensorActive(false);
+      setFloorAnchored(false);
+      floorAnchoredRef.current = false;
+      orientationRef.current.hasOrientation = false;
       odometryTrackerRef.current = null;
       return;
     }
@@ -211,6 +224,8 @@ export default function LiveCameraRugOverlay({
       });
 
       sceneControllerRef.current = controller;
+      floorAnchoredRef.current = false;
+      setFloorAnchored(false);
       setWebglActive(true);
 
       const handleResize = () => {
@@ -249,12 +264,26 @@ export default function LiveCameraRugOverlay({
     const handleOrientation = (e: DeviceOrientationEvent) => {
       if (e.beta === null) return;
 
-      const targetPitch = calculateFloorPitch(e.beta);
-      const targetRoll = e.gamma !== null ? calculateFloorRoll(e.gamma) : 0;
+      const beta = e.beta;
+      const gamma = e.gamma ?? 0;
+      const alpha = e.alpha ?? orientationRef.current.alpha;
+      const current = orientationRef.current;
 
-      // Düşük geçiren filtre ile el titremesini yumuşat
-      orientationRef.current.pitch = applyLowPassFilter(orientationRef.current.pitch, targetPitch, 0.16);
-      orientationRef.current.roll = applyLowPassFilter(orientationRef.current.roll, targetRoll, 0.16);
+      if (!current.hasOrientation) {
+        current.alpha = alpha;
+        current.beta = beta;
+        current.gamma = gamma;
+        current.hasOrientation = true;
+      } else {
+        current.alpha = lerpAngleDeg(current.alpha, alpha, 0.22);
+        current.beta = applyLowPassFilter(current.beta, beta, 0.22);
+        current.gamma = applyLowPassFilter(current.gamma, gamma, 0.22);
+      }
+
+      const targetPitch = calculateFloorPitch(current.beta);
+      const targetRoll = calculateFloorRoll(current.gamma);
+      current.pitch = applyLowPassFilter(current.pitch, targetPitch, 0.16);
+      current.roll = applyLowPassFilter(current.roll, targetRoll, 0.16);
 
       setSensorActive(true);
       setNeedsIosPermission(false);
@@ -270,9 +299,13 @@ export default function LiveCameraRugOverlay({
         setRoll(curRoll);
       }
 
-      // Görsel Odometri (~30 FPS analiz)
+      const gyroDriving = !manualTiltMode && orientationRef.current.hasOrientation;
+
+      // Optik akış, jiroskop zemini kilitliyken halıyı kaydırıp havaya itiyor.
+      // Yürüyüş takibi yalnızca sensör yokken devrede.
       frameCounterRef.current++;
       if (
+        !gyroDriving &&
         odometryEnabled &&
         frameCounterRef.current % 2 === 0 &&
         videoRef.current &&
@@ -284,13 +317,34 @@ export default function LiveCameraRugOverlay({
         if (odom.trackedCount > 0) {
           setTrackedPoints(odom.trackedCount);
         }
-        if (Math.abs(odom.dxMeters) > 0.001 || Math.abs(odom.dzMeters) > 0.001) {
+        if (odom.confidence >= 0.45 && (Math.abs(odom.dxMeters) > 0.001 || Math.abs(odom.dzMeters) > 0.001)) {
           sceneControllerRef.current.applyDisplacement(odom.dxMeters, odom.dzMeters);
         }
       }
 
       if (sceneControllerRef.current) {
-        sceneControllerRef.current.updateOrientation(curPitch, curRoll);
+        if (gyroDriving) {
+          const screenAngle =
+            typeof screen !== "undefined" && screen.orientation
+              ? screen.orientation.angle
+              : Number((window as Window & { orientation?: number }).orientation ?? 0);
+          sceneControllerRef.current.updateDeviceOrientation(
+            orientationRef.current.alpha,
+            orientationRef.current.beta,
+            orientationRef.current.gamma,
+            screenAngle
+          );
+          // Yere bakınca halıyı bir kez bakılan zemin noktasına oturt.
+          if (!floorAnchoredRef.current && orientationRef.current.pitch >= 35) {
+            const placed = sceneControllerRef.current.placeUnderCrosshair();
+            if (placed) {
+              floorAnchoredRef.current = true;
+              setFloorAnchored(true);
+            }
+          }
+        } else {
+          sceneControllerRef.current.updateOrientation(curPitch, curRoll);
+        }
         sceneControllerRef.current.setScale(scale);
         sceneControllerRef.current.setUserRotation(userRotation);
         sceneControllerRef.current.render();
@@ -320,6 +374,19 @@ export default function LiveCameraRugOverlay({
   };
 
   // Ölçü Değiştirme
+  const anchorRugToFloor = () => {
+    odometryTrackerRef.current?.reset();
+    const placed = sceneControllerRef.current?.placeUnderCrosshair() ?? false;
+    if (placed) {
+      floorAnchoredRef.current = true;
+      setFloorAnchored(true);
+      setSnapshotFeedback("Halı zemine oturdu");
+    } else {
+      setSnapshotFeedback("Telefonu biraz daha yere doğru eğin");
+    }
+    setTimeout(() => setSnapshotFeedback(null), 2200);
+  };
+
   const handleSelectSize = (size: RugSize) => {
     setSelectedSize(size);
     setShowSizePicker(false);
@@ -624,7 +691,7 @@ export default function LiveCameraRugOverlay({
             {sensorActive && !manualTiltMode ? (
               <div className="inline-flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 border border-emerald-500/30 text-[11px] font-medium text-emerald-300">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>Jiroskop ({Math.round(pitch)}°)</span>
+                <span>{floorAnchored ? "Zemine oturdu" : "Yere bakınca oturur"}</span>
               </div>
             ) : needsIosPermission ? (
               <button
@@ -640,7 +707,7 @@ export default function LiveCameraRugOverlay({
               </div>
             )}
 
-            {/* Zemin Odometri Butonu */}
+            {sensorActive && !manualTiltMode ? null : (
             <button
               type="button"
               onClick={() => {
@@ -658,10 +725,13 @@ export default function LiveCameraRugOverlay({
               <span className={`w-1.5 h-1.5 rounded-full ${odometryEnabled && trackedPoints > 0 ? "bg-blue-400 animate-pulse" : "bg-zinc-500"}`} />
               <span>{odometryEnabled ? `Zemin Kilitli (${trackedPoints || "—"} Nokta)` : "Zemin Serbest"}</span>
             </button>
+            )}
           </div>
 
           <p className="text-[11px] text-white/80 drop-shadow">
-            Zemine dokunup sürükleyin • İki parmakla çevirin & büyütün
+            {floorAnchored
+              ? "Halı zeminde. Sürükleyerek kaydırın • İki parmakla çevirin"
+              : "Telefonu yere doğru eğin, halı zemine otursun"}
           </p>
         </div>
 
@@ -785,23 +855,10 @@ export default function LiveCameraRugOverlay({
         {/* Ortala / Reset */}
         <button
           type="button"
-          onClick={() => {
-            odometryTrackerRef.current?.reset();
-            setOffset({ x: 0, y: 0 });
-            setScale(1);
-            setUserRotation(0);
-            if (sceneControllerRef.current) {
-              sceneControllerRef.current.setRugPositionFromScreen(
-                window.innerWidth / 2,
-                window.innerHeight * 0.72,
-                window.innerWidth,
-                window.innerHeight
-              );
-            }
-          }}
-          className="rounded-full bg-black/60 backdrop-blur-md border border-white/20 px-3 py-2 text-xs font-semibold text-white/90 active:scale-95 transition-transform"
+          onClick={anchorRugToFloor}
+          className="rounded-full bg-white text-black px-3 py-2 text-xs font-bold active:scale-95 transition-transform"
         >
-          Ortala
+          Zemine oturt
         </button>
       </div>
     </div>

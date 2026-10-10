@@ -4,6 +4,7 @@ import {
   calculateCameraRotation,
   calculateRugMeshDimensions,
   raycastFloorIntersection,
+  rearCameraLookDirection,
 } from "../lib/webgl-floor-scene";
 
 test("calculateCameraRotation: pitch ve roll açılarını doğru radyana çevirir", () => {
@@ -36,6 +37,16 @@ test("calculateRugMeshDimensions: santimetreyi Three.js metre birimine dönüşt
   const fallback = calculateRugMeshDimensions(0, -5);
   assert.equal(fallback.widthM, 1.6);
   assert.equal(fallback.lengthM, 2.3);
+});
+
+test("rearCameraLookDirection: telefon düzken arka kamera yere bakar", () => {
+  const down = rearCameraLookDirection(0, 0, 0);
+  assert.ok(down.y < -0.7, `Yere bakmalı, y=${down.y}`);
+});
+
+test("rearCameraLookDirection: telefon dikken arka kamera ufka bakar", () => {
+  const ahead = rearCameraLookDirection(0, 90, 0);
+  assert.ok(Math.abs(ahead.y) < 0.35, `Ufka bakmalı, y=${ahead.y}`);
 });
 
 test("raycastFloorIntersection: ekran altından zemin düzlemi kesişimi bulur", () => {

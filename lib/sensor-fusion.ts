@@ -42,23 +42,17 @@ export async function requestDeviceOrientationPermission(): Promise<boolean> {
 }
 
 /**
- * Telefonun 'beta' (pitch) açısından zemine göre dinamik perspektif açısını hesaplar.
+ * Arka kameranın ufuktan aşağı bakış açısı (derece).
  *
- * Tipik kullanım:
- * - Telefon dik tutulursa (beta ~ 85-90°): Zemin uzaklaşır, derinlik perspektifi artar (~75-80°).
- * - Telefon yere doğru eğilirse (beta ~ 45-55°): Halı daha yatay ve belirgin görünür (~50-55°).
- * - Telefon tamamen yere paralel tutulursa (beta ~ 10-20°): Halı kuşbakışına yaklaşır (~15-20°).
+ * W3C `beta`: 0 = telefon masada düz (ekran yukarı, arka kamera yere bakar),
+ * 90 = telefon dik (arka kamera ufka / duvara bakar).
+ * Halının havada kalmaması için bakış açısı `90 - beta` olmalı.
+ * Telefonu yere eğdikçe açı büyür ve halı ekrandaki zemine oturur.
  */
 export function calculateFloorPitch(beta: number): number {
-  // Beta açısını [15, 85] aralığına sınırla
-  // Beta 90 olduğunda dikey duruş, 0 olduğunda düz masa üstü duruşudur.
-  const clampedBeta = Math.max(15, Math.min(85, Math.abs(beta)));
-  
-  // Hafif doğrusal olmayan eğri ile zemin perspektifini daha doğal yap
-  const normalized = (clampedBeta - 15) / (85 - 15); // 0 ile 1 arası
-  const pitch = 20 + normalized * 58; // 20° ile 78° arası perspektif
-  
-  return Number(pitch.toFixed(1));
+  const lookDown = 90 - beta;
+  const clamped = Math.max(8, Math.min(85, lookDown));
+  return Number(clamped.toFixed(1));
 }
 
 /**
@@ -87,6 +81,13 @@ export function applyLowPassFilter(
   return current + (target - current) * factor;
 }
 
+/** 0–360 pusula açısını sıçramadan yumuşatır. */
+export function lerpAngleDeg(current: number, target: number, factor: number): number {
+  const delta = ((target - current + 540) % 360) - 180;
+  const next = current + delta * factor;
+  return (next + 360) % 360;
+}
+
 /**
  * Halının CSS transform dizesini oluşturur.
  */
@@ -107,12 +108,14 @@ export function buildRugCssTransform({
 }): string {
   // Toplam zemin açısı
   const totalRoll = rollDeg + userRotationDeg;
-  
+  // pitchDeg = yere bakış. Kuşbakışında kart yüzü dönük, ufka bakınca yassılaşır.
+  const foreshorten = Math.max(8, Math.min(82, 90 - pitchDeg));
+
   return [
     `translate(calc(-50% + ${Math.round(offsetX)}px), ${Math.round(offsetY)}px)`,
     `scale(${scale.toFixed(2)})`,
     `perspective(750px)`,
-    `rotateX(${pitchDeg.toFixed(1)}deg)`,
+    `rotateX(${foreshorten.toFixed(1)}deg)`,
     `rotateZ(${totalRoll.toFixed(1)}deg)`,
   ].join(" ");
 }

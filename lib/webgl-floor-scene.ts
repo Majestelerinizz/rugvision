@@ -19,6 +19,8 @@ export interface FloorSceneOptions {
 
 export interface WebGLFloorSceneController {
   updateOrientation: (pitchDeg: number, rollDeg: number) => void;
+  updateDeviceOrientation: (alpha: number, beta: number, gamma: number, screenAngle?: number) => void;
+  placeUnderCrosshair: () => boolean;
   setRugPositionFromScreen: (clientX: number, clientY: number, screenW: number, screenH: number) => boolean;
   applyDisplacement: (dxM: number, dzM: number) => void;
   updateDimensions: (widthCm: number, lengthCm: number) => void;
@@ -101,6 +103,46 @@ export function calculateRugMeshDimensions(widthCm: number, lengthCm: number): {
   const w = widthCm > 0 ? widthCm / 100 : 1.6;
   const l = lengthCm > 0 ? lengthCm / 100 : 2.3;
   return { widthM: Number(w.toFixed(2)), lengthM: Number(l.toFixed(2)) };
+}
+
+/**
+ * Telefon yönelimini arka kameranın baktığı yöne çevirir.
+ * Halı Y=0 zemininde kalır; telefon dönünce halı odada sabit durur.
+ * Three.js DeviceOrientationControls ile aynı dönüş: kamera cihazın arkasından bakar.
+ */
+export function applyRearCameraOrientation(
+  camera: THREE.PerspectiveCamera,
+  alpha: number,
+  beta: number,
+  gamma: number,
+  screenAngle = 0
+): void {
+  const deg = THREE.MathUtils.degToRad;
+  const euler = new THREE.Euler();
+  const q0 = new THREE.Quaternion();
+  const q1 = new THREE.Quaternion(-Math.sqrt(0.5), 0, 0, Math.sqrt(0.5));
+  euler.set(deg(beta), deg(alpha), deg(-gamma), "YXZ");
+  camera.quaternion.setFromEuler(euler);
+  camera.quaternion.multiply(q1);
+  camera.quaternion.multiply(q0.setFromAxisAngle(new THREE.Vector3(0, 0, 1), -deg(screenAngle)));
+  camera.updateMatrixWorld(true);
+}
+
+/** Test için: arka kameranın dünya uzayındaki bakış yönü. */
+export function rearCameraLookDirection(
+  alpha: number,
+  beta: number,
+  gamma: number,
+  screenAngle = 0
+): { x: number; y: number; z: number } {
+  const camera = new THREE.PerspectiveCamera();
+  applyRearCameraOrientation(camera, alpha, beta, gamma, screenAngle);
+  const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+  return {
+    x: Number(dir.x.toFixed(3)),
+    y: Number(dir.y.toFixed(3)),
+    z: Number(dir.z.toFixed(3)),
+  };
 }
 
 /**
@@ -242,9 +284,10 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
     });
   }
 
-  // Halı Grubu
+  // Halı her zaman zemin düzleminde (Y≈0). Havada yükseltilmez.
   const rugGroup = new THREE.Group();
-  rugGroup.position.set(0, 0.005, -1.6);
+  const RUG_FLOOR_Y = 0.004;
+  rugGroup.position.set(0, RUG_FLOOR_Y, -1.6);
 
   const rugMesh = new THREE.Mesh(rugGeometry, rugMaterial);
   rugGroup.add(rugMesh);
@@ -284,30 +327,49 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
   const floorPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
   const raycaster = new THREE.Raycaster();
 
+  function placeRugOnFloor(ndcX: number, ndcY: number): boolean {
+    camera.updateMatrixWorld(true);
+    raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
+    const intersection = new THREE.Vector3();
+    const hit = raycaster.ray.intersectPlane(floorPlane, intersection);
+    if (!hit) return false;
+
+    const dist = Math.hypot(
+      intersection.x - camera.position.x,
+      intersection.z - camera.position.z
+    );
+    // Çok yakın veya ufka yakın vuruş halıyı havada gibi gösterir.
+    if (dist < 0.4 || dist > 4.5) return false;
+
+    rugGroup.position.set(intersection.x, RUG_FLOOR_Y, intersection.z);
+    return true;
+  }
+
   // 5. Kontrolcü Metotları
   return {
     updateOrientation(pitchDeg: number, rollDeg: number) {
       const rot = calculateCameraRotation(pitchDeg, rollDeg);
+      camera.rotation.order = "YXZ";
       camera.rotation.x = rot.pitchRad;
       camera.rotation.z = rot.rollRad;
+      camera.rotation.y = 0;
+      camera.updateMatrixWorld(true);
+    },
+
+    updateDeviceOrientation(alpha: number, beta: number, gamma: number, screenAngle = 0) {
+      applyRearCameraOrientation(camera, alpha, beta, gamma, screenAngle);
+    },
+
+    placeUnderCrosshair() {
+      // Bakılan noktanın biraz altı: zemin genelde kadrajın alt yarısındadır.
+      return placeRugOnFloor(0, -0.15);
     },
 
     setRugPositionFromScreen(clientX: number, clientY: number, screenW: number, screenH: number): boolean {
       if (screenW <= 0 || screenH <= 0) return false;
-
       const ndcX = (clientX / screenW) * 2 - 1;
       const ndcY = -(clientY / screenH) * 2 + 1;
-
-      raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), camera);
-      const intersection = new THREE.Vector3();
-      const hit = raycaster.ray.intersectPlane(floorPlane, intersection);
-
-      if (hit && intersection.z < -0.3 && intersection.z > -7.0) {
-        rugGroup.position.x = intersection.x;
-        rugGroup.position.z = intersection.z;
-        return true;
-      }
-      return false;
+      return placeRugOnFloor(ndcX, ndcY);
     },
 
     applyDisplacement(dxM: number, dzM: number) {

@@ -7,18 +7,19 @@ import {
   buildRugCssTransform,
 } from "../lib/sensor-fusion";
 
-test("calculateFloorPitch: telefon yere dik tutulduğunda yüksek açı üretir", () => {
-  const pitchVertical = calculateFloorPitch(85);
-  assert.ok(pitchVertical >= 75 && pitchVertical <= 80, `Beklenen ~78, gelen: ${pitchVertical}`);
+test("calculateFloorPitch: telefon dikken arka kamera ufka bakar", () => {
+  const upright = calculateFloorPitch(90);
+  assert.ok(upright <= 12, `Dik telefonda yere bakış küçük olmalı, gelen: ${upright}`);
 });
 
-test("calculateFloorPitch: telefon yere doğru eğildiğinde perspektif azalır", () => {
-  const pitchAngled = calculateFloorPitch(50);
-  const pitchHorizontal = calculateFloorPitch(15);
-  
-  assert.ok(pitchAngled < 75);
-  assert.ok(pitchHorizontal <= 25);
-  assert.ok(pitchAngled > pitchHorizontal);
+test("calculateFloorPitch: telefon yere eğilince bakış açısı artar", () => {
+  const lookingAtWall = calculateFloorPitch(80);
+  const lookingAtFloor = calculateFloorPitch(40);
+  const lookingStraightDown = calculateFloorPitch(10);
+
+  assert.ok(lookingAtFloor > lookingAtWall);
+  assert.ok(lookingStraightDown > lookingAtFloor);
+  assert.ok(lookingAtFloor >= 45 && lookingAtFloor <= 55);
 });
 
 test("calculateFloorRoll: ufuk çizgisi için ters açı üretir ve sınırlar", () => {
@@ -50,6 +51,6 @@ test("buildRugCssTransform: geçerli bir transform dizesi üretir", () => {
 
   assert.ok(transform.includes("translate(calc(-50% + 10px), 20px)"));
   assert.ok(transform.includes("scale(1.20)"));
-  assert.ok(transform.includes("rotateX(55.4deg)"));
+  assert.ok(transform.includes("rotateX(34.6deg)"));
   assert.ok(transform.includes("rotateZ(39.8deg)")); // -5.2 + 45 = 39.8
 });
