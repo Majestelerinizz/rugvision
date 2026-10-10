@@ -4,11 +4,13 @@ Bu doküman, RugVision platformunu daha da güçlendirecek, bütçe dostu veya e
 
 ---
 
-## 🚀 Mevcut Durum (Sürüm 1.8)
+## 🚀 Mevcut Durum (Sürüm 1.9 — 10 Ekim 2026)
 - [x] WebXR (Android Chrome) & AR Quick Look (iOS Safari) entegrasyonu tamamlandı.
 - [x] iOS pencerelerine benzeyen yarı saydam, koyu onay modali (`ARConfirmationModal`) entegre edildi.
 - [x] Cihaz yeteneklerini (ARCore / Quick Look) dinamik olarak algılayan ve hata durumunda 3B önizlemeye düşen altyapı kuruldu.
 - [x] Next.js üretim (Production) modunda optimize derleme yapıldı ve GitHub'a pushlandı.
+- [x] **Canlı WebAR zemine oturtma:** Telefon yere eğilince halı bakılan zemin noktasına yapışır; sağa sola çevrilince odada kalır. Altta **Zemine oturt** butonu vardır. Eski ters açı hesabı halıyı havada bırakıyordu (`lib/sensor-fusion.ts`, `lib/webgl-floor-scene.ts`, `components/LiveCameraRugOverlay.tsx`).
+- [x] Satış adreslerinde yayında: [rugvision.vercel.app](https://rugvision.vercel.app) ve [rugvision-o54d.vercel.app](https://rugvision-o54d.vercel.app). Deneme: `/odamda-gor/cmqgswcn5000404la5os5ls7v`.
 
 ---
 
