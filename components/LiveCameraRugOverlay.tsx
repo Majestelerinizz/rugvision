@@ -31,6 +31,13 @@ type Props = {
   widthCm: number;
   lengthCm: number;
   buttonColor?: string;
+  /**
+   * iPhone Quick Look benzeri mod:
+   * - Halı zemin algılanana kadar gizli
+   * - Bir kez yerleştirilir, telefona yapışmaz / sürüklenmez
+   * - Minimal HUD
+   */
+  quickLookMode?: boolean;
 };
 
 /**
@@ -45,6 +52,7 @@ export default function LiveCameraRugOverlay({
   widthCm,
   lengthCm,
   buttonColor = "#111827",
+  quickLookMode = true,
 }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -248,19 +256,11 @@ export default function LiveCameraRugOverlay({
       coachRef.current = "algila";
       setCoach("algila");
       setWebglActive(true);
-      // Sahne hazır olunca ürün ölçüsünde (cm) anında yerleştir — bekleme yok.
+      // Quick Look modu: önce zemin, sonra halı — anında yerleştirme yok.
       controller.updateDimensions(selectedSize.widthCm, selectedSize.lengthCm);
       controller.setScale(1);
-      const placedNow = controller.autoPlaceOnFloor();
-      if (placedNow) {
-        floorAnchoredRef.current = true;
-        setFloorAnchored(true);
-        setScale(1);
-        setSnapshotFeedback(
-          `Halı yerde · ${selectedSize.widthCm}×${selectedSize.lengthCm} cm`
-        );
-        setTimeout(() => setSnapshotFeedback(null), 2200);
-      }
+      controller.setRugVisible(false);
+      controller.setGuideVisible(true);
 
       const handleResize = () => {
         if (canvasRef.current && controller) {
@@ -335,10 +335,10 @@ export default function LiveCameraRugOverlay({
 
       const gyroDriving = !manualTiltMode && orientationRef.current.hasOrientation;
 
-      // Optik akış, jiroskop zemini kilitliyken halıyı kaydırıp havaya itiyor.
-      // Yürüyüş takibi yalnızca sensör yokken devrede.
+      // Quick Look modunda halı dünyada sabit — odometri ile kaydırılmaz (iPhone hissi).
       frameCounterRef.current++;
       if (
+        !quickLookMode &&
         !gyroDriving &&
         odometryEnabled &&
         frameCounterRef.current % 2 === 0 &&
@@ -425,20 +425,25 @@ export default function LiveCameraRugOverlay({
             }
           }
 
-          const floorSeen = floorConfidenceRef.current >= 0.55;
-          const lookingDown = lookDown >= 34;
-          const noGyroFallback = !orientationRef.current.hasOrientation && elapsed > 350;
-          const readyToDrop =
-            (lookingDown && (onFloor || floorSeen)) ||
-            floorSeen ||
-            noGyroFallback ||
-            elapsed > 1200;
+          // iPhone Quick Look gibi: zemin netleşmeden halı gelmez.
+          const floorSeen = floorConfidenceRef.current >= 0.52;
+          const lookingDown = lookDown >= 38;
+          const gyroOk = orientationRef.current.hasOrientation;
+          const readyToDrop = quickLookMode
+            ? (lookingDown && (onFloor || floorSeen) && (gyroOk || elapsed > 800)) ||
+              (floorSeen && lookingDown) ||
+              (!gyroOk && elapsed > 1600 && onFloor)
+            : (lookingDown && (onFloor || floorSeen)) ||
+              floorSeen ||
+              (!gyroOk && elapsed > 350) ||
+              elapsed > 1200;
 
-          const nextCoach: "ayarla" | "eg" | "algila" = floorSeen
-            ? "algila"
-            : lookingDown
-              ? "eg"
-              : "ayarla";
+          const nextCoach: "ayarla" | "eg" | "algila" =
+            !lookingDown && !floorSeen
+              ? "ayarla"
+              : floorSeen || onFloor
+                ? "algila"
+                : "eg";
           if (nextCoach !== coachRef.current) {
             coachRef.current = nextCoach;
             setCoach(nextCoach);
@@ -450,17 +455,18 @@ export default function LiveCameraRugOverlay({
             alignFramesRef.current = 0;
           }
 
-          // ~4–6 kare (~70–100ms) sonra ürün ölçüsünde otomatik yerleştir.
-          if (alignFramesRef.current >= 4 || (floorSeen && alignFramesRef.current >= 2)) {
+          const framesNeeded = quickLookMode ? 10 : 4;
+          if (alignFramesRef.current >= framesNeeded) {
             const placed = sceneControllerRef.current.autoPlaceOnFloor();
             if (placed) {
               floorAnchoredRef.current = true;
               setFloorAnchored(true);
               setScale(1);
+              setOdometryEnabled(false);
               setSnapshotFeedback(
-                `Halı algılandı · ${selectedSize.widthCm}×${selectedSize.lengthCm} cm`
+                `Halı yerde · ${selectedSize.widthCm}×${selectedSize.lengthCm} cm`
               );
-              setTimeout(() => setSnapshotFeedback(null), 2200);
+              setTimeout(() => setSnapshotFeedback(null), 2400);
             }
           }
         } else {
@@ -492,6 +498,7 @@ export default function LiveCameraRugOverlay({
     ready,
     selectedSize.widthCm,
     selectedSize.lengthCm,
+    quickLookMode,
   ]);
 
   // iOS İzin Talebi
@@ -697,7 +704,7 @@ export default function LiveCameraRugOverlay({
       {!ready && !error && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/65 text-sm text-white gap-3">
           <div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin" />
-          <p className="font-medium">3D Zemin ve Kamera başlatılıyor…</p>
+          <p className="font-medium">Kamera açılıyor — zemin taranacak…</p>
         </div>
       )}
 
@@ -706,14 +713,15 @@ export default function LiveCameraRugOverlay({
           <div className="mx-auto max-w-xs rounded-2xl bg-black/75 px-5 py-4 text-white shadow-2xl backdrop-blur-md">
             <p className="text-base font-bold">
               {coach === "algila"
-                ? "Zemin algılanıyor…"
+                ? "Zemin bulundu — halı geliyor"
                 : coach === "eg"
-                  ? "Zemin bulundu — yerleştiriliyor"
-                  : "Telefonu yere doğru tut"}
+                  ? "Biraz daha yere bak"
+                  : "Yüzeyi tara — telefonu yere doğru tut"}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-white/80">
-              Elle sürükleme yok. Kamera yere bakınca halı ~2 m önde,
-              {selectedSize.widthCm}×{selectedSize.lengthCm} cm gerçek ölçüde oturur.
+              {quickLookMode
+                ? `iPhone AR gibi: zemin algılanınca ${selectedSize.widthCm}×${selectedSize.lengthCm} cm halı otomatik oturur.`
+                : `Kamera yere bakınca halı ~2 m önde, ${selectedSize.widthCm}×${selectedSize.lengthCm} cm oturur.`}
             </p>
           </div>
         </div>

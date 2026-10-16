@@ -116,10 +116,10 @@ export function parseUserAgent(ua: string): ArDeviceProfile {
         modelHint,
         likelyHasGms: false,
         supportsNativeAr: false,
-        primaryExperience: "preview-3d",
+        primaryExperience: "webxr",
         fallbackExperience: "preview-3d",
-        buttonLabel: "3D Onizleme",
-        hint: "Bu cihazda AR desteklenmiyor; 3D onizleme acilir.",
+        buttonLabel: "Odamda Gor",
+        hint: "Sistem AR yok; Universal AR (iPhone hissi) tarayici kamerasi ile acilir.",
       };
     }
 
@@ -131,10 +131,10 @@ export function parseUserAgent(ua: string): ArDeviceProfile {
           modelHint,
           likelyHasGms: hasGms,
           supportsNativeAr: false,
-          primaryExperience: "preview-3d",
-          fallbackExperience: "webxr",
-          buttonLabel: "Chrome'da Ac",
-          hint: "HyperOS tarayicisi AR acmaz. Once Google Chrome ile acin; AR dugmesi kamerayi kullanir.",
+          primaryExperience: "webxr",
+          fallbackExperience: "preview-3d",
+          buttonLabel: "Odamda Gor",
+          hint: "HyperOS: Universal AR ayni tarayicida acilir (zemin tara, halı yerlestir).",
         };
       }
       if (isAndroidChrome(n)) {
@@ -287,12 +287,13 @@ export function shouldUseSceneViewerIntent(ua: string): boolean {
   return likelyHasGooglePlayServices(ua);
 }
 
-/** Xiaomi / POCO / HyperOS: ARCore yok. Tarayıcı kamerası (getUserMedia) kullan. */
+/** Native AR yoksa / zayıfsa: Universal WebAR (getUserMedia + zemin). */
 export function shouldPreferLiveCamera(ua: string): boolean {
   if (!isAndroidUserAgent(ua)) return false;
   if (isStockMiuiBrowser(ua)) return true;
+  if (!likelyHasGooglePlayServices(ua)) return true;
   const vendor = detectVendor(ua);
-  return vendor === "xiaomi" || vendor === null;
+  return vendor === "xiaomi" || vendor === "huawei" || vendor === null;
 }
 
 export function shouldShowArCoreInstallHint(ua: string): boolean {

@@ -53,14 +53,14 @@ describe("device-ar", () => {
     assert.equal(p.primaryExperience, "scene-viewer");
   });
 
-  it("Huawei without GMS falls back to 3D preview", () => {
+  it("Huawei without GMS uses Universal WebAR", () => {
     const p = parseUserAgent(
       "Mozilla/5.0 (Linux; Android 12; HarmonyOS; ELE-L29) AppleWebKit/537.36"
     );
     assert.equal(p.vendor, "huawei");
     assert.equal(p.likelyHasGms, false);
     assert.equal(p.supportsNativeAr, false);
-    assert.equal(p.primaryExperience, "preview-3d");
+    assert.equal(p.primaryExperience, "webxr");
   });
 
   it("builds Scene Viewer URLs", () => {
@@ -71,14 +71,15 @@ describe("device-ar", () => {
     assert.match(buildSceneViewerGenericIntentUrl(glb, fb), /^intent:\/\//);
   });
 
-  it("HyperOS MiuiBrowser blocks native AR, opens Chrome", () => {
+  it("HyperOS MiuiBrowser blocks native AR, uses Universal WebAR", () => {
     const ua =
       "Mozilla/5.0 (Linux; Android 14; 2312DRAABC Build/UP1A) AppleWebKit/537.36 XiaoMi/MiuiBrowser/20.0";
     const p = parseUserAgent(ua);
     assert.equal(p.vendor, "xiaomi");
-    assert.equal(p.primaryExperience, "preview-3d");
+    assert.equal(p.primaryExperience, "webxr");
     assert.equal(shouldBlockNativeAr(ua), true);
     assert.equal(shouldUseSceneViewerIntent(ua), false);
+    assert.equal(shouldPreferLiveCamera(ua), true);
   });
 
   it("Xiaomi Chrome uses in-browser WebXR camera", () => {
@@ -93,12 +94,12 @@ describe("device-ar", () => {
     assert.equal(arModesForProfile(p), "webxr scene-viewer");
   });
 
-  it("Redmi MiuiBrowser prefers Chrome handoff", () => {
+  it("Redmi MiuiBrowser prefers Universal WebAR in-place", () => {
     const ua =
       "Mozilla/5.0 (Linux; Android 13; Redmi Note 12 Build/TKQ1) AppleWebKit/537.36 MiuiBrowser/13.0";
     const p = parseUserAgent(ua);
     assert.equal(p.vendor, "xiaomi");
-    assert.equal(p.primaryExperience, "preview-3d");
+    assert.equal(p.primaryExperience, "webxr");
     assert.equal(isStockMiuiBrowser(ua), true);
     assert.equal(shouldPreferLiveCamera(ua), true);
   });

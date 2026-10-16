@@ -14,8 +14,9 @@
  *   data-button-text   Buton metni override
  *   data-button-color  Buton rengi override
  *
- * Haziran 2026 akisi: once kamera zemin tarar (AI zemin v1), sonra
- * iOS Quick Look / Android Scene Viewer ile gercek hali zemine gelir.
+ * Ortak yapi: once kamera zemin tarar, sonra:
+ *   iPhone → Quick Look | Samsung/Pixel → Scene Viewer
+ *   Diger telefonlar → Universal WebAR (iPhone AR hissi, tarayici kamerasi)
  * Vercel / production base: data-base veya script origin.
  */
 (function () {
@@ -151,17 +152,18 @@
           platform: "android",
           vendor: detectVendor(),
           supportsNativeAr: false,
-          primary: "preview-3d",
-          buttonLabel: "3D Onizleme",
+          primary: "webxr",
+          buttonLabel: overrideText || "Odamda Gor",
         };
       }
+      // HyperOS / MiuiBrowser: Chrome'a gönderme — aynı tarayıcıda Universal AR
       if (isStockMiuiBrowser()) {
         return {
           platform: "android",
           vendor: "xiaomi",
           supportsNativeAr: false,
-          primary: "chrome-handoff",
-          buttonLabel: "Chrome'da Ac",
+          primary: "webxr",
+          buttonLabel: overrideText || "Odamda Gor",
         };
       }
       if (detectVendor() === "xiaomi" && isAndroidChrome()) {
@@ -528,7 +530,7 @@
   }
 
   function openMobileViewer() {
-    navigateTo(mobileViewerUrl(false), prefersMobileWebAr() && !isStockMiuiBrowser());
+    navigateTo(mobileViewerUrl(true), true);
   }
 
   function openModal() {
@@ -762,15 +764,7 @@
       return;
     }
 
-    // 2) HyperOS varsayilan tarayici → Chrome
-    if (profile.primary === "chrome-handoff") {
-      runArWithFloorScan(merchantId, function () {
-        openInChromeViewer();
-      });
-      return;
-    }
-
-    // 3) Samsung / Pixel / GMS — once zemin tara, sonra Scene Viewer (gercek GLB)
+    // 2) Samsung / Pixel / GMS — once zemin tara, sonra Scene Viewer (gercek GLB)
     if (profile.primary === "scene-viewer" && glbUrl) {
       runArWithFloorScan(merchantId, function () {
         openSceneViewer();
@@ -778,16 +772,11 @@
       return;
     }
 
-    // 4) Xiaomi WebXR vb. — zemin tarasi sonra mobil AR sayfasi (live degil)
-    if (profile.primary === "webxr") {
-      runArWithFloorScan(merchantId, function () {
-        navigateTo(mobileViewerUrl(false), true);
-      });
-      return;
-    }
-
+    // 3) Xiaomi / Huawei / HyperOS / diger — zemin tara, sonra Universal WebAR (iPhone hissi)
     if (profile.platform === "android" || profile.platform === "ios") {
-      openMobileViewer();
+      runArWithFloorScan(merchantId, function () {
+        navigateTo(mobileViewerUrl(true), true);
+      });
       return;
     }
 

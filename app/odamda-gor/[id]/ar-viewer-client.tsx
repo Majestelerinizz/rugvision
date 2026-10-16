@@ -3,12 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   parseUserAgent,
-  shouldUseSceneViewerIntent,
-  shouldPreferLiveCamera,
-  shouldBlockNativeAr,
   resolveSceneViewerLaunchUrl,
   buildChromeIntentUrl,
 } from "@/lib/device-ar";
+import { resolveArLaunchMode } from "@/lib/universal-ar";
 import { runPreArFloorScans } from "@/lib/floor-scan-client";
 import RugARViewer from "@/components/RugARViewer";
 import ARConfirmationModal from "@/components/ARConfirmationModal";
@@ -120,7 +118,7 @@ export default function ArViewerClient({
   borderRadius,
   embed = false,
   mobile = false,
-  autoLiveCamera: _autoLiveCamera = false,
+  autoLiveCamera = false,
 }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -151,6 +149,27 @@ export default function ArViewerClient({
     trackEvent("VIEW_3D", merchantId, rugId);
   }, [merchantId, rugId]);
 
+  // Widget ?live=1 / ?ar=1 → Universal AR (zemin tara + kamera)
+  useEffect(() => {
+    if (!isMounted || !autoLiveCamera) return;
+    void (async () => {
+      setFloorScanning(true);
+      try {
+        await runPreArFloorScans({
+          merchantId,
+          rugId,
+          vendor: profile.vendor,
+          maxWaitMs: 900,
+          skipCamera: false,
+        });
+      } finally {
+        setFloorScanning(false);
+      }
+      trackEvent("AR_STARTED", merchantId, rugId);
+      setLiveCameraOpen(true);
+    })();
+  }, [isMounted, autoLiveCamera, merchantId, rugId, profile.vendor]);
+
   /** Kapak görseli mutlak URL — WebAR texture yüklemesi için (turuncu fallback önlenir) */
   const rugTextureUrl = useMemo(() => {
     const raw = coverImage || posterUrl || "";
@@ -176,10 +195,11 @@ export default function ArViewerClient({
   const handleActivateAr = async () => {
     setIsModalOpen(false);
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
+    const mode = resolveArLaunchMode(ua, Boolean(usdzUrl));
 
     trackEvent("AR_STARTED", merchantId, rugId);
 
-    // Haziran 2026: önce kamera zemin tarar, sonra halı / native AR
+    // Ortak yapı: önce zemin tara → sonra native veya Universal WebAR
     setFloorScanning(true);
     try {
       await runPreArFloorScans({
@@ -193,48 +213,38 @@ export default function ArViewerClient({
       setFloorScanning(false);
     }
 
-    // iPhone / iPad → Apple Quick Look (gerçek USDZ, otomatik zemin)
-    if (profile.primaryExperience === "quick-look" && usdzUrl) {
+    if (mode === "quick-look" && usdzUrl) {
       openIosQuickLook(usdzUrl);
       return;
     }
 
-    // HyperOS MiuiBrowser → Chrome'a yönlendir
-    if (shouldBlockNativeAr(ua)) {
-      openInChrome(window.location.href);
-      return;
-    }
-
-    // Samsung / Pixel / GMS Android → Google Scene Viewer (gerçek GLB, zemin)
-    if (shouldUseSceneViewerIntent(ua) || profile.primaryExperience === "scene-viewer") {
+    if (mode === "scene-viewer") {
       const glbAbsolute = new URL(glbUrl, window.location.href).toString();
       openSceneViewerIntent(glbAbsolute, window.location.href, ua);
       return;
     }
 
-    // Xiaomi / ARCore yok → yedek canlı kamera (son çare)
-    if (shouldPreferLiveCamera(ua) || profile.primaryExperience === "webxr") {
-      setLiveCameraOpen(true);
+    if (mode === "chrome-handoff") {
+      openInChrome(
+        new URL(
+          `${window.location.pathname}?mobile=1&live=1`,
+          window.location.origin
+        ).toString()
+      );
       return;
     }
 
-    const viewer = document.querySelector("model-viewer") as HTMLElement & {
-      activateAR?: () => Promise<void> | void;
-      canActivateAR?: boolean;
-    };
-    if (viewer?.canActivateAR && typeof viewer.activateAR === "function") {
-      try {
-        await viewer.activateAR();
-        return;
-      } catch {
-        // platform fallback below
-      }
-    }
-
-    window.open(glbUrl, "_blank", "noopener,noreferrer");
+    // Xiaomi / Huawei / OPPO / diğer → iPhone benzeri Universal WebAR
+    setLiveCameraOpen(true);
   };
 
-  const showArButton = hasARModel && (arSupported || profile.platform === "android");
+  // Universal WebAR sayesinde tüm mobil cihazlarda buton görünür
+  const showArButton =
+    hasARModel &&
+    (arSupported ||
+      profile.platform === "android" ||
+      profile.platform === "ios" ||
+      profile.platform === "unknown");
   const insecureOrigin =
     typeof window !== "undefined" &&
     window.location.protocol === "http:" &&
@@ -385,7 +395,8 @@ export default function ArViewerClient({
             </button>
 
             <p className="text-center text-[11px] text-zinc-500">
-              Önce kamera zemini algılar, sonra halı gerçek ölçüde gelir.
+              Önce zemin taranır; iPhone/Samsung’da sistem AR, diğer telefonlarda
+              aynı iPhone hissiyle Universal AR açılır.
             </p>
           </div>
         )}
@@ -411,6 +422,7 @@ export default function ArViewerClient({
           widthCm={selectedSize.widthCm}
           lengthCm={selectedSize.lengthCm}
           buttonColor={buttonColor}
+          quickLookMode
         />
       </div>
     );
@@ -512,7 +524,8 @@ export default function ArViewerClient({
             </button>
 
             <p className="text-[11px] text-zinc-500 leading-tight">
-              Önce kamera zemini algılar, sonra halı gerçek ölçüde gelir.
+              Önce zemin taranır; iPhone/Samsung’da sistem AR, diğerlerinde
+              Universal AR (iPhone hissi).
             </p>
           </div>
         )}
@@ -545,6 +558,7 @@ export default function ArViewerClient({
           widthCm={selectedSize.widthCm}
           lengthCm={selectedSize.lengthCm}
           buttonColor={buttonColor}
+          quickLookMode
         />
       </aside>
     </div>

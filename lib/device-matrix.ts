@@ -154,10 +154,10 @@ export const DEVICE_MATRIX: DeviceMatrixEntry[] = [
     browser: "HyperOS / MiuiBrowser",
     userAgent:
       "Mozilla/5.0 (Linux; Android 14; Redmi Note 12 Build/TKQ1) AppleWebKit/537.36 XiaoMi/MiuiBrowser/20.0",
-    expectedPrimary: "chrome-handoff",
+    expectedPrimary: "webxr",
     expectedSupportsNativeAr: false,
-    expectedWidgetAction: "chrome-handoff",
-    note: "Once Chrome ile ac",
+    expectedWidgetAction: "webxr",
+    note: "HyperOS: Universal AR ayni tarayicida (iPhone hissi)",
   },
   {
     id: "poco-x5-chrome",
@@ -216,10 +216,10 @@ export const DEVICE_MATRIX: DeviceMatrixEntry[] = [
     browser: "HarmonyOS Browser",
     userAgent:
       "Mozilla/5.0 (Linux; Android 12; HarmonyOS; ELE-L29) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.88 Mobile Safari/537.36",
-    expectedPrimary: "preview-3d",
+    expectedPrimary: "webxr",
     expectedSupportsNativeAr: false,
-    expectedWidgetAction: "preview-3d",
-    note: "GMS yok — sadece 3D onizleme",
+    expectedWidgetAction: "webxr",
+    note: "GMS yok — Universal AR (iPhone hissi)",
   },
   {
     id: "honor-90-gms",
@@ -229,10 +229,10 @@ export const DEVICE_MATRIX: DeviceMatrixEntry[] = [
     browser: "Chrome",
     userAgent:
       "Mozilla/5.0 (Linux; Android 13; REA-NX9 Build/HONORREA-N29) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-    expectedPrimary: "preview-3d",
+    expectedPrimary: "webxr",
     expectedSupportsNativeAr: false,
-    expectedWidgetAction: "preview-3d",
-    note: "Honor/Huawei markasi GMS disi",
+    expectedWidgetAction: "webxr",
+    note: "Honor/Huawei: Universal AR tarayici kamerasi",
   },
   {
     id: "desktop-windows-chrome",
@@ -275,18 +275,18 @@ export function resolveWidgetArAction(ua: string): WidgetArAction {
 
   if (profile.platform === "ios") return "quick-look";
   if (profile.platform === "android") {
-    if (!profile.likelyHasGms) return "preview-3d";
-    if (isStockMiuiBrowser(ua)) return "chrome-handoff";
+    // GMS yok / HyperOS / Xiaomi vb. → Universal WebAR (iPhone hissi)
+    if (!profile.likelyHasGms) return "webxr";
+    if (isStockMiuiBrowser(ua)) return "webxr";
     if (prefersMobileWebAr(ua) || profile.primaryExperience === "webxr") return "webxr";
     if (profile.primaryExperience === "scene-viewer") return "scene-viewer";
-    return "preview-3d";
+    return "webxr";
   }
   if (profile.platform === "desktop") return "modal-3d";
   return "preview-3d";
 }
 
 export function resolvePrimaryExperience(ua: string): ArExperience | "chrome-handoff" {
-  if (isStockMiuiBrowser(ua)) return "chrome-handoff";
   return parseUserAgent(ua).primaryExperience;
 }
 
