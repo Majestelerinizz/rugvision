@@ -5,7 +5,9 @@ import {
   parseUserAgent,
   shouldUseSceneViewerIntent,
   shouldPreferLiveCamera,
+  shouldBlockNativeAr,
   resolveSceneViewerLaunchUrl,
+  buildChromeIntentUrl,
 } from "@/lib/device-ar";
 import { runPreArFloorScans } from "@/lib/floor-scan-client";
 import RugARViewer from "@/components/RugARViewer";
@@ -36,6 +38,8 @@ type Props = {
   borderRadius: number;
   embed?: boolean;
   mobile?: boolean;
+  /** Widget / deep-link: sayfa açılınca floor-locked WebAR kamerasını başlat */
+  autoLiveCamera?: boolean;
 };
 
 type Tab = "ar" | "photo";
@@ -58,6 +62,16 @@ function openIosQuickLook(iosSrc: string) {
   const img = document.createElement("img");
   img.setAttribute("alt", "AR");
   anchor.appendChild(img);
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+}
+
+function openInChrome(pageUrl: string) {
+  const intentUrl = buildChromeIntentUrl(pageUrl);
+  const anchor = document.createElement("a");
+  anchor.href = intentUrl;
+  anchor.style.display = "none";
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
@@ -106,11 +120,12 @@ export default function ArViewerClient({
   borderRadius,
   embed = false,
   mobile = false,
+  autoLiveCamera = false,
 }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [arSupported, setArSupported] = useState(true);
-  const [liveCameraOpen, setLiveCameraOpen] = useState(false);
+  const [liveCameraOpen, setLiveCameraOpen] = useState(autoLiveCamera);
   const [activeTab, setActiveTab] = useState<Tab>("ar");
   const [selectedSize, setSelectedSize] = useState<RugSize>({
     label: `${widthCm}×${lengthCm}`,
@@ -135,6 +150,26 @@ export default function ArViewerClient({
     trackEvent("VIEW_3D", merchantId, rugId);
   }, [merchantId, rugId]);
 
+  useEffect(() => {
+    if (autoLiveCamera) {
+      setLiveCameraOpen(true);
+      trackEvent("AR_STARTED", merchantId, rugId);
+    }
+  }, [autoLiveCamera, merchantId, rugId]);
+
+  /** Kapak görseli mutlak URL — WebAR texture yüklemesi için (turuncu fallback önlenir) */
+  const rugTextureUrl = useMemo(() => {
+    const raw = coverImage || posterUrl || "";
+    if (!raw) return "";
+    if (/^https?:\/\//i.test(raw)) return raw;
+    if (typeof window === "undefined") return raw;
+    try {
+      return new URL(raw, window.location.origin).toString();
+    } catch {
+      return raw;
+    }
+  }, [coverImage, posterUrl, isMounted]);
+
   if (!isMounted) {
     return (
       <div className="w-full h-[400px] md:h-[500px] rounded-2xl bg-zinc-100 dark:bg-zinc-950 flex flex-col items-center justify-center border border-zinc-200 dark:border-zinc-800">
@@ -158,18 +193,27 @@ export default function ArViewerClient({
       skipCamera: true,
     });
 
+    // iPhone / iPad → Apple Quick Look (gerçek USDZ, otomatik zemin)
     if (profile.primaryExperience === "quick-look" && usdzUrl) {
       openIosQuickLook(usdzUrl);
       return;
     }
 
-    if (shouldUseSceneViewerIntent(ua)) {
+    // HyperOS MiuiBrowser → Chrome'a yönlendir
+    if (shouldBlockNativeAr(ua)) {
+      openInChrome(window.location.href);
+      return;
+    }
+
+    // Samsung / Pixel / GMS Android → Google Scene Viewer (gerçek GLB, zemin)
+    if (shouldUseSceneViewerIntent(ua) || profile.primaryExperience === "scene-viewer") {
       const glbAbsolute = new URL(glbUrl, window.location.href).toString();
       openSceneViewerIntent(glbAbsolute, window.location.href, ua);
       return;
     }
 
-    if (shouldPreferLiveCamera(ua)) {
+    // Xiaomi / ARCore yok → tarayıcı içi kamera (kapak görselli plane)
+    if (shouldPreferLiveCamera(ua) || profile.primaryExperience === "webxr") {
       setLiveCameraOpen(true);
       return;
     }
@@ -183,11 +227,16 @@ export default function ArViewerClient({
         await viewer.activateAR();
         return;
       } catch {
-        // canlı kamera yedeği
+        // platform fallback below
       }
     }
 
-    setLiveCameraOpen(true);
+    if (hasARModel) {
+      setLiveCameraOpen(true);
+      return;
+    }
+
+    window.open(glbUrl, "_blank", "noopener,noreferrer");
   };
 
   const showArButton = hasARModel && (arSupported || profile.platform === "android");
@@ -324,20 +373,24 @@ export default function ArViewerClient({
 
         {activeTab === "ar" && (
           <div className="p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2.5">
-            {/* 1. Canlı WebAR Kamerası Butonu - Evrensel (iPhone, Android, PC) */}
+            {/* Ana CTA: floor-locked WebAR — gerçek kapak görselli halı zeminde */}
             <button
               id="btn-live-webar-mobile"
               type="button"
-              onClick={() => setLiveCameraOpen(true)}
-              className="w-full py-3.5 px-4 text-sm font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"
+              onClick={() => {
+                trackEvent("AR_STARTED", merchantId, rugId);
+                setLiveCameraOpen(true);
+              }}
+              className="w-full py-4 px-6 text-sm font-semibold text-white shadow-lg flex items-center justify-center transition-all hover:brightness-110 active:scale-[0.98]"
+              style={{ backgroundColor: buttonColor, borderRadius: `${borderRadius}px` }}
             >
-              <svg className="w-5 h-5 flex-shrink-0 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span>🌐 Canlı WebAR Kamerası (Tüm Cihazlar & 3D Zemin)</span>
+              {buttonText}
             </button>
 
-            {/* 2. Sistem AR Butonu (Quick Look / Scene Viewer) */}
             {hasARModel && showArButton && (
               <button
                 id="btn-system-ar-mobile"
@@ -345,12 +398,12 @@ export default function ArViewerClient({
                 onClick={() => setIsModalOpen(true)}
                 className="w-full py-2.5 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition-all rounded-xl"
               >
-                <span>📱 Sistem AR ({profile.platform === "ios" ? "Apple Quick Look" : "Google ARCore"})</span>
+                Sistem AR ({profile.platform === "ios" ? "Quick Look" : "Scene Viewer"})
               </button>
             )}
 
             <p className="text-center text-[11px] text-zinc-500">
-              Uygulama yüklemeden tarayıcınızdan canlı kamera ve 3D zemin yerleşimi.
+              Telefonu yere tutun — halı gerçek ölçüde zemine oturur.
             </p>
           </div>
         )}
@@ -363,7 +416,7 @@ export default function ArViewerClient({
         <LiveCameraRugOverlay
           open={liveCameraOpen}
           onClose={() => setLiveCameraOpen(false)}
-          rugImageUrl={coverImage || posterUrl}
+          rugImageUrl={rugTextureUrl}
           rugName={name}
           widthCm={selectedSize.widthCm}
           lengthCm={selectedSize.lengthCm}
@@ -450,23 +503,26 @@ export default function ArViewerClient({
           </div>
         )}
 
-        {/* AR Butonları — AR sekmesinde */}
+        {/* Ana CTA: floor-locked WebAR + Sistem AR yedek */}
         {activeTab === "ar" && (
           <div className="space-y-2.5 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-            {/* 1. Canlı WebAR Kamerası Butonu - Evrensel (iPhone, Android, PC) */}
             <button
               id="btn-live-webar-desktop"
               type="button"
-              onClick={() => setLiveCameraOpen(true)}
-              className="w-full py-3.5 px-4 text-sm font-bold text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:brightness-110 active:scale-[0.98] rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600"
+              onClick={() => {
+                trackEvent("AR_STARTED", merchantId, rugId);
+                setLiveCameraOpen(true);
+              }}
+              className="w-full py-4 px-6 text-sm font-semibold text-white shadow-lg flex items-center justify-center transition-all hover:brightness-110 active:scale-[0.98]"
+              style={{ backgroundColor: buttonColor, borderRadius: `${borderRadius}px` }}
             >
-              <svg className="w-5 h-5 flex-shrink-0 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              <span>🌐 Canlı WebAR Kamerası (3D Zemin)</span>
+              {buttonText}
             </button>
 
-            {/* 2. Sistem AR Butonu (Quick Look / Scene Viewer) */}
             {hasARModel && showArButton && (
               <button
                 id="btn-system-ar-desktop"
@@ -474,12 +530,12 @@ export default function ArViewerClient({
                 onClick={() => setIsModalOpen(true)}
                 className="w-full py-2.5 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition-all rounded-xl"
               >
-                <span>📱 Sistem AR ({profile.platform === "ios" ? "Apple Quick Look" : "Google ARCore"})</span>
+                Sistem AR ({profile.platform === "ios" ? "Quick Look" : "Scene Viewer"})
               </button>
             )}
 
             <p className="text-[11px] text-zinc-500 leading-tight">
-              Tüm telefonlarda ve tarayıcılarda uygulama gerektirmeden çalışan yeni 3D kamera motoru.
+              Telefonu yere tutun — halı gerçek ölçüde zemine oturur.
             </p>
           </div>
         )}
@@ -499,7 +555,7 @@ export default function ArViewerClient({
         <LiveCameraRugOverlay
           open={liveCameraOpen}
           onClose={() => setLiveCameraOpen(false)}
-          rugImageUrl={coverImage || posterUrl}
+          rugImageUrl={rugTextureUrl}
           rugName={name}
           widthCm={selectedSize.widthCm}
           lengthCm={selectedSize.lengthCm}

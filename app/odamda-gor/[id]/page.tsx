@@ -70,12 +70,13 @@ export default async function OdamdaGorPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ embed?: string; mobile?: string }>;
+  searchParams: Promise<{ embed?: string; mobile?: string; live?: string }>;
 }) {
   const { id } = await params;
-  const { embed, mobile } = await searchParams;
+  const { embed, mobile, live } = await searchParams;
   const isMobile = mobile === "1" || mobile === "true";
   const isEmbed = embed === "1" || embed === "true" || isMobile;
+  const autoLiveCamera = live === "1" || live === "true";
 
   const rug = await getRugForViewer(id);
 
@@ -96,12 +97,20 @@ export default async function OdamdaGorPage({
     );
   }
 
-  // Prioritize new model fields if they exist, fallback to model3dUrl
-  const glbUrl = rug.modelGlbUrl || rug.model3dUrl || FALLBACK_MODEL_URL;
-  const usdzUrl = rug.modelUsdzUrl || (rug.model3dUrl ? buildIosSrc(rug.model3dUrl) : undefined);
+  // Prioritize new model fields if they exist, fallback to model3dUrl.
+  // GLB/USDZ always via same-origin proxy for Quick Look + Scene Viewer.
+  const sourceGlb = rug.modelGlbUrl || rug.model3dUrl || FALLBACK_MODEL_URL;
+  const glbUrl = buildViewerGlbSrc(sourceGlb);
+  const usdzUrl =
+    buildIosSrc(sourceGlb) ||
+    (rug.modelUsdzUrl
+      ? rug.modelUsdzUrl.startsWith("/models/")
+        ? `/api/v1/ar/usdz/${rug.modelUsdzUrl.split("/").pop()}`
+        : rug.modelUsdzUrl
+      : undefined);
   const posterUrl = rug.modelPosterUrl || rug.coverImage || "";
   const thicknessMm = rug.thicknessMm || 8;
-  const hasARModel = rug.hasARModel ?? !!rug.model3dUrl;
+  const hasARModel = rug.hasARModel ?? !!(rug.model3dUrl || rug.modelGlbUrl);
 
   const isFallbackModel = !rug.model3dUrl && !rug.modelGlbUrl;
   const buttonText = rug.merchant.widgetSettings?.buttonText || "HEMEN ODANDA GÖR";
@@ -129,6 +138,7 @@ export default async function OdamdaGorPage({
       borderRadius={borderRadius}
       embed={isEmbed}
       mobile={isMobile}
+      autoLiveCamera={autoLiveCamera}
     />
   );
 

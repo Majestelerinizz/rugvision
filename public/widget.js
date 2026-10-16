@@ -14,8 +14,9 @@
  *   data-button-text   Buton metni override
  *   data-button-color  Buton rengi override
  *
- * Tiklaninca baska sayfa veya AR uygulamasi acilmaz.
- * Kamera izni istenir ve yer ayni sayfada, tam ekran kamerayla cekilir.
+ * Tiklaninca floor-locked WebAR acilir (gercek hali kapak gorseli + zemin).
+ * Sistem AR (Quick Look / Scene Viewer) odamda-gor sayfasindan yedek olarak sunulur.
+ * Vercel / production base adresi data-base veya script origin ile gelir.
  */
 (function () {
   "use strict";
@@ -198,8 +199,17 @@
     };
   }
 
-  function mobileViewerUrl() {
-    return base + "/odamda-gor/" + encodeURIComponent(rugId) + "?mobile=1";
+  function mobileViewerUrl(liveCamera) {
+    var q = "?mobile=1";
+    if (liveCamera) q += "&live=1";
+    return base + "/odamda-gor/" + encodeURIComponent(rugId) + q;
+  }
+
+  function absoluteAssetUrl(url) {
+    if (!url) return "";
+    if (/^https?:\/\//i.test(url)) return url;
+    if (url.charAt(0) === "/") return base.replace(/\/$/, "") + url;
+    return base.replace(/\/$/, "") + "/" + url;
   }
 
   function sceneViewerIntentUrl(url, fallback) {
@@ -501,7 +511,7 @@
   }
 
   function openInChromeViewer() {
-    var pageUrl = mobileViewerUrl();
+    var pageUrl = mobileViewerUrl(true);
     var path = pageUrl.replace(/^https?:\/\//, "");
     var intent =
       "intent://" +
@@ -518,7 +528,7 @@
   }
 
   function openMobileViewer() {
-    navigateTo(mobileViewerUrl(), prefersMobileWebAr() && !isStockMiuiBrowser());
+    navigateTo(mobileViewerUrl(true), prefersMobileWebAr() && !isStockMiuiBrowser());
   }
 
   function openModal() {
@@ -742,8 +752,26 @@
 
   function handleClick(merchantId) {
     track("WIDGET_OPENED", merchantId);
-    track("AR_STARTED", merchantId);
-    openFloorCamera();
+    var profile = detectProfile();
+
+    // HyperOS varsayilan tarayici: once Chrome (kamera + WebAR icin).
+    if (profile.primary === "chrome-handoff") {
+      openInChromeViewer();
+      return;
+    }
+
+    // Tum telefonlar: floor-locked WebAR (gercek hali texture + zemin hizalama).
+    // Bu, Oct 2026 ileri motorudur (LiveCameraRugOverlay) — turuncu plane degil.
+    if (profile.platform === "android" || profile.platform === "ios") {
+      runArWithFloorScan(merchantId, function () {
+        track("AR_STARTED", merchantId);
+        navigateTo(mobileViewerUrl(true), prefersMobileWebAr() && !isStockMiuiBrowser());
+      });
+      return;
+    }
+
+    // Masaustu: 3D modal
+    openModal();
   }
 
   function buildButton(settings, merchantId) {
@@ -851,7 +879,7 @@
       .then(function (json) {
         var data = json && json.data ? json.data : {};
         if (!rugId && data.id) rugId = data.id;
-        if (data.coverImage) coverImageUrl = data.coverImage;
+        if (data.coverImage) coverImageUrl = absoluteAssetUrl(data.coverImage);
         if (data.dimensions && data.dimensions.widthCm) rugWidthM = data.dimensions.widthCm / 100;
         if (data.dimensions && data.dimensions.lengthCm) rugLengthM = data.dimensions.lengthCm / 100;
         if (!data.model3dUrl) {

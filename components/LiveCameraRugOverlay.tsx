@@ -15,6 +15,7 @@ import {
   type WebGLFloorSceneController,
 } from "@/lib/webgl-floor-scene";
 import { FloorOdometryTracker } from "@/lib/floor-odometry";
+import { detectFloorPlane, sampleBottomRegionStats } from "@/lib/ai-detection";
 import {
   RUG_SIZE_PRESETS,
   formatRugSize,
@@ -100,9 +101,13 @@ export default function LiveCameraRugOverlay({
   const floorAnchoredRef = useRef(false);
   const [floorAnchored, setFloorAnchored] = useState(false);
   const alignFramesRef = useRef(0);
+  const openStartedAtRef = useRef(0);
+  const floorSampleCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const lastFloorSampleRef = useRef(0);
+  const floorConfidenceRef = useRef(0);
   const fovAppliedRef = useRef(false);
-  const coachRef = useRef<"ayarla" | "eg">("ayarla");
-  const [coach, setCoach] = useState<"ayarla" | "eg">("ayarla");
+  const coachRef = useRef<"ayarla" | "eg" | "algila">("algila");
+  const [coach, setCoach] = useState<"ayarla" | "eg" | "algila">("algila");
   const activePointersRef = useRef<Map<number, PointerCoord>>(new Map());
   const pinchStartRef = useRef<{ dist: number; initialScale: number; initialRot: number; angle: number } | null>(null);
   const singleDragStartRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
@@ -123,15 +128,27 @@ export default function LiveCameraRugOverlay({
       setFloorAnchored(false);
       floorAnchoredRef.current = false;
       alignFramesRef.current = 0;
+      floorConfidenceRef.current = 0;
+      lastFloorSampleRef.current = 0;
       fovAppliedRef.current = false;
-      coachRef.current = "ayarla";
-      setCoach("ayarla");
+      coachRef.current = "algila";
+      setCoach("algila");
       orientationRef.current.hasOrientation = false;
       odometryTrackerRef.current = null;
       return;
     }
 
+    openStartedAtRef.current = performance.now();
     let cancelled = false;
+
+    // iOS: sensör iznini kamera ile birlikte iste (otomatik zemin hizası için).
+    void requestDeviceOrientationPermission().then((granted) => {
+      if (cancelled) return;
+      if (granted) {
+        setNeedsIosPermission(false);
+        setSensorActive(true);
+      }
+    });
 
     async function start() {
       if (typeof window !== "undefined" && window.location.protocol === "http:") {
@@ -235,10 +252,24 @@ export default function LiveCameraRugOverlay({
       sceneControllerRef.current = controller;
       floorAnchoredRef.current = false;
       alignFramesRef.current = 0;
+      floorConfidenceRef.current = 0;
       setFloorAnchored(false);
-      coachRef.current = "ayarla";
-      setCoach("ayarla");
+      coachRef.current = "algila";
+      setCoach("algila");
       setWebglActive(true);
+      // Sahne hazır olunca ürün ölçüsünde (cm) anında yerleştir — bekleme yok.
+      controller.updateDimensions(selectedSize.widthCm, selectedSize.lengthCm);
+      controller.setScale(1);
+      const placedNow = controller.autoPlaceOnFloor();
+      if (placedNow) {
+        floorAnchoredRef.current = true;
+        setFloorAnchored(true);
+        setScale(1);
+        setSnapshotFeedback(
+          `Halı yerde · ${selectedSize.widthCm}×${selectedSize.lengthCm} cm`
+        );
+        setTimeout(() => setSnapshotFeedback(null), 2200);
+      }
 
       const handleResize = () => {
         if (canvasRef.current && controller) {
@@ -361,29 +392,90 @@ export default function LiveCameraRugOverlay({
         if (!floorAnchoredRef.current) {
           sceneControllerRef.current.setRugVisible(false);
           sceneControllerRef.current.setScale(1);
+          sceneControllerRef.current.updateDimensions(
+            selectedSize.widthCm,
+            selectedSize.lengthCm
+          );
           const onFloor = sceneControllerRef.current.updateFloorGuide();
           const lookDown = orientationRef.current.pitch;
-          const nextCoach = lookDown >= 36 ? "eg" : "ayarla";
+          const elapsed = performance.now() - openStartedAtRef.current;
+
+          // Kameradan zemin bölgesi örnekle (otomatik algılama).
+          if (
+            video &&
+            video.readyState >= 2 &&
+            frameCounterRef.current - lastFloorSampleRef.current >= 8
+          ) {
+            lastFloorSampleRef.current = frameCounterRef.current;
+            try {
+              const sampleW = 96;
+              const sampleH = 72;
+              if (!floorSampleCanvasRef.current) {
+                floorSampleCanvasRef.current = document.createElement("canvas");
+              }
+              const sc = floorSampleCanvasRef.current;
+              sc.width = sampleW;
+              sc.height = sampleH;
+              const sctx = sc.getContext("2d", { willReadFrequently: true });
+              if (sctx) {
+                sctx.drawImage(video, 0, 0, sampleW, sampleH);
+                const pixels = sctx.getImageData(0, 0, sampleW, sampleH).data;
+                const stats = sampleBottomRegionStats(pixels, sampleW, sampleH);
+                const floorHit = detectFloorPlane({
+                  platform: typeof navigator !== "undefined" ? navigator.userAgent : "",
+                  hasGyroscope: orientationRef.current.hasOrientation,
+                  imageBottomLuma: stats.luma,
+                  imageBottomVariance: stats.variance,
+                });
+                floorConfidenceRef.current = floorHit.confidence;
+              }
+            } catch {
+              // örnekleme best-effort
+            }
+          }
+
+          const floorSeen = floorConfidenceRef.current >= 0.55;
+          const lookingDown = lookDown >= 34;
+          const noGyroFallback = !orientationRef.current.hasOrientation && elapsed > 350;
+          const readyToDrop =
+            (lookingDown && (onFloor || floorSeen)) ||
+            floorSeen ||
+            noGyroFallback ||
+            elapsed > 1200;
+
+          const nextCoach: "ayarla" | "eg" | "algila" = floorSeen
+            ? "algila"
+            : lookingDown
+              ? "eg"
+              : "ayarla";
           if (nextCoach !== coachRef.current) {
             coachRef.current = nextCoach;
             setCoach(nextCoach);
           }
-          if (lookDown >= 48 && onFloor) {
+
+          if (readyToDrop) {
             alignFramesRef.current += 1;
           } else {
             alignFramesRef.current = 0;
           }
-          if (alignFramesRef.current >= 18) {
-            const placed = sceneControllerRef.current.placeUnderCrosshair();
+
+          // ~4–6 kare (~70–100ms) sonra ürün ölçüsünde otomatik yerleştir.
+          if (alignFramesRef.current >= 4 || (floorSeen && alignFramesRef.current >= 2)) {
+            const placed = sceneControllerRef.current.autoPlaceOnFloor();
             if (placed) {
               floorAnchoredRef.current = true;
               setFloorAnchored(true);
               setScale(1);
+              setSnapshotFeedback(
+                `Halı algılandı · ${selectedSize.widthCm}×${selectedSize.lengthCm} cm`
+              );
+              setTimeout(() => setSnapshotFeedback(null), 2200);
             }
           }
         } else {
           sceneControllerRef.current.setRugVisible(true);
           sceneControllerRef.current.setGuideVisible(false);
+          // Boyut her zaman ürün cm ölçüsü (kullanıcı ölçek değiştirmediyse 1).
           sceneControllerRef.current.setScale(scale);
         }
         sceneControllerRef.current.setUserRotation(userRotation);
@@ -400,7 +492,16 @@ export default function LiveCameraRugOverlay({
       window.removeEventListener("deviceorientation", handleOrientation);
       cancelAnimationFrame(animFrameId);
     };
-  }, [open, manualTiltMode, scale, userRotation, odometryEnabled, ready]);
+  }, [
+    open,
+    manualTiltMode,
+    scale,
+    userRotation,
+    odometryEnabled,
+    ready,
+    selectedSize.widthCm,
+    selectedSize.lengthCm,
+  ]);
 
   // iOS İzin Talebi
   const handleEnableSensor = async () => {
@@ -416,20 +517,21 @@ export default function LiveCameraRugOverlay({
   // Ölçü Değiştirme
   const anchorRugToFloor = () => {
     odometryTrackerRef.current?.reset();
-    if (orientationRef.current.pitch < 48) {
-      setSnapshotFeedback("Telefonu yere doğru ayarla");
-      setTimeout(() => setSnapshotFeedback(null), 2200);
-      return;
-    }
+    sceneControllerRef.current?.updateDimensions(
+      selectedSize.widthCm,
+      selectedSize.lengthCm
+    );
     sceneControllerRef.current?.setScale(1);
-    const placed = sceneControllerRef.current?.placeUnderCrosshair() ?? false;
+    const placed = sceneControllerRef.current?.autoPlaceOnFloor() ?? false;
     if (placed) {
       floorAnchoredRef.current = true;
       setFloorAnchored(true);
       setScale(1);
-      setSnapshotFeedback("Halı yerde, gerçek ölçüde");
+      setSnapshotFeedback(
+        `Halı yerde · ${selectedSize.widthCm}×${selectedSize.lengthCm} cm`
+      );
     } else {
-      setSnapshotFeedback("Telefonu yere doğru ayarla");
+      setSnapshotFeedback("Zemin algılanamadı — tekrar dene");
     }
     setTimeout(() => setSnapshotFeedback(null), 2200);
   };
@@ -727,10 +829,15 @@ export default function LiveCameraRugOverlay({
         <div className="pointer-events-none absolute inset-x-6 top-[30%] z-40 text-center">
           <div className="mx-auto max-w-xs rounded-2xl bg-black/75 px-5 py-4 text-white shadow-2xl backdrop-blur-md">
             <p className="text-base font-bold">
-              {coach === "eg" ? "Biraz daha yere eğ" : "Telefonu yere doğru ayarla"}
+              {coach === "algila"
+                ? "Zemin algılanıyor…"
+                : coach === "eg"
+                  ? "Zemin bulundu — yerleştiriliyor"
+                  : "Telefonu yere doğru tut"}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-white/80">
-              Açı oturunca halı resim gibi durmaz. Yerde yatan halının ölçüsünde görünür.
+              Halı otomatik algılanıp {selectedSize.widthCm}×{selectedSize.lengthCm} cm
+              gerçek ölçüde zemine oturtulur.
             </p>
           </div>
         </div>
@@ -790,10 +897,12 @@ export default function LiveCameraRugOverlay({
 
           <p className="text-[11px] text-white/80 drop-shadow">
             {floorAnchored
-              ? "Halı yerde yatıyor. Sürükleyerek kaydırın"
-              : coach === "eg"
-                ? "Biraz daha yere eğ"
-                : "Telefonu yere doğru ayarla"}
+              ? `Yerde · ${selectedSize.widthCm}×${selectedSize.lengthCm} cm — sürükleyerek kaydırın`
+              : coach === "algila"
+                ? "Zemin otomatik algılanıyor…"
+                : coach === "eg"
+                  ? "Zemin bulundu — yerleştiriliyor"
+                  : "Telefonu yere doğru tut"}
           </p>
         </div>
 

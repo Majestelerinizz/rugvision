@@ -21,6 +21,8 @@ export interface WebGLFloorSceneController {
   updateOrientation: (pitchDeg: number, rollDeg: number) => void;
   updateDeviceOrientation: (alpha: number, beta: number, gamma: number, screenAngle?: number) => void;
   placeUnderCrosshair: () => boolean;
+  /** Zemin raycast veya varsayılan mesafe ile gerçek ölçüde yerleştir (scale=1). */
+  autoPlaceOnFloor: () => boolean;
   updateFloorGuide: () => boolean;
   setRugVisible: (visible: boolean) => void;
   setGuideVisible: (visible: boolean) => void;
@@ -216,10 +218,12 @@ function createContactShadowTexture(): THREE.CanvasTexture {
   const ctx = canvas.getContext("2d");
 
   if (ctx) {
-    const gradient = ctx.createRadialGradient(128, 128, 64, 128, 128, 128);
-    gradient.addColorStop(0, "rgba(0, 0, 0, 0.55)");
-    gradient.addColorStop(0.6, "rgba(0, 0, 0, 0.28)");
-    gradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+    // Yumuşak kontak gölgesi — yerdeki halıyla uyumlu, sert kenar yok
+    const gradient = ctx.createRadialGradient(128, 128, 40, 128, 128, 128);
+    gradient.addColorStop(0, "rgba(20, 14, 8, 0.42)");
+    gradient.addColorStop(0.45, "rgba(20, 14, 8, 0.22)");
+    gradient.addColorStop(0.78, "rgba(20, 14, 8, 0.08)");
+    gradient.addColorStop(1, "rgba(20, 14, 8, 0)");
 
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 256, 256);
@@ -262,20 +266,29 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
   camera.rotation.x = initialRot.pitchRad;
   camera.rotation.z = initialRot.rollRad;
 
-  // 3. Işıklandırma
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.95);
+  // 3. Işıklandırma — oda zeminiyle uyumlu, sert “sticker” hissi yok
+  const ambientLight = new THREE.AmbientLight(0xf5f0e8, 0.88);
   scene.add(ambientLight);
 
-  const sunLight = new THREE.DirectionalLight(0xfff8ee, 1.2);
-  sunLight.position.set(1.5, 4.0, 1.0);
+  const sunLight = new THREE.DirectionalLight(0xfff4e6, 0.95);
+  sunLight.position.set(1.2, 3.6, 0.8);
   scene.add(sunLight);
+
+  const fillLight = new THREE.DirectionalLight(0xe8eef5, 0.35);
+  fillLight.position.set(-1.4, 2.2, -0.6);
+  scene.add(fillLight);
 
   // 4. Halı Geometrisi & Materyali
   let currentDimensions = calculateRugMeshDimensions(widthCm, lengthCm);
-  let rugGeometry = new THREE.PlaneGeometry(currentDimensions.widthM, currentDimensions.lengthM);
+  let rugGeometry = new THREE.PlaneGeometry(
+    currentDimensions.widthM,
+    currentDimensions.lengthM,
+    1,
+    1
+  );
   rugGeometry.rotateX(-Math.PI / 2);
 
-  let rugMaterial: THREE.Material;
+  let rugMaterial: THREE.MeshStandardMaterial;
 
   if (rugImageUrl) {
     const textureLoader = new THREE.TextureLoader();
@@ -285,6 +298,8 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
       () => {
         rugTexture.colorSpace = THREE.SRGBColorSpace;
         rugTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        rugTexture.wrapS = THREE.ClampToEdgeWrapping;
+        rugTexture.wrapT = THREE.ClampToEdgeWrapping;
         rugTexture.needsUpdate = true;
       },
       undefined,
@@ -293,40 +308,53 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
 
     rugMaterial = new THREE.MeshStandardMaterial({
       map: rugTexture,
-      roughness: 0.85,
-      metalness: 0.05,
+      color: 0xffffff,
+      roughness: 0.92,
+      metalness: 0.0,
       side: THREE.DoubleSide,
+      // Zemine yapışık hissi; z-fighting yok
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
+      // Hafif çevresel karışım — fotoğraf gibi uçmaz
+      envMapIntensity: 0.15,
     });
   } else {
     rugMaterial = new THREE.MeshStandardMaterial({
       color: 0x965a28,
-      roughness: 0.9,
+      roughness: 0.95,
       metalness: 0.0,
       side: THREE.DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -1,
+      polygonOffsetUnits: -1,
     });
   }
 
   // Halı her zaman zemin düzleminde (Y≈0). Havada yükseltilmez.
   const rugGroup = new THREE.Group();
-  const RUG_FLOOR_Y = 0.004;
+  const RUG_FLOOR_Y = 0.0015;
   rugGroup.position.set(0, RUG_FLOOR_Y, -1.6);
   rugGroup.visible = false;
 
   const rugMesh = new THREE.Mesh(rugGeometry, rugMaterial);
   rugGroup.add(rugMesh);
 
-  // Kontak Gölgesi
+  // Kontak gölgesi — yerdeki halıyla yumuşak uyum
   const shadowTexture = createContactShadowTexture();
-  let shadowGeometry = new THREE.PlaneGeometry(currentDimensions.widthM * 1.15, currentDimensions.lengthM * 1.15);
+  let shadowGeometry = new THREE.PlaneGeometry(
+    currentDimensions.widthM * 1.08,
+    currentDimensions.lengthM * 1.08
+  );
   shadowGeometry.rotateX(-Math.PI / 2);
   const shadowMaterial = new THREE.MeshBasicMaterial({
     map: shadowTexture,
     transparent: true,
-    opacity: 0.5,
+    opacity: 0.38,
     depthWrite: false,
   });
   const shadowMesh = new THREE.Mesh(shadowGeometry, shadowMaterial);
-  shadowMesh.position.y = -0.002;
+  shadowMesh.position.y = -0.0008;
   rugGroup.add(shadowMesh);
 
   // 3D Zemin Gizmosu (Köşe Kılavuzları)
@@ -377,9 +405,16 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
       intersection.z - camera.position.z
     );
     // Çok yakın veya ufka yakın vuruş halıyı havada gibi gösterir.
-    if (dist < 0.4 || dist > 4.5) return false;
+    if (dist < 0.35 || dist > 5.5) return false;
 
     rugGroup.position.set(intersection.x, RUG_FLOOR_Y, intersection.z);
+    return true;
+  }
+
+  function commitFloorPlacement(): boolean {
+    rugGroup.scale.set(1, 1, 1);
+    rugGroup.visible = true;
+    guide.visible = false;
     return true;
   }
 
@@ -436,10 +471,34 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
     placeUnderCrosshair() {
       const placed = placeRugOnFloor(0, -0.2);
       if (!placed) return false;
-      rugGroup.scale.set(1, 1, 1);
-      rugGroup.visible = true;
-      guide.visible = false;
-      return true;
+      return commitFloorPlacement();
+    },
+
+    autoPlaceOnFloor() {
+      // Önce bakış noktasını dene; olmazsa ekranın alt-orta bölgesini tara.
+      const probes: Array<[number, number]> = [
+        [0, -0.2],
+        [0, -0.35],
+        [0, -0.5],
+        [-0.15, -0.25],
+        [0.15, -0.25],
+      ];
+      for (const [x, y] of probes) {
+        if (placeRugOnFloor(x, y)) return commitFloorPlacement();
+      }
+      // Son çare: kameranın önünde sabit zemin mesafesi (gerçek cm ölçü, scale=1).
+      const forward = new THREE.Vector3();
+      camera.getWorldDirection(forward);
+      forward.y = 0;
+      if (forward.lengthSq() < 1e-6) forward.set(0, 0, -1);
+      forward.normalize();
+      const dist = 1.55;
+      rugGroup.position.set(
+        camera.position.x + forward.x * dist,
+        RUG_FLOOR_Y,
+        camera.position.z + forward.z * dist
+      );
+      return commitFloorPlacement();
     },
 
     setRugPositionFromScreen(clientX: number, clientY: number, screenW: number, screenH: number): boolean {
