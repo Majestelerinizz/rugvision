@@ -475,28 +475,42 @@ export function initWebGLFloorScene(options: FloorSceneOptions): WebGLFloorScene
     },
 
     autoPlaceOnFloor() {
-      // Önce bakış noktasını dene; olmazsa ekranın alt-orta bölgesini tara.
-      const probes: Array<[number, number]> = [
-        [0, -0.2],
-        [0, -0.35],
-        [0, -0.5],
-        [-0.15, -0.25],
-        [0.15, -0.25],
-      ];
-      for (const [x, y] of probes) {
-        if (placeRugOnFloor(x, y)) return commitFloorPlacement();
-      }
-      // Son çare: kameranın önünde sabit zemin mesafesi (gerçek cm ölçü, scale=1).
+      // Elle sürükleme yok: telefon–halı mesafesi sabit (~1.9 m), zeminde dünya konumu.
+      const VIEW_DIST_M = 1.9;
+      camera.updateMatrixWorld(true);
+
       const forward = new THREE.Vector3();
       camera.getWorldDirection(forward);
-      forward.y = 0;
-      if (forward.lengthSq() < 1e-6) forward.set(0, 0, -1);
-      forward.normalize();
-      const dist = 1.55;
+      // Zemine yatay izdüşüm — halı kameranın önünde, telefona yapışık değil.
+      const flat = new THREE.Vector3(forward.x, 0, forward.z);
+      if (flat.lengthSq() < 1e-6) flat.set(0, 0, -1);
+      flat.normalize();
+
+      // Önce bakışın zemin kesişimi; mesafe çok yakınsa sabit VIEW_DIST kullan.
+      raycaster.setFromCamera(new THREE.Vector2(0, -0.28), camera);
+      const hit = new THREE.Vector3();
+      const intersected = raycaster.ray.intersectPlane(floorPlane, hit);
+      if (intersected) {
+        const dist = Math.hypot(hit.x - camera.position.x, hit.z - camera.position.z);
+        if (dist >= 1.2 && dist <= 3.2) {
+          // Biraz uzaklaştır: telefona yapışmasın, odada doğal mesafe.
+          const push = Math.max(VIEW_DIST_M, Math.min(2.4, dist));
+          const dirX = hit.x - camera.position.x;
+          const dirZ = hit.z - camera.position.z;
+          const len = Math.hypot(dirX, dirZ) || 1;
+          rugGroup.position.set(
+            camera.position.x + (dirX / len) * push,
+            RUG_FLOOR_Y,
+            camera.position.z + (dirZ / len) * push
+          );
+          return commitFloorPlacement();
+        }
+      }
+
       rugGroup.position.set(
-        camera.position.x + forward.x * dist,
+        camera.position.x + flat.x * VIEW_DIST_M,
         RUG_FLOOR_Y,
-        camera.position.z + forward.z * dist
+        camera.position.z + flat.z * VIEW_DIST_M
       );
       return commitFloorPlacement();
     },

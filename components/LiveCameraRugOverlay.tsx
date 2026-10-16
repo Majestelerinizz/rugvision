@@ -33,11 +33,6 @@ type Props = {
   buttonColor?: string;
 };
 
-interface PointerCoord {
-  x: number;
-  y: number;
-}
-
 /**
  * Three.js WebGL, Sensör Füzyonu, Odometri & 3D Gizmo Zemin AR Motoru (LiveCameraRugOverlay).
  * ARCore veya Scene Viewer gerektirmeden jiroskop, kamera, optik akış ve ölçü yönetimiyle çalışır.
@@ -73,8 +68,7 @@ export default function LiveCameraRugOverlay({
   const [showSizePicker, setShowSizePicker] = useState<boolean>(false);
   const [snapshotFeedback, setSnapshotFeedback] = useState<string | null>(null);
 
-  // Halı konumu ve boyutu (CSS fallback ve 3D scale için)
-  const [offset, setOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  // Ölçek sabit 1 = ürün cm ölçüsü (elle büyütme yok)
   const [scale, setScale] = useState<number>(1);
   const [userRotation, setUserRotation] = useState<number>(0);
 
@@ -108,9 +102,6 @@ export default function LiveCameraRugOverlay({
   const fovAppliedRef = useRef(false);
   const coachRef = useRef<"ayarla" | "eg" | "algila">("algila");
   const [coach, setCoach] = useState<"ayarla" | "eg" | "algila">("algila");
-  const activePointersRef = useRef<Map<number, PointerCoord>>(new Map());
-  const pinchStartRef = useRef<{ dist: number; initialScale: number; initialRot: number; angle: number } | null>(null);
-  const singleDragStartRef = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(null);
 
   const stopCamera = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -475,8 +466,8 @@ export default function LiveCameraRugOverlay({
         } else {
           sceneControllerRef.current.setRugVisible(true);
           sceneControllerRef.current.setGuideVisible(false);
-          // Boyut her zaman ürün cm ölçüsü (kullanıcı ölçek değiştirmediyse 1).
-          sceneControllerRef.current.setScale(scale);
+          // Gerçek ürün ölçüsü — elle büyütme/küçültme yok.
+          sceneControllerRef.current.setScale(1);
         }
         sceneControllerRef.current.setUserRotation(userRotation);
         sceneControllerRef.current.render();
@@ -617,113 +608,6 @@ export default function LiveCameraRugOverlay({
     }
   };
 
-  // 6. Dokunmatik Etkileşimler (Gizmo + Zemin Raycasting + İki Parmak Pinch/Rotate)
-  const onPointerDown = (e: React.PointerEvent) => {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-    // 3D Gizmo'yu görünür yap
-    if (sceneControllerRef.current) {
-      sceneControllerRef.current.setGizmoVisible(true);
-      if (gizmoTimeoutRef.current) clearTimeout(gizmoTimeoutRef.current);
-    }
-
-    if (activePointersRef.current.size === 1) {
-      singleDragStartRef.current = {
-        startX: e.clientX,
-        startY: e.clientY,
-        origX: offset.x,
-        origY: offset.y,
-      };
-      pinchStartRef.current = null;
-
-      if (sceneControllerRef.current) {
-        sceneControllerRef.current.setRugPositionFromScreen(
-          e.clientX,
-          e.clientY,
-          window.innerWidth,
-          window.innerHeight
-        );
-      }
-    } else if (activePointersRef.current.size === 2) {
-      const coords = Array.from(activePointersRef.current.values());
-      const dist = Math.hypot(coords[0].x - coords[1].x, coords[0].y - coords[1].y);
-      const angle = Math.atan2(coords[1].y - coords[0].y, coords[1].x - coords[0].x) * (180 / Math.PI);
-
-      pinchStartRef.current = {
-        dist,
-        initialScale: scale,
-        initialRot: userRotation,
-        angle,
-      };
-      singleDragStartRef.current = null;
-    }
-  };
-
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!activePointersRef.current.has(e.pointerId)) return;
-    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-
-    if (activePointersRef.current.size === 1) {
-      if (sceneControllerRef.current) {
-        sceneControllerRef.current.setRugPositionFromScreen(
-          e.clientX,
-          e.clientY,
-          window.innerWidth,
-          window.innerHeight
-        );
-      }
-
-      if (singleDragStartRef.current) {
-        const drag = singleDragStartRef.current;
-        setOffset({
-          x: drag.origX + (e.clientX - drag.startX),
-          y: drag.origY + (e.clientY - drag.startY),
-        });
-      }
-    } else if (activePointersRef.current.size === 2 && pinchStartRef.current) {
-      const coords = Array.from(activePointersRef.current.values());
-      const currentDist = Math.hypot(coords[0].x - coords[1].x, coords[0].y - coords[1].y);
-      const currentAngle = Math.atan2(coords[1].y - coords[0].y, coords[1].x - coords[0].x) * (180 / Math.PI);
-
-      const pinch = pinchStartRef.current;
-      if (pinch.dist > 10) {
-        const scaleDelta = currentDist / pinch.dist;
-        const newScale = Math.max(0.4, Math.min(2.8, Number((pinch.initialScale * scaleDelta).toFixed(2))));
-        setScale(newScale);
-
-        const angleDelta = currentAngle - pinch.angle;
-        setUserRotation(Math.round((pinch.initialRot + angleDelta) % 360));
-      }
-    }
-  };
-
-  const onPointerUp = (e: React.PointerEvent) => {
-    activePointersRef.current.delete(e.pointerId);
-
-    // Bıraktıktan 1.4 saniye sonra gizmo'yu yumuşakça gizle
-    if (sceneControllerRef.current) {
-      if (gizmoTimeoutRef.current) clearTimeout(gizmoTimeoutRef.current);
-      gizmoTimeoutRef.current = setTimeout(() => {
-        sceneControllerRef.current?.setGizmoVisible(false);
-      }, 1400);
-    }
-
-    if (activePointersRef.current.size === 0) {
-      singleDragStartRef.current = null;
-      pinchStartRef.current = null;
-    } else if (activePointersRef.current.size === 1) {
-      const remaining = Array.from(activePointersRef.current.values())[0];
-      singleDragStartRef.current = {
-        startX: remaining.x,
-        startY: remaining.y,
-        origX: offset.x,
-        origY: offset.y,
-      };
-      pinchStartRef.current = null;
-    }
-  };
-
   if (!open) return null;
 
   const aspect = selectedSize.widthCm > 0 && selectedSize.lengthCm > 0
@@ -755,36 +639,28 @@ export default function LiveCameraRugOverlay({
       {/* 2. Three.js Şeffaf WebGL Zemin Katmanı */}
       <canvas
         ref={canvasRef}
-        className={`absolute inset-0 h-full w-full z-10 touch-none cursor-grab active:cursor-grabbing ${
-          webglActive ? "opacity-100" : "opacity-0 pointer-events-none"
+        className={`absolute inset-0 h-full w-full z-10 pointer-events-none ${
+          webglActive ? "opacity-100" : "opacity-0"
         }`}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
       />
 
-      {/* 3. CSS Fallback Katmanı */}
+      {/* 3. CSS Fallback Katmanı — sürüklenmez, sabit görünüm */}
       {!webglActive && !error && floorAnchored && (
         <div
-          className="absolute left-1/2 bottom-[18%] z-10 touch-none cursor-grab active:cursor-grabbing will-change-transform"
+          className="absolute left-1/2 bottom-[18%] z-10 pointer-events-none will-change-transform"
           style={{
             width: `min(76vw, 320px)`,
             aspectRatio: `${aspect}`,
             transform: buildRugCssTransform({
-              offsetX: offset.x,
-              offsetY: offset.y,
-              scale,
+              offsetX: 0,
+              offsetY: 0,
+              scale: 1,
               pitchDeg: pitch,
               rollDeg: roll,
               userRotationDeg: userRotation,
             }),
             transformOrigin: "center bottom",
           }}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
         >
           <div className="relative h-full w-full">
             <div className="absolute -inset-2 -bottom-4 bg-black/40 blur-md rounded-lg pointer-events-none" />
@@ -836,8 +712,8 @@ export default function LiveCameraRugOverlay({
                   : "Telefonu yere doğru tut"}
             </p>
             <p className="mt-1 text-xs leading-relaxed text-white/80">
-              Halı otomatik algılanıp {selectedSize.widthCm}×{selectedSize.lengthCm} cm
-              gerçek ölçüde zemine oturtulur.
+              Elle sürükleme yok. Kamera yere bakınca halı ~2 m önde,
+              {selectedSize.widthCm}×{selectedSize.lengthCm} cm gerçek ölçüde oturur.
             </p>
           </div>
         </div>
@@ -897,7 +773,7 @@ export default function LiveCameraRugOverlay({
 
           <p className="text-[11px] text-white/80 drop-shadow">
             {floorAnchored
-              ? `Yerde · ${selectedSize.widthCm}×${selectedSize.lengthCm} cm — sürükleyerek kaydırın`
+              ? `Yerde sabit · ${selectedSize.widthCm}×${selectedSize.lengthCm} cm — telefonu gezdirerek bak`
               : coach === "algila"
                 ? "Zemin otomatik algılanıyor…"
                 : coach === "eg"
@@ -999,37 +875,19 @@ export default function LiveCameraRugOverlay({
           <span>📸 Paylaş</span>
         </button>
 
-        {/* Boyutlandırma Kontrolleri */}
-        <div className="flex items-center gap-1 bg-black/60 backdrop-blur-md border border-white/20 rounded-full px-1.5 py-0.5">
-          <button
-            type="button"
-            onClick={() => setScale((s) => Math.max(0.5, Number((s - 0.15).toFixed(2))))}
-            className="w-7 h-7 rounded-full text-white font-bold text-sm active:scale-95 transition-transform"
-            aria-label="Küçült"
-          >
-            -
-          </button>
-          <span className="text-[11px] font-mono text-white/90 min-w-[2.5ch] text-center">
-            {Math.round(scale * 100)}%
-          </span>
-          <button
-            type="button"
-            onClick={() => setScale((s) => Math.min(2.4, Number((s + 0.15).toFixed(2))))}
-            className="w-7 h-7 rounded-full text-white font-bold text-sm active:scale-95 transition-transform"
-            style={{ backgroundColor: buttonColor }}
-            aria-label="Büyüt"
-          >
-            +
-          </button>
-        </div>
-
-        {/* Ortala / Reset */}
+        {/* Yeniden algıla — elle kaydırma yok, sadece otomatik mesafe */}
         <button
           type="button"
-          onClick={anchorRugToFloor}
+          onClick={() => {
+            floorAnchoredRef.current = false;
+            setFloorAnchored(false);
+            alignFramesRef.current = 0;
+            setScale(1);
+            anchorRugToFloor();
+          }}
           className="rounded-full bg-white text-black px-3 py-2 text-xs font-bold active:scale-95 transition-transform"
         >
-          Zemine oturt
+          Yeniden yerleştir
         </button>
       </div>
     </div>
