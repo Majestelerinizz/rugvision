@@ -1,0 +1,16 @@
+<!--
+  savasdogantekstil.com/rugvision — product-detail.php
+  RugVision widget (Haziran 2026 akışı: önce zemin tara → Quick Look / Scene Viewer)
+
+  Canlıda zaten şu satır var; sadece cache kırmak için ?v= eklemen yeterli.
+  FTP: product-detail.php içindeki <script src="...widget.js"> bloğunu bununla değiştir.
+-->
+<script
+  src="https://rugvision-o54d.vercel.app/widget.js?v=20261016-floor"
+  data-merchant-id="cmqgswc5a000004lanqoxc666"
+  data-sku="<?= e($product['sku']) ?>"
+  data-target="[data-rugvision]"
+  data-button-text="Odanda Gör"
+  data-button-color="#b45309"
+  defer
+></script>

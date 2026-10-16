@@ -15,6 +15,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://rugvision-o54d.vercel.app" crossorigin>
+<link rel="preconnect" href="https://rugvision.vercel.app" crossorigin>
+<link rel="dns-prefetch" href="https://rugvision-o54d.vercel.app">
 
 <link rel="preload" href="/rugvision/assets/css/style.min.css" as="style">
 <link rel="stylesheet" href="/rugvision/assets/css/style.min.css">

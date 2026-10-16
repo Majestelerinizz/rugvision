@@ -40,9 +40,12 @@ pilot-site/
 
 ## RugVision (ayrı sistem)
 
-- Widget: `https://rugvision-o54d.vercel.app/widget.js`
+- Widget: `https://rugvision-o54d.vercel.app/widget.js` (Vercel — PHP’ye GLB yükleme yok)
 - Merchant ID: `cmqgswc5a000004lanqoxc666`
 - AR modeller: R2 CDN
+- **2026-10-16:** AR akışı Vercel’de güncellendi (önce zemin tara → Quick Look / Scene Viewer).
+  Pilot site widget’ı doğrudan Vercel’den çektiği için PHP tarafında ek deploy gerekmez.
+  Eski cache kalırsa: `snippets/product-detail-widget.html` → `?v=20261016-floor` ile FTP.
 
 ## Opsiyonel (yapılmadı)
 
