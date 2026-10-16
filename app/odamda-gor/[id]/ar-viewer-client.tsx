@@ -120,12 +120,13 @@ export default function ArViewerClient({
   borderRadius,
   embed = false,
   mobile = false,
-  autoLiveCamera = false,
+  autoLiveCamera: _autoLiveCamera = false,
 }: Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [arSupported, setArSupported] = useState(true);
-  const [liveCameraOpen, setLiveCameraOpen] = useState(autoLiveCamera);
+  const [liveCameraOpen, setLiveCameraOpen] = useState(false);
+  const [floorScanning, setFloorScanning] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("ar");
   const [selectedSize, setSelectedSize] = useState<RugSize>({
     label: `${widthCm}×${lengthCm}`,
@@ -149,13 +150,6 @@ export default function ArViewerClient({
     setIsMounted(true);
     trackEvent("VIEW_3D", merchantId, rugId);
   }, [merchantId, rugId]);
-
-  useEffect(() => {
-    if (autoLiveCamera) {
-      setLiveCameraOpen(true);
-      trackEvent("AR_STARTED", merchantId, rugId);
-    }
-  }, [autoLiveCamera, merchantId, rugId]);
 
   /** Kapak görseli mutlak URL — WebAR texture yüklemesi için (turuncu fallback önlenir) */
   const rugTextureUrl = useMemo(() => {
@@ -184,14 +178,20 @@ export default function ArViewerClient({
     const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
 
     trackEvent("AR_STARTED", merchantId, rugId);
-    // Xiaomi'de ön tarama kamerayı kilitliyor; canlı AR/overlay'den önce alma.
-    await runPreArFloorScans({
-      merchantId,
-      rugId,
-      vendor: profile.vendor,
-      maxWaitMs: 750,
-      skipCamera: true,
-    });
+
+    // Haziran 2026: önce kamera zemin tarar, sonra halı / native AR
+    setFloorScanning(true);
+    try {
+      await runPreArFloorScans({
+        merchantId,
+        rugId,
+        vendor: profile.vendor,
+        maxWaitMs: 900,
+        skipCamera: false,
+      });
+    } finally {
+      setFloorScanning(false);
+    }
 
     // iPhone / iPad → Apple Quick Look (gerçek USDZ, otomatik zemin)
     if (profile.primaryExperience === "quick-look" && usdzUrl) {
@@ -212,7 +212,7 @@ export default function ArViewerClient({
       return;
     }
 
-    // Xiaomi / ARCore yok → tarayıcı içi kamera (kapak görselli plane)
+    // Xiaomi / ARCore yok → yedek canlı kamera (son çare)
     if (shouldPreferLiveCamera(ua) || profile.primaryExperience === "webxr") {
       setLiveCameraOpen(true);
       return;
@@ -229,11 +229,6 @@ export default function ArViewerClient({
       } catch {
         // platform fallback below
       }
-    }
-
-    if (hasARModel) {
-      setLiveCameraOpen(true);
-      return;
     }
 
     window.open(glbUrl, "_blank", "noopener,noreferrer");
@@ -371,40 +366,35 @@ export default function ArViewerClient({
           </div>
         )}
 
-        {activeTab === "ar" && (
+        {activeTab === "ar" && hasARModel && showArButton && (
           <div className="p-4 bg-white dark:bg-zinc-950 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-2.5">
-            {/* Ana CTA: floor-locked WebAR — gerçek kapak görselli halı zeminde */}
+            {/* Haziran 2026: önce zemin tara → sonra Quick Look / Scene Viewer */}
             <button
-              id="btn-live-webar-mobile"
+              id="btn-odamda-gor-mobile"
               type="button"
-              onClick={() => {
-                trackEvent("AR_STARTED", merchantId, rugId);
-                setLiveCameraOpen(true);
-              }}
-              className="w-full py-4 px-6 text-sm font-semibold text-white shadow-lg flex items-center justify-center transition-all hover:brightness-110 active:scale-[0.98]"
+              disabled={floorScanning}
+              onClick={() => setIsModalOpen(true)}
+              className="w-full py-4 px-6 text-sm font-semibold text-white shadow-lg flex items-center justify-center transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-70"
               style={{ backgroundColor: buttonColor, borderRadius: `${borderRadius}px` }}
             >
               <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              {buttonText}
+              {floorScanning ? "Zemin taranıyor…" : buttonText}
             </button>
 
-            {hasARModel && showArButton && (
-              <button
-                id="btn-system-ar-mobile"
-                type="button"
-                onClick={() => setIsModalOpen(true)}
-                className="w-full py-2.5 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition-all rounded-xl"
-              >
-                Sistem AR ({profile.platform === "ios" ? "Quick Look" : "Scene Viewer"})
-              </button>
-            )}
-
             <p className="text-center text-[11px] text-zinc-500">
-              Telefonu yere tutun — halı gerçek ölçüde zemine oturur.
+              Önce kamera zemini algılar, sonra halı gerçek ölçüde gelir.
             </p>
+          </div>
+        )}
+
+        {floorScanning && (
+          <div className="fixed inset-0 z-[11000] flex flex-col items-center justify-center bg-black/70 text-white gap-3">
+            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm font-semibold">Zemin algılanıyor…</p>
+            <p className="text-xs text-white/70">Halı henüz gelmedi — tarama bitince yerleşecek</p>
           </div>
         )}
 
@@ -503,39 +493,26 @@ export default function ArViewerClient({
           </div>
         )}
 
-        {/* Ana CTA: floor-locked WebAR + Sistem AR yedek */}
-        {activeTab === "ar" && (
+        {/* Haziran 2026: önce zemin tara → sonra native AR */}
+        {activeTab === "ar" && hasARModel && showArButton && (
           <div className="space-y-2.5 pt-4 border-t border-zinc-100 dark:border-zinc-800">
             <button
-              id="btn-live-webar-desktop"
+              id="btn-odamda-gor-desktop"
               type="button"
-              onClick={() => {
-                trackEvent("AR_STARTED", merchantId, rugId);
-                setLiveCameraOpen(true);
-              }}
-              className="w-full py-4 px-6 text-sm font-semibold text-white shadow-lg flex items-center justify-center transition-all hover:brightness-110 active:scale-[0.98]"
+              disabled={floorScanning}
+              onClick={() => setIsModalOpen(true)}
+              className="w-full py-4 px-6 text-sm font-semibold text-white shadow-lg flex items-center justify-center transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-70"
               style={{ backgroundColor: buttonColor, borderRadius: `${borderRadius}px` }}
             >
               <svg className="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              {buttonText}
+              {floorScanning ? "Zemin taranıyor…" : buttonText}
             </button>
 
-            {hasARModel && showArButton && (
-              <button
-                id="btn-system-ar-desktop"
-                type="button"
-                onClick={() => setIsModalOpen(true)}
-                className="w-full py-2.5 px-4 text-xs font-semibold text-zinc-700 dark:text-zinc-300 border border-zinc-300 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-center transition-all rounded-xl"
-              >
-                Sistem AR ({profile.platform === "ios" ? "Quick Look" : "Scene Viewer"})
-              </button>
-            )}
-
             <p className="text-[11px] text-zinc-500 leading-tight">
-              Telefonu yere tutun — halı gerçek ölçüde zemine oturur.
+              Önce kamera zemini algılar, sonra halı gerçek ölçüde gelir.
             </p>
           </div>
         )}
@@ -544,6 +521,14 @@ export default function ArViewerClient({
         {activeTab === "photo" && (
           <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-500 leading-relaxed">
             💡 Oda fotoğrafınıza halıyı perspektifle yerleştirin, ardından indirin veya paylaşın.
+          </div>
+        )}
+
+        {floorScanning && (
+          <div className="fixed inset-0 z-[11000] flex flex-col items-center justify-center bg-black/70 text-white gap-3">
+            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm font-semibold">Zemin algılanıyor…</p>
+            <p className="text-xs text-white/70">Halı henüz gelmedi — tarama bitince yerleşecek</p>
           </div>
         )}
 

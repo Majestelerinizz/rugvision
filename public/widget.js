@@ -14,9 +14,9 @@
  *   data-button-text   Buton metni override
  *   data-button-color  Buton rengi override
  *
- * Tiklaninca floor-locked WebAR acilir (gercek hali kapak gorseli + zemin).
- * Sistem AR (Quick Look / Scene Viewer) odamda-gor sayfasindan yedek olarak sunulur.
- * Vercel / production base adresi data-base veya script origin ile gelir.
+ * Haziran 2026 akisi: once kamera zemin tarar (AI zemin v1), sonra
+ * iOS Quick Look / Android Scene Viewer ile gercek hali zemine gelir.
+ * Vercel / production base: data-base veya script origin.
  */
 (function () {
   "use strict";
@@ -511,7 +511,7 @@
   }
 
   function openInChromeViewer() {
-    var pageUrl = mobileViewerUrl(true);
+    var pageUrl = mobileViewerUrl(false);
     var path = pageUrl.replace(/^https?:\/\//, "");
     var intent =
       "intent://" +
@@ -528,7 +528,7 @@
   }
 
   function openMobileViewer() {
-    navigateTo(mobileViewerUrl(true), prefersMobileWebAr() && !isStockMiuiBrowser());
+    navigateTo(mobileViewerUrl(false), prefersMobileWebAr() && !isStockMiuiBrowser());
   }
 
   function openModal() {
@@ -754,23 +754,43 @@
     track("WIDGET_OPENED", merchantId);
     var profile = detectProfile();
 
-    // HyperOS varsayilan tarayici: once Chrome (kamera + WebAR icin).
-    if (profile.primary === "chrome-handoff") {
-      openInChromeViewer();
-      return;
-    }
-
-    // Tum telefonlar: floor-locked WebAR (gercek hali texture + zemin hizalama).
-    // Bu, Oct 2026 ileri motorudur (LiveCameraRugOverlay) — turuncu plane degil.
-    if (profile.platform === "android" || profile.platform === "ios") {
+    // 1) iPhone / iPad — once zemin tara, sonra Quick Look (gercek USDZ)
+    if (profile.primary === "quick-look" && usdzUrl) {
       runArWithFloorScan(merchantId, function () {
-        track("AR_STARTED", merchantId);
-        navigateTo(mobileViewerUrl(true), prefersMobileWebAr() && !isStockMiuiBrowser());
+        openQuickLook();
       });
       return;
     }
 
-    // Masaustu: 3D modal
+    // 2) HyperOS varsayilan tarayici → Chrome
+    if (profile.primary === "chrome-handoff") {
+      runArWithFloorScan(merchantId, function () {
+        openInChromeViewer();
+      });
+      return;
+    }
+
+    // 3) Samsung / Pixel / GMS — once zemin tara, sonra Scene Viewer (gercek GLB)
+    if (profile.primary === "scene-viewer" && glbUrl) {
+      runArWithFloorScan(merchantId, function () {
+        openSceneViewer();
+      });
+      return;
+    }
+
+    // 4) Xiaomi WebXR vb. — zemin tarasi sonra mobil AR sayfasi (live degil)
+    if (profile.primary === "webxr") {
+      runArWithFloorScan(merchantId, function () {
+        navigateTo(mobileViewerUrl(false), true);
+      });
+      return;
+    }
+
+    if (profile.platform === "android" || profile.platform === "ios") {
+      openMobileViewer();
+      return;
+    }
+
     openModal();
   }
 
