@@ -142,9 +142,9 @@ export const DEVICE_MATRIX: DeviceMatrixEntry[] = [
     userAgent:
       "Mozilla/5.0 (Linux; Android 14; Redmi Note 12 Build/TKQ1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36",
     expectedPrimary: "webxr",
-    expectedSupportsNativeAr: true,
+    expectedSupportsNativeAr: false,
     expectedWidgetAction: "webxr",
-    note: "Xiaomi Chrome: WebXR kamera tarayıcıda (Scene Viewer HyperOS'ta düşer)",
+    note: "Xiaomi Chrome: Universal WebAR only — Scene Viewer/Google app blocked",
   },
   {
     id: "redmi-note-12-miui",
@@ -165,12 +165,13 @@ export const DEVICE_MATRIX: DeviceMatrixEntry[] = [
     brand: "Xiaomi",
     model: "POCO X5",
     browser: "Chrome",
+    // UA'da marka görünsün diye POCO eklendi — HyperOS cihazlarda Scene Viewer yok
     userAgent:
-      "Mozilla/5.0 (Linux; Android 13; 22111317PG Build/TKQ1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36",
+      "Mozilla/5.0 (Linux; Android 13; POCO X5 22111317PG Build/TKQ1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36",
     expectedPrimary: "webxr",
-    expectedSupportsNativeAr: true,
+    expectedSupportsNativeAr: false,
     expectedWidgetAction: "webxr",
-    note: "Xiaomi Chrome: WebXR kamera tarayıcıda",
+    note: "POCO/Xiaomi Chrome: Universal WebAR only — no Google app intent",
   },
   {
     id: "oppo-reno-chrome",
