@@ -10,6 +10,7 @@ import {
   resolveSceneViewerLaunchUrl,
   arModesForProfile,
   buildChromeIntentUrl,
+  shouldDisableModelViewerAr,
 } from "@/lib/device-ar";
 import { buildViewerGlbSrc, buildIosSrc } from "@/lib/model-urls";
 
@@ -61,6 +62,8 @@ export default function RugARViewer({
   const ua = typeof navigator !== "undefined" ? navigator.userAgent : "";
   const isMobile = profile.platform === "ios" || profile.platform === "android";
   const arModes = arModesForProfile(profile);
+  // Xiaomi/HyperOS: model-viewer AR kapalı — Scene Viewer Google app'e atar
+  const disableNativeMvAr = shouldDisableModelViewerAr(ua);
 
   // Fallback viewer sources mapped to proxy API to prevent CORS issues
   const viewerGlbSrc = useMemo(() => buildViewerGlbSrc(glbUrl), [glbUrl]);
@@ -133,14 +136,17 @@ export default function RugARViewer({
       return;
     }
 
+    // Xiaomi / HyperOS: Chrome veya Google app'e ATLAMA.
+    // Universal WebAR / LiveCamera üst bileşende açılır; burada sadece WebXR dene.
     if (shouldBlockNativeAr(currentUa)) {
-      const intentUrl = buildChromeIntentUrl(window.location.href);
-      const anchor = document.createElement("a");
-      anchor.href = intentUrl;
-      anchor.style.display = "none";
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
+      if (viewer && typeof viewer.activateAR === "function") {
+        try {
+          await viewer.activateAR();
+          return;
+        } catch {
+          /* parent LiveCamera / Universal WebAR kullanır */
+        }
+      }
       return;
     }
 
@@ -252,10 +258,9 @@ export default function RugARViewer({
             {...(viewerUsdzSrc ? { "ios-src": viewerUsdzSrc } : {})}
             poster={posterUrl}
             alt={`${productName} 3D halı modeli`}
-            ar
-            ar-modes={arModes}
-            ar-placement="floor"
-            ar-scale="fixed"
+            {...(disableNativeMvAr
+              ? {}
+              : { ar: true, "ar-modes": arModes, "ar-placement": "floor", "ar-scale": "fixed" })}
             scale={modelScale}
             camera-controls
             xr-environment

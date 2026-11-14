@@ -224,17 +224,8 @@ export default function ArViewerClient({
       return;
     }
 
-    if (mode === "chrome-handoff") {
-      openInChrome(
-        new URL(
-          `${window.location.pathname}?mobile=1&live=1`,
-          window.location.origin
-        ).toString()
-      );
-      return;
-    }
-
-    // Xiaomi / Huawei / OPPO / diğer → iPhone benzeri Universal WebAR
+    // chrome-handoff bilerek yok: Xiaomi'de başka uygulamaya atlama.
+    // Xiaomi / Huawei / OPPO / diğer → iPhone benzeri Universal WebAR (aynı tarayıcı)
     setLiveCameraOpen(true);
   };
 

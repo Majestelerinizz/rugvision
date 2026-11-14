@@ -23,9 +23,9 @@ export function resolveArLaunchMode(ua: string, hasUsdz: boolean): ArLaunchMode 
     return "quick-look";
   }
 
-  // HyperOS varsayılan tarayıcı: Chrome'a göndermek yerine aynı tarayıcıda
-  // Universal WebAR açılabilir; Chrome handoff opsiyonel kalır.
-  if (shouldBlockNativeAr(ua)) {
+  // Xiaomi / HyperOS / MIUI: ASLA Scene Viewer / Chrome handoff —
+  // Google app intent'e düşmesin; aynı tarayıcıda Universal WebAR.
+  if (shouldBlockNativeAr(ua) || profile.vendor === "xiaomi") {
     return "universal-webar";
   }
 

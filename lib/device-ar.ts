@@ -271,9 +271,14 @@ export function buildSceneViewerHttpsUrl(glbUrl: string) {
   );
 }
 
-/** Sadece HyperOS varsayilan tarayicida native AR engelle (Chrome'da izin ver). */
+/**
+ * Xiaomi / Redmi / POCO / HyperOS: Scene Viewer intent Google app'e
+ * (com.google.android.googlequicksearchbox) atar ve deneyim bozulur.
+ * Tum Xiaomi ailesinde native Scene Viewer engellenir.
+ */
 export function shouldBlockNativeAr(ua: string): boolean {
-  return isStockMiuiBrowser(ua);
+  if (isStockMiuiBrowser(ua)) return true;
+  return detectVendor(ua) === "xiaomi";
 }
 
 /** Android'de model-viewer activateAR yerine Scene Viewer intent (Samsung / Pixel). */
@@ -313,11 +318,20 @@ export function buildChromeIntentUrl(pageUrl: string) {
 
 export function arModesForProfile(profile: ArDeviceProfile) {
   if (profile.platform === "ios") {
-    return "quick-look webxr scene-viewer";
+    return "quick-look webxr";
   }
+  // Xiaomi / Huawei / OPPO vb. (webxr primary): Scene Viewer ASLA ekleme.
+  // model-viewer scene-viewer yedeği Google app intent'ine düşer.
   if (profile.platform === "android" && profile.primaryExperience === "webxr") {
-    // WebXR önce: kamera Chrome içinde açılır. Scene Viewer yedek.
-    return "webxr scene-viewer";
+    return "webxr";
   }
-  return "scene-viewer";
+  if (profile.vendor === "xiaomi") {
+    return "webxr";
+  }
+  return "scene-viewer webxr";
+}
+
+/** model-viewer yerleşik AR butonunu kapat (Xiaomi Google-app tuzağı). */
+export function shouldDisableModelViewerAr(ua: string): boolean {
+  return shouldBlockNativeAr(ua) || prefersMobileWebAr(ua);
 }

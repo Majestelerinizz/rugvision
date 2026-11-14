@@ -88,10 +88,11 @@ describe("device-ar", () => {
     const p = parseUserAgent(ua);
     assert.equal(p.vendor, "xiaomi");
     assert.equal(p.primaryExperience, "webxr");
-    assert.equal(shouldBlockNativeAr(ua), false);
+    // Xiaomi'de Scene Viewer / Google app intent tamamen kapalı
+    assert.equal(shouldBlockNativeAr(ua), true);
     assert.equal(shouldUseSceneViewerIntent(ua), false);
     assert.equal(shouldPreferLiveCamera(ua), true);
-    assert.equal(arModesForProfile(p), "webxr scene-viewer");
+    assert.equal(arModesForProfile(p), "webxr");
   });
 
   it("Redmi MiuiBrowser prefers Universal WebAR in-place", () => {
