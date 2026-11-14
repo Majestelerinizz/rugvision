@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 56" fill="none" role="img" aria-label="RugVision Hal1 Concept">
+  <title>RugVision Hal1 Concept</title>
+  <!-- Mark -->
+  <g transform="translate(2,2)">
+    <path
+      d="M26 2c8.5-1.2 18.2 1.4 23.4 8.2 4.8 6.3 5.6 15.2 3.1 22.4-2.7 7.8-10.1 14.2-18.6 15.6-8.2 1.4-17.4-1.1-22.8-7.4C6.2 34.8 4.4 26.6 6.2 19.2 8.1 10.8 16.4 3.4 26 2Z"
+      stroke="#1A1A17"
+      stroke-width="1.6"
+      fill="#F7F4EC"
+    />
+    <!-- subtle weave lines -->
+    <g stroke="#C4A35A" stroke-width="0.55" opacity="0.35">
+      <path d="M14 16h24M12 22h28M13 28h26M15 34h22" />
+      <path d="M20 12v28M26 11v30M32 12v28" />
+    </g>
+    <text
+      x="26"
+      y="34"
+      text-anchor="middle"
+      font-family="Georgia, 'Playfair Display', serif"
+      font-size="26"
+      font-weight="600"
+      fill="#C4A35A"
+    >R</text>
+  </g>
+  <!-- Wordmark -->
+  <g transform="translate(62,10)">
+    <text
+      x="0"
+      y="20"
+      font-family="Georgia, 'Playfair Display', serif"
+      font-size="24"
+      font-weight="600"
+      fill="#1A1A17"
+      letter-spacing="-0.4"
+    >RugVision</text>
+    <text
+      x="1"
+      y="36"
+      font-family="'DM Sans', 'Segoe UI', sans-serif"
+      font-size="8.5"
+      font-weight="600"
+      fill="#6B6960"
+      letter-spacing="3.2"
+    >HALI CONCEPT</text>
+  </g>
+</svg>
