@@ -2,15 +2,15 @@
 <html lang="tr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Odanda Gör — RugVision Halı Concept</title>
-    <meta name="description" content="Halınızı satın almadan önce odanızda deneyimleyin." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Odanda Gör VR / AR — RugVision Halı Concept</title>
+    <meta name="description" content="Halınızı VR/AR ile odanızda gerçek ölçüde görün. iPhone Quick Look, Android Scene Viewer ve Universal WebAR." />
     <style id="boot-critical">
       html{background:#f4f2ec;margin:0}
       body{margin:0;background:#f4f2ec;opacity:0;visibility:hidden}
       html.is-ready body{opacity:1;visibility:visible;transition:opacity .2s ease}
     </style>
-        <link rel="icon" type="image/jpeg" href="/logo-mark.jpg" />
+    <link rel="icon" type="image/jpeg" href="/logo-mark.jpg" />
     <link rel="apple-touch-icon" href="/logo-mark.jpg" />
     <link rel="stylesheet" href="/src/styles/main.css" />
     <script>setTimeout(function(){document.documentElement.classList.add("is-ready")},1200);</script>
@@ -20,7 +20,7 @@
       <div class="announcement-marquee">
         <div class="announcement-marquee-track">
           <div class="announcement-marquee-group">
-            <span>Odanda Gör · RugVision teknolojisi</span>
+            <span>Odanda Gör · VR / AR gerçek ölçü</span>
             <span class="announcement-dot"></span>
             <a href="./products.html">Koleksiyona dön</a>
             <span class="announcement-dot"></span>
@@ -28,7 +28,7 @@
             <span class="announcement-dot"></span>
           </div>
           <div class="announcement-marquee-group" aria-hidden="true">
-            <span>Odanda Gör · RugVision teknolojisi</span>
+            <span>Odanda Gör · VR / AR gerçek ölçü</span>
             <span class="announcement-dot"></span>
             <a href="./products.html">Koleksiyona dön</a>
             <span class="announcement-dot"></span>
@@ -87,33 +87,84 @@
     <main>
       <div class="wrap page-shell" data-odanda>
         <header class="page-hero reveal">
-          <p class="kicker">Odanda Gör</p>
-          <h1>Halınızı odanızda görün.</h1>
-          <p>Seçtiğiniz haliyi yaşam alanınızda deneyimleyin. Ölçü, renk ve mobilya uyumunu satın almadan önce test edin.</p>
+          <p class="kicker">Odanda Gör · VR / AR</p>
+          <h1 data-odanda-name>Halınızı odanızda görün.</h1>
+          <p data-odanda-meta>Gerçek ölçüde 3D, sistem AR ve canlı kamera WebAR.</p>
         </header>
 
-        <div class="odanda-stage reveal">
-          <div class="odanda-room" aria-hidden="true">
-            <img class="odanda-rug" data-odanda-img src="" alt="" />
-          </div>
-          <div>
-            <p class="kicker">Seçili ürün</p>
-            <h2 data-odanda-name style="font-family: var(--serif); font-weight: 500; margin: 0.35rem 0 1rem; font-size: clamp(1.4rem, 4vw, 1.8rem); line-height: 1.15"></h2>
-            <label style="display: grid; gap: 0.4rem; font-size: 0.9rem; margin-bottom: 1rem">
-              Halı değiştir
-              <select data-odanda-select style="border: 1px solid var(--line); border-radius: 4px; padding: 0.8rem; font: inherit; background: #fff"></select>
-            </label>
-            <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.55; margin: 0 0 1.25rem">
-              Bu ekran, RugVision “Odanda Gör” deneyiminin sade önizlemesidir. Telefonda kamera ile gerçek odanıza yerleştirme için canlı uygulamayı kullanın.
-            </p>
-            <div class="detail-actions">
-              <a class="btn-ink" href="./products.html">Başka hali seç</a>
-              <a class="btn-outline" href="./contact.html">Danışmanlık al</a>
+        <div class="odanda-ar reveal">
+          <div class="odanda-ar-main">
+            <div class="odanda-tabs" role="tablist" aria-label="Görüntüleme modu">
+              <button type="button" class="odanda-tab is-active" data-odanda-tab="ar" role="tab">3D / AR Gör</button>
+              <button type="button" class="odanda-tab" data-odanda-tab="photo" role="tab">Fotoğrafta Gör</button>
+            </div>
+
+            <div data-odanda-panel="ar">
+              <div class="odanda-viewer" data-odanda-viewer></div>
+              <p class="odanda-hint" data-odanda-hint></p>
+            </div>
+
+            <div data-odanda-panel="photo" hidden>
+              <div class="photo-placer">
+                <div class="photo-empty" data-photo-empty>
+                  <p>Oda fotoğrafı seçin; halıyı köşelerden sürükleyerek zemine oturtun.</p>
+                  <button type="button" class="btn-ink" data-photo-pick>Fotoğraf seç / çek</button>
+                </div>
+                <div class="photo-stage" data-photo-stage></div>
+                <input type="file" accept="image/*" capture="environment" data-photo-file hidden />
+                <div class="photo-actions">
+                  <button type="button" class="btn-outline" data-photo-pick>Yeni fotoğraf</button>
+                  <button type="button" class="btn-ink" data-photo-download disabled>İndir</button>
+                  <button type="button" class="btn-outline" data-photo-share disabled>Paylaş</button>
+                </div>
+              </div>
             </div>
           </div>
+
+          <aside class="odanda-ar-side">
+            <p class="kicker">Ürün</p>
+            <label class="odanda-field">
+              Halı
+              <select data-odanda-select></select>
+            </label>
+            <label class="odanda-field">
+              Ölçü
+              <select data-odanda-size></select>
+            </label>
+            <button type="button" class="btn-ink odanda-launch" data-odanda-launch>
+              <span data-odanda-launch-label>VR / AR Başlat</span>
+            </button>
+            <ul class="odanda-points">
+              <li>iPhone: Quick Look (USDZ)</li>
+              <li>Samsung / Pixel: Scene Viewer (GLB)</li>
+              <li>Diğer telefonlar: Universal WebAR kamera</li>
+              <li>Masaüstü: 3D önizleme + fotoğrafta yerleştirme</li>
+            </ul>
+            <a class="btn-outline" href="./products.html">Koleksiyona dön</a>
+          </aside>
         </div>
       </div>
     </main>
+
+    <!-- Universal WebAR fullscreen shell -->
+    <div class="webar-shell" data-webar-shell hidden>
+      <video data-webar-video autoplay playsinline muted></video>
+      <canvas data-webar-canvas></canvas>
+      <button type="button" class="webar-close" data-webar-close>Kapat</button>
+      <div class="webar-controls">
+        <label>Boyut <input type="range" min="0.5" max="3.5" step="0.05" value="1.6" data-webar-scale /></label>
+        <label>Döndür <input type="range" min="0" max="360" step="1" value="0" data-webar-rotate /></label>
+        <label>Eğim <input type="range" min="1" max="6" step="0.1" value="3" data-webar-tilt /></label>
+        <div class="webar-control-row">
+          <button type="button" data-webar-sensor hidden>Jiroskop</button>
+          <button type="button" data-webar-reset>Sıfırla</button>
+        </div>
+      </div>
+      <div class="webar-error" data-webar-error hidden>
+        <p data-webar-error-text></p>
+        <button type="button" data-webar-error-close>Tamam</button>
+      </div>
+    </div>
 
     <footer class="site-footer">
       <div class="wrap footer-grid">

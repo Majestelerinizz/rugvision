@@ -1,6 +1,7 @@
 import "../styles/main.css";
 import { products, categories, productCard, formatPrice } from "./data.js";
 import { initDrawer } from "./drawer.js";
+import { initOdandaViewer } from "./ar/odanda.js";
 
 /* Reveal page only after CSS module is applied — kills FOUC flash */
 document.documentElement.classList.add("is-ready");
@@ -144,7 +145,8 @@ if (detail) {
         </p>
         <div class="detail-actions">
           <button class="btn-ink" type="button" data-add="${p.id}">Sepete Ekle</button>
-          <a class="btn-outline" href="./odanda-gor.html?id=${p.id}">Odanda Gör</a>
+          <a class="btn-ink" href="./odanda-gor.html?id=${p.id}">VR / AR Odanda Gör</a>
+          <a class="btn-outline" href="./odanda-gor.html?id=${p.id}&live=1">Canlı kamera</a>
         </div>
       </div>
     </div>`;
@@ -152,23 +154,16 @@ if (detail) {
   bindCart();
 }
 
-/* Odanda Gör page */
+/* Odanda Gör — full VR/AR viewer */
 const odanda = document.querySelector("[data-odanda]");
 if (odanda) {
   const id = Number(new URLSearchParams(location.search).get("id") || 10);
   const p = products.find((x) => x.id === id) || products[0];
-  odanda.querySelector("[data-odanda-name]").textContent = p.name;
-  odanda.querySelector("[data-odanda-img]").src = p.img;
-  odanda.querySelector("[data-odanda-img]").alt = p.name;
-  const select = odanda.querySelector("[data-odanda-select]");
-  if (select) {
-    select.innerHTML = products
-      .map((x) => `<option value="${x.id}" ${x.id === p.id ? "selected" : ""}>${x.name}</option>`)
-      .join("");
-    select.addEventListener("change", () => {
-      location.href = `./odanda-gor.html?id=${select.value}`;
-    });
-  }
+  initOdandaViewer(odanda, p, products).catch((err) => {
+    console.error(err);
+    const meta = odanda.querySelector("[data-odanda-meta]");
+    if (meta) meta.textContent = "AR görüntüleyici yüklenemedi. Sayfayı yenileyin.";
+  });
 }
 
 function bindCart() {

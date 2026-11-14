@@ -1,4 +1,4 @@
-export const BASE = "https://rugvision-app.web.app";
+export const BASE = "";
 
 export const products = [
   {
@@ -15,7 +15,12 @@ export const products = [
     material: "Pamuk",
     weave: "Makine Dokuma",
     area: "Koridor, Mutfak",
-    img: `${BASE}/assets/images/products/RV-NARIN-010.png`,
+    sku: "RV-NARIN-010",
+    widthCm: 80,
+    lengthCm: 200,
+    glb: `/models/RV-NARIN-010.glb`,
+    usdz: `/models/RV-NARIN-010.usdz`,
+    img: `/assets/images/products/RV-NARIN-010.png`,
   },
   {
     id: 9,
@@ -30,7 +35,12 @@ export const products = [
     material: "Polipropilen",
     weave: "Makine Dokuma",
     area: "Salon",
-    img: `${BASE}/assets/images/products/RV-LIVA-009.png`,
+    sku: "RV-LIVA-009",
+    widthCm: 160,
+    lengthCm: 230,
+    glb: `/models/RV-LIVA-009.glb`,
+    usdz: `/models/RV-LIVA-009.usdz`,
+    img: `/assets/images/products/RV-LIVA-009.png`,
   },
   {
     id: 8,
@@ -46,7 +56,12 @@ export const products = [
     material: "Yün Karışımı",
     weave: "Makine Dokuma",
     area: "Salon, Oturma Odası",
-    img: `${BASE}/assets/images/products/RV-VERONA-008.png`,
+    sku: "RV-VERONA-008",
+    widthCm: 200,
+    lengthCm: 290,
+    glb: `/models/RV-VERONA-008.glb`,
+    usdz: `/models/RV-VERONA-008.usdz`,
+    img: `/assets/images/products/RV-VERONA-008.png`,
   },
   {
     id: 7,
@@ -61,7 +76,12 @@ export const products = [
     material: "Jüt / Pamuk",
     weave: "El Dokuma",
     area: "Salon",
-    img: `${BASE}/assets/images/products/RV-ELARA-007.png`,
+    sku: "RV-ELARA-007",
+    widthCm: 200,
+    lengthCm: 300,
+    glb: `/models/RV-ELARA-007.glb`,
+    usdz: `/models/RV-ELARA-007.usdz`,
+    img: `/assets/images/products/RV-ELARA-007.png`,
   },
   {
     id: 6,
@@ -77,7 +97,12 @@ export const products = [
     material: "Yün Karışımı",
     weave: "Makine Dokuma",
     area: "Salon",
-    img: `${BASE}/assets/images/products/RV-SAFIR-006.png`,
+    sku: "RV-SAFIR-006",
+    widthCm: 200,
+    lengthCm: 300,
+    glb: `/models/RV-SAFIR-006.glb`,
+    usdz: `/models/RV-SAFIR-006.usdz`,
+    img: `/assets/images/products/RV-SAFIR-006.png`,
   },
   {
     id: 5,
@@ -93,7 +118,12 @@ export const products = [
     material: "Polyester",
     weave: "Makine Dokuma",
     area: "Yatak Odası",
-    img: `${BASE}/assets/images/products/RV-MIRA-005.png`,
+    sku: "RV-MIRA-005",
+    widthCm: 160,
+    lengthCm: 230,
+    glb: `/models/RV-MIRA-005.glb`,
+    usdz: `/models/RV-MIRA-005.usdz`,
+    img: `/assets/images/products/RV-MIRA-005.png`,
   },
   {
     id: 4,
@@ -108,7 +138,12 @@ export const products = [
     material: "Polipropilen",
     weave: "Makine Dokuma",
     area: "Oturma Odası, Çalışma Odası",
-    img: `${BASE}/assets/images/products/RV-NOVA-004.png`,
+    sku: "RV-NOVA-004",
+    widthCm: 160,
+    lengthCm: 230,
+    glb: `/models/RV-NOVA-004.glb`,
+    usdz: `/models/RV-NOVA-004.usdz`,
+    img: `/assets/images/products/RV-NOVA-004.png`,
   },
   {
     id: 3,
@@ -124,19 +159,24 @@ export const products = [
     material: "Jüt / Pamuk",
     weave: "El Dokuma",
     area: "Salon",
-    img: `${BASE}/assets/images/products/RV-ARYA-003.png`,
+    sku: "RV-ARYA-003",
+    widthCm: 200,
+    lengthCm: 290,
+    glb: `/models/RV-ARYA-003.glb`,
+    usdz: `/models/RV-ARYA-003.usdz`,
+    img: `/assets/images/products/RV-ARYA-003.png`,
   },
 ];
 
 export const categories = [
-  { id: "salon-halilari", name: "Salon Halıları", img: `${BASE}/assets/images/products/RV-SAFIR-006.png` },
-  { id: "yatak-odasi-halilari", name: "Yatak Odası Halıları", img: `${BASE}/assets/images/products/RV-MIRA-005.png` },
-  { id: "koridor-halilari", name: "Koridor Halıları", img: `${BASE}/assets/images/products/RV-NARIN-010.png` },
-  { id: "modern-halilar", name: "Modern Halılar", img: `${BASE}/assets/images/products/RV-LIVA-009.png` },
-  { id: "klasik-halilar", name: "Klasik Halılar", img: `${BASE}/assets/images/products/RV-VERONA-008.png` },
-  { id: "dogal-dokulu-halilar", name: "Doğal Dokulu Halılar", img: `${BASE}/assets/images/products/RV-ELARA-007.png` },
-  { id: "cocuk-odasi-halilari", name: "Çocuk Odası Halıları", img: `${BASE}/assets/images/products/RV-NOVA-004.png` },
-  { id: "yolluklar", name: "Yolluklar", img: `${BASE}/assets/images/products/RV-NARIN-010.png` },
+  { id: "salon-halilari", name: "Salon Halıları", img: `/assets/images/products/RV-SAFIR-006.png` },
+  { id: "yatak-odasi-halilari", name: "Yatak Odası Halıları", img: `/assets/images/products/RV-MIRA-005.png` },
+  { id: "koridor-halilari", name: "Koridor Halıları", img: `/assets/images/products/RV-NARIN-010.png` },
+  { id: "modern-halilar", name: "Modern Halılar", img: `/assets/images/products/RV-LIVA-009.png` },
+  { id: "klasik-halilar", name: "Klasik Halılar", img: `/assets/images/products/RV-VERONA-008.png` },
+  { id: "dogal-dokulu-halilar", name: "Doğal Dokulu Halılar", img: `/assets/images/products/RV-ELARA-007.png` },
+  { id: "cocuk-odasi-halilari", name: "Çocuk Odası Halıları", img: `/assets/images/products/RV-NOVA-004.png` },
+  { id: "yolluklar", name: "Yolluklar", img: `/assets/images/products/RV-NARIN-010.png` },
 ];
 
 export const formatPrice = (n) =>
@@ -149,24 +189,23 @@ export function productCard(p) {
       return `<span class="badge badge-${b}">${map[b] || b}</span>`;
     })
     .join("");
-  const old = p.oldPrice
-    ? `<s>${formatPrice(p.oldPrice)}</s>`
-    : "";
+
   return `
   <article class="rv-card reveal">
     <a class="rv-card-media" href="./product.html?id=${p.id}">
-      <img src="${p.img}" alt="${p.name}" loading="lazy" width="640" height="800" />
+      <img src="${p.img}" alt="${p.name}" loading="lazy" width="600" height="600" />
       <div class="badge-row">${badges}</div>
     </a>
-    <div class="rv-card-body">
-      <p>${p.catLabel}</p>
-      <h3><a href="./product.html?id=${p.id}">${p.name}</a></h3>
-      <div class="price-row"><strong>${formatPrice(p.price)}</strong>${old}</div>
-      <div class="rv-card-actions">
-        <button type="button" class="btn-ink btn-sm" data-add="${p.id}">Sepete Ekle</button>
-        <a class="link-arrow" href="./product.html?id=${p.id}">Detay</a>
-        <a class="link-odanda" href="./odanda-gor.html?id=${p.id}">Odanda Gör</a>
-      </div>
+    <p>${p.catLabel}</p>
+    <h3><a href="./product.html?id=${p.id}">${p.name}</a></h3>
+    <div class="price-row">
+      <strong>${formatPrice(p.price)}</strong>
+      ${p.oldPrice ? `<s>${formatPrice(p.oldPrice)}</s>` : ""}
+    </div>
+    <div class="rv-card-actions">
+      <button class="btn-ink" type="button" data-add="${p.id}">Sepete Ekle</button>
+      <a class="link-arrow" href="./product.html?id=${p.id}">Detay</a>
+      <a class="link-odanda" href="./odanda-gor.html?id=${p.id}">VR / AR</a>
     </div>
   </article>`;
 }
