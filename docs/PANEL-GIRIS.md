@@ -11,6 +11,9 @@ Canlı panel: https://rugvision.vercel.app/panel
 |-----|---------|-------|-------------|
 | **Demo** (normal mağaza) | `demo@rugvision.app` | `Demo2026Rv!` | `cmwi2o7u5000008jkqalcl68f` |
 | **Pilot** (yönetici mağaza) | `pilot@rugvision.app` | `Pilot2026Rv!` | `cmwi2o8k6000408jko3ygfwg0` |
+| **Savaş Doğan Tekstil** | `yonetici@rugvision.app` | `Yonetici2026Rv!` | `cmwi4h4mm000008l6raprl490` |
+
+`savas@rugvision.com` kayıtlı ama eski şifre drift — sıfırlama: `POST /api/v1/auth/set-password` (kurtarma anahtarı 17.11.2026’ya kadar).
 
 Aynı e-posta/şifre e-ticaret sitesinde de geçerli:
 - Site admin (Pilot): https://rugvision-app.web.app/admin.html  
