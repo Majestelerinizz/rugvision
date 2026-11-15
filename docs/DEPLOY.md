@@ -21,11 +21,12 @@
 | **AR doğrulama** | iPhone 12 Quick Look + R2 CDN ✅ |
 | **Modeller** | R2 `models/RV-*.glb` + `.usdz` (git `public/models/` yedek) |
 
-**Demo merchant:** `demo@ornek.com` / `Test12345!` (Demo Mağaza)
+**Aktif panel hesapları (doğrulanmış):** bkz. `docs/PANEL-GIRIS.md`  
+- Demo: `demo@rugvision.app` / `Demo2026Rv!`  
+- Pilot: `pilot@rugvision.app` / `Pilot2026Rv!`  
 
-**Pilot merchant:** `savas@rugvision.com` / `Savas2026!` (Savas Dogan Tekstil)  
-**Pilot site:** https://savasdogantekstil.com/rugvision/  
-**Pilot kurulum:** `docs/PILOT-ECOMMERCE.md`
+Eski seed (`demo@ornek.com`, `savas@rugvision.com`) production’da şifre drift olabilir — kullanma.  
+**Pilot site:** https://savasdogantekstil.com/rugvision/ · `docs/PILOT-ECOMMERCE.md`
 
 ---
 
