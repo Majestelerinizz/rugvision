@@ -7,11 +7,7 @@ import { parseJsonBody } from "@/lib/validation";
 import { enforceRateLimit } from "@/lib/rate-limit";
 import { clientIp } from "@/lib/http";
 
-/**
- * Acil şifre set.
- * 1) PASSWORD_BOOTSTRAP_KEY env (kalıcı yöntem), veya
- * 2) Kısa süreli tek-email kurtarma (savas@, 2026-11-17’ye kadar)
- */
+/** Acil şifre set — sadece Vercel env PASSWORD_BOOTSTRAP_KEY ile. */
 const schema = z.object({
   email: z.string().email().max(254),
   newPassword: z
@@ -23,28 +19,22 @@ const schema = z.object({
   bootstrapKey: z.string().min(16).max(200),
 });
 
-const RECOVERY_UNTIL = Date.parse("2026-11-17T23:59:59Z");
-const RECOVERY_EMAIL = "savas@rugvision.com";
-const RECOVERY_KEY = "RvSavasReset-2026-11-15-Panel";
-
 export async function POST(request: NextRequest) {
   try {
     enforceRateLimit(`set-pass:${clientIp(request)}`, 3, 10 * 60 * 1000);
-    const { email, newPassword, bootstrapKey } = await parseJsonBody(request, schema);
-    const normalized = email.toLowerCase();
-
-    const envKey = process.env.PASSWORD_BOOTSTRAP_KEY || "";
-    const envOk = envKey.length >= 16 && bootstrapKey === envKey;
-    const recoveryOk =
-      Date.now() <= RECOVERY_UNTIL &&
-      normalized === RECOVERY_EMAIL &&
-      bootstrapKey === RECOVERY_KEY;
-
-    if (!envOk && !recoveryOk) {
-      throw new HttpError("UNAUTHORIZED", "Gecersiz bootstrap anahtari veya sure doldu.");
+    const expected = process.env.PASSWORD_BOOTSTRAP_KEY || "";
+    if (!expected || expected.length < 16) {
+      throw new HttpError("FORBIDDEN", "Sifre bootstrap kapali.");
     }
 
-    const user = await prisma.user.findUnique({ where: { email: normalized } });
+    const { email, newPassword, bootstrapKey } = await parseJsonBody(request, schema);
+    if (bootstrapKey !== expected) {
+      throw new HttpError("UNAUTHORIZED", "Gecersiz bootstrap anahtari.");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
     if (!user) {
       throw new HttpError("NOT_FOUND", "Kullanici bulunamadi.");
     }
@@ -58,7 +48,7 @@ export async function POST(request: NextRequest) {
     return apiOk({
       ok: true,
       email: user.email,
-      message: "Sifre guncellendi.",
+      message: "Sifre guncellendi. Bootstrap anahtarini Vercel env'den silin.",
     });
   } catch (error) {
     return toErrorResponse(error);

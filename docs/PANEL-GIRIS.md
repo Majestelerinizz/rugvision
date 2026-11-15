@@ -2,43 +2,29 @@
 
 Canlı panel: https://rugvision.vercel.app/panel
 
-> Eski `demo@ornek.com` / `savas@…` hesapları production DB’de şifre uyuşmazlığı verebilir
-> (`Geçersiz kimlik bilgileri`). Aşağıdaki **yeni** hesapları kullan.
-
-## Hesaplar (2026-11-15 — doğrulanmış login)
+## Hesaplar (doğrulanmış)
 
 | Rol | E-posta | Şifre | Merchant ID |
 |-----|---------|-------|-------------|
-| **Demo** (normal mağaza) | `demo@rugvision.app` | `Demo2026Rv!` | `cmwi2o7u5000008jkqalcl68f` |
-| **Pilot** (yönetici mağaza) | `pilot@rugvision.app` | `Pilot2026Rv!` | `cmwi2o8k6000408jko3ygfwg0` |
-| **Savaş Doğan Tekstil** | `yonetici@rugvision.app` | `Yonetici2026Rv!` | `cmwi4h4mm000008l6raprl490` |
+| **Savaş / Pilot mağaza** | `savas@rugvision.com` | `SavasPanel2026!` | `cmqgswc5a000004lanqoxc666` |
+| **Demo** (normal) | `demo@rugvision.app` | `Demo2026Rv!` | `cmwi2o7u5000008jkqalcl68f` |
+| **Pilot** (yedek) | `pilot@rugvision.app` | `Pilot2026Rv!` | `cmwi2o8k6000408jko3ygfwg0` |
+| **Yönetici yedek** | `yonetici@rugvision.app` | `Yonetici2026Rv!` | `cmwi4h4mm000008l6raprl490` |
 
-`savas@rugvision.com` kayıtlı ama eski şifre drift — sıfırlama: `POST /api/v1/auth/set-password` (kurtarma anahtarı 17.11.2026’ya kadar).
+E-ticaret admin (Firebase): `pilot@rugvision.app` / aynı şifre → https://rugvision-app.web.app/admin.html
 
-Aynı e-posta/şifre e-ticaret sitesinde de geçerli:
-- Site admin (Pilot): https://rugvision-app.web.app/admin.html  
-- Site müşteri/normal (Demo): https://rugvision-app.web.app/login.html  
+## Embed
 
-## Embed kodu alma
-
-1. https://rugvision.vercel.app/panel → Demo veya Pilot ile giriş  
-2. Halı seç (yoksa yükle)  
-3. **Embed** kutusundaki `<script>` kodunu kopyala  
-
-Örnek (kendi merchant id’n ile):
+1. Panele giriş  
+2. Halı seç  
+3. Embed `<script>` kopyala  
 
 ```html
 <script
   src="https://rugvision.vercel.app/widget.js"
-  data-merchant-id="cmwi2o8k6000408jko3ygfwg0"
+  data-merchant-id="cmqgswc5a000004lanqoxc666"
   data-sku="RV-LUNA-001"
   data-target=".add-to-cart"
   defer
 ></script>
 ```
-
-Pilot merchant için hazır snippet listesi: `data/embed-snippets.html` (eski pilot id ile; panelden taze kopya al).
-
-## Widget davranışı
-
-- iPhone → Quick Look · Samsung/Pixel → Scene Viewer · Xiaomi → Universal WebAR
