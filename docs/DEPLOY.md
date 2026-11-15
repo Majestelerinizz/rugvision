@@ -9,9 +9,10 @@
 
 | Bilgi | Değer |
 |-------|--------|
-| **Site** | https://rugvision-o54d.vercel.app |
-| **Panel** | https://rugvision-o54d.vercel.app/panel |
-| **Health** | https://rugvision-o54d.vercel.app/api/v1/health |
+| **Site** | https://rugvision.vercel.app |
+| **Panel** | https://rugvision.vercel.app/panel |
+| **Health** | https://rugvision.vercel.app/api/v1/health |
+| **Eski alias** | https://rugvision-o54d.vercel.app (aynı proje) |
 | **Veritabanı** | Neon PostgreSQL 16 (proje: `rugvision`) |
 | **Hosting** | Vercel (GitHub: `Majestelerinizz/rugvision`, branch `main`) |
 | **Model CDN** | Cloudflare R2 — `https://pub-692fed61add14fdca565fa5967c47df1.r2.dev` |

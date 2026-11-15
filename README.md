@@ -20,6 +20,8 @@ E-ticaret sitelerine eklenen **tek satır widget kodu** ile müşterilerinizin, 
 | **SaaS Yönetim Paneli** | [rugvision.vercel.app/panel](https://rugvision.vercel.app/panel) | Halı yönetimi, analitik, embed kodu üretici, model yükleme |
 | **Pilot E-Ticaret Entegrasyonu** | [savasdogantekstil.com/rugvision](https://savasdogantekstil.com/rugvision/product-detail.php?id=3) | Savaş Doğan Tekstil pilot mağaza tek satır widget testi |
 
+**Panel giriş + embed:** [`docs/PANEL-GIRIS.md`](docs/PANEL-GIRIS.md) · Demo: `demo@ornek.com` / `Test12345!`
+
 ---
 
 ## 🚀 Yeni: Evrensel Tarayıcı İçi WebAR Motoru (Universal In-Browser WebAR)
